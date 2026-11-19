@@ -1,0 +1,79 @@
+{
+  "organization": "Forge Institute",
+  "summary": "Forge Institute is a 501(c)(3) nonprofit based in Little Rock, Arkansas, serving the energy sector. Core competencies are program management, project management, and grant application and administration, with some intelligence capability (ET-ISAC). Forge connects sectors that normally struggle to connect: it brings national lab and university expertise (Idaho National Laboratory, PNNL, UALR, UAF) to industry, especially rural and municipal electric utilities. In a typical award Forge applies, administers the grant, promotes participation, and manages the project, while a lab or university is the subrecipient or subcontractor that provides the technical content.",
+  "identity": {
+    "entityType": "501(c)(3) nonprofit",
+    "location": "Little Rock, Arkansas",
+    "serviceArea": "Arkansas, the broader central U.S., and national programs delivered virtually",
+    "epscorState": true
+  },
+  "capabilities": [
+    "Program and project management",
+    "Grant application, administration, and compliance",
+    "Cross-sector convening: national labs and universities to industry and utilities",
+    "ET-ISAC (Emerging Threat Information Sharing and Analysis Center): threat intelligence reports and briefings",
+    "Memberships: E-ISAC and MS-ISAC",
+    "OT/ICS cybersecurity training",
+    "Energy-sector workforce development",
+    "Startup accelerator programming"
+  ],
+  "partners": [
+    "Idaho National Laboratory (INL)",
+    "Pacific Northwest National Laboratory (PNNL)",
+    "University of Arkansas at Little Rock (UALR)",
+    "University of Arkansas at Fayetteville (UAF)",
+    "Arkansas rural electric cooperatives and municipal utilities"
+  ],
+  "trackRecord": [
+    "Prior DOE CESER (Office of Cybersecurity, Energy Security, and Emergency Response) awards"
+  ],
+  "goodFit": [
+    "Forge can lead or prime as a 501(c)(3) and subcontract technical work to a lab or university",
+    "Cybersecurity, AI, data analytics, machine learning, or other IT, where Forge connects industry to academia or labs",
+    "Critical infrastructure protection for small, rural, and municipal electric utilities",
+    "Energy-sector training and workforce development",
+    "Technology transfer, technology testing with end users, accelerators, and public-private partnerships",
+    "Intermediary, technical-assistance, or consortium-coordinator roles"
+  ],
+  "poorFit": [
+    "Basic or investigator-driven research that needs a tenure-track PI",
+    "Programs only institutions of higher education, individuals, or for-profit businesses can apply to",
+    "Construction, hardware procurement, facilities, or commodity contracts",
+    "K-12-only or graduate-education-only programs with no energy, cyber, or workforce angle",
+    "Invitation-only foundation programs"
+  ],
+  "decisionCriteria": {
+    "noCashMatchPreferred": true,
+    "indirectCostsRequired": true,
+    "operatingExpensesPreferred": true,
+    "mustBeEligibleAsLeadApplicant": true,
+    "openSolicitationOnly": true
+  },
+  "searchKeywords": [
+    "cybersecurity critical infrastructure",
+    "energy sector workforce development",
+    "operational technology industrial control systems",
+    "electric utility cybersecurity",
+    "rural electric cooperative",
+    "information sharing analysis center",
+    "technology commercialization",
+    "public private partnership",
+    "artificial intelligence energy",
+    "cybersecurity workforce training",
+    "technology transfer national laboratory",
+    "accelerator",
+    "grid security",
+    "innovation"
+  ],
+  "federalAgencies": [
+    { "id": "DOE", "name": "Department of Energy", "grantsGovPrefixes": ["DOE", "PAMS"], "url": "https://www.energy.gov/funding-financing" },
+    { "id": "EDA", "name": "Economic Development Administration", "grantsGovPrefixes": ["DOC-EDA"], "url": "https://www.eda.gov/funding/funding-opportunities" },
+    { "id": "USDA", "name": "U.S. Department of Agriculture", "grantsGovPrefixes": ["USDA"], "url": "https://www.rd.usda.gov/programs-services" },
+    { "id": "DRA", "name": "Delta Regional Authority", "grantsGovPrefixes": ["DRA"], "url": "https://dra.gov/funding-programs/" },
+    { "id": "DOL", "name": "Department of Labor", "grantsGovPrefixes": ["DOL"], "url": "https://www.dol.gov/grants" },
+    { "id": "NSF", "name": "National Science Foundation", "grantsGovPrefixes": ["NSF"], "url": "https://www.nsf.gov/funding" },
+    { "id": "DHS", "name": "Department of Homeland Security", "grantsGovPrefixes": ["DHS"], "url": "https://www.dhs.gov/dhs-grants" },
+    { "id": "DOD", "name": "Department of Defense", "grantsGovPrefixes": ["DOD"], "url": "https://www.grants.gov/search-grants?agencies=DOD" }
+  ],
+  "internalReviewLeadDays": 14
+}

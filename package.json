@@ -1,0 +1,31 @@
+{
+  "name": "forge-grants-dashboard",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Forge Institute grant discovery, fit scoring, and go/no-go decision dashboard",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "tsc --noEmit",
+    "test": "vitest run",
+    "scan": "tsx --env-file-if-exists=.env.local scripts/scan.mts"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "1.5.0",
+    "next": "16.4.5",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "zod": "4.6.7"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "4.3.4",
+    "@types/node": "22.19.1",
+    "@types/react": "19.2.7",
+    "@types/react-dom": "19.2.3",
+    "tailwindcss": "4.3.4",
+    "tsx": "^4.23.15",
+    "typescript": "5.9.3",
+    "vitest": "4.1.12"
+  }
+}
