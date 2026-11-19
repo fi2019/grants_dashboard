@@ -184,6 +184,21 @@ td .meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; color:
 .picker li button { width: 100%; text-align: left; background: none; color: var(--fg); display: flex; gap: 6px; align-items: center; padding: 5px 6px }
 .picker li button:hover { background: var(--surface-2) }
 .picker img { width: 20px; height: 20px; border-radius: 50% }
+.revenue { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); align-items: start }
+.revenue .k { min-height: 2.6em }
+.revenue .k { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted) }
+.revenue .v { font: 600 26px/1.2 var(--mono); font-variant-numeric: tabular-nums }
+.revenue .v.lead { color: var(--good) }
+.revenue .s { font-size: 12px; color: var(--muted) }
+.hist { list-style: none; margin: 0; padding: 0 }
+.hist li { display: grid; gap: 4px; padding: 10px 0; border-top: 1px solid var(--line); font-size: 14px; min-width: 0 }
+.hist li:first-child { border-top: 0 }
+.hist .when { font: 12px var(--mono); color: var(--muted) }
+.hist .chg { font-size: 13px; color: var(--muted); overflow-wrap: anywhere }
+.hist .chg b { color: var(--fg); font-weight: 500 }
+.hist del { color: var(--bad); text-decoration: line-through; text-decoration-thickness: 1px }
+.hist ins { color: var(--good); text-decoration: none }
+.kind { font-size: 11px; border-radius: 4px; padding: 0 6px; background: var(--surface-2); border: 1px solid var(--line); color: var(--muted); text-transform: capitalize }
 .nav-badge { display: inline-block; min-width: 18px; margin-left: 5px; padding: 0 5px; border-radius: 9px; background: var(--accent); color: #fff; font: 600 11px/18px var(--mono); text-align: center }
 </style>
 
@@ -193,7 +208,7 @@ td .meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; color:
     <nav class="tabs" id="tabs">
       <a href="#dashboard">Dashboard</a><a href="#opportunities">Opportunities</a><a href="#pipeline">Pipeline</a>
       <a href="#federal">Federal funding</a><a href="#report">Report</a><a href="#categories">Categories</a>
-      <a href="#partners">Partners</a><a href="#sources">Sources</a><a href="#profile">Forge profile</a>
+      <a href="#partners">Partners</a><a href="#sources">Sources</a><a href="#profile">Forge profile</a><a href="#history">History</a>
     </nav>
   </div>
 </header>
@@ -204,19 +219,24 @@ td .meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; color:
   const STAGES = ["new","screening","internal_review","go","drafting","submitted","awarded","not_awarded","declined"];
   const LABEL = { new:"New", screening:"Screening", internal_review:"Internal review", go:"Go", drafting:"Drafting", submitted:"Submitted", awarded:"Awarded", not_awarded:"Not awarded", declined:"No-go" };
   const OPEN = ["new","screening","internal_review","go","drafting"];
-  const DAY = 86400000, INTERNAL_LEAD_DAYS = 14;
+  const DAY = 86400000;
   const PARTNER_TYPES = ["Federal lab", "University", "Researcher", "Program area", "Industry", "Utility", "Nonprofit", "Other"];
   const SOURCE_TYPES = ["Website", "Database", "API", "RSS feed", "Email list"];
   const app = document.getElementById("app");
 
   let OPPS = [], META = { profile: { federalAgencies: [], searchKeywords: [], capabilities: [], partners: [], goodFit: [], poorFit: [] } };
   // Shared, team-editable state (db collections).
-  const S = { decisions: {}, sources: {}, partners: {}, categories: {}, keywords: {} };
+  const S = { decisions: {}, sources: {}, partners: {}, categories: {}, keywords: {}, profile: {}, history: {} };
+  // Effective Forge profile: the repo's profile file, overridden by the team's edits (profile/main).
+  const P = () => ({ ...META.profile, ...(S.profile.main || {}) });
+  const leadDays = () => Math.min(90, Math.max(1, Number(P().internalReviewLeadDays) || 14));
+  const leadLabel = () => leadDays() === 14 ? "2 weeks" : leadDays() % 7 === 0 ? `${leadDays() / 7} weeks` : `${leadDays()} days`;
   let db = null, user = null, me = null, canWrite = false, storeState = "connecting";
   const names = {}, avatars = {};
   const ui = { q: "", min: "", agency: "", stage: "", cat: "", partner: false, clean: false, closed: false };
   try { Object.assign(ui, JSON.parse(localStorage.getItem("fg-filters") || "{}")); } catch {}
-  const editing = { source: null, partner: null, category: null };   // id being edited, or "new"
+  const editing = { source: null, partner: null, category: null, profile: false };
+  const hf = { kind: "", who: "" };   // history filters   // id being edited, or "new"
   const draftMembers = {};      // category form: ids picked so far
   const armed = new Set();      // remove buttons awaiting confirmation
 
@@ -226,7 +246,7 @@ td .meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; color:
   const daysUntil = (iso) => { if (!iso) return null; const t = new Date(iso); if (isNaN(t)) return null; return Math.round((Date.UTC(t.getUTCFullYear(), t.getUTCMonth(), t.getUTCDate()) - today()) / DAY); };
   const implausible = (iso) => { const d = daysUntil(iso); return d !== null && d > 365 * 5; };
   const fmtDate = (iso) => iso ? new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" }) : "—";
-  const money = (n) => n == null ? "—" : n >= 1e6 ? `$${(n / 1e6).toFixed(n % 1e6 ? 1 : 0)}M` : n >= 1e3 ? `$${Math.round(n / 1e3)}K` : `$${n}`;
+  const money = (n) => n == null ? "—" : n >= 1e9 ? `$${(n / 1e9).toFixed(2)}B` : n >= 1e6 ? `$${(n / 1e6).toFixed(n % 1e6 ? 1 : 0)}M` : n >= 1e3 ? `$${Math.round(n / 1e3)}K` : `$${n}`;
   const range = (a, b) => a && b ? `${money(a)} – ${money(b)}` : b ? `Up to ${money(b)}` : a ? `From ${money(a)}` : "—";
   const splitList = (s) => [...new Set(String(s || "").split(/[,\n]/).map((x) => x.trim()).filter(Boolean))].slice(0, 60);
   const sorted = (obj, key = "name") => Object.entries(obj).map(([id, v]) => ({ id, ...v })).sort((a, b) => String(a[key] || "").localeCompare(String(b[key] || "")));
@@ -247,7 +267,7 @@ td .meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; color:
   // ---------- merged opportunity state ----------
   const stageOf = (o) => S.decisions[o.id]?.stage || o.defaultStage || "new";
   // Forge internal deadline: 2 weeks before submission unless the team set a date.
-  const defaultInternal = (o) => !o.closeDate || implausible(o.closeDate) ? null : new Date(Date.parse(o.closeDate) - INTERNAL_LEAD_DAYS * DAY).toISOString();
+  const defaultInternal = (o) => !o.closeDate || implausible(o.closeDate) ? null : new Date(Date.parse(o.closeDate) - leadDays() * DAY).toISOString();
   const internalOf = (o) => { const d = S.decisions[o.id]; return d && d.reviewDate ? d.reviewDate : defaultInternal(o); };
   const fit = (o) => o.evaluation ? o.evaluation.score : o.preScore == null ? null : Math.max(1, Math.round(o.preScore / 10));
   const isHigh = (o) => (o.evaluation?.score ?? 0) >= 6;
@@ -326,13 +346,27 @@ td .meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; color:
         <a class="stat" href="#pipeline"><div class="k">Forge internal deadlines (14d)</div><div class="v">${internal.length}</div><div class="s">Go/no-go and drafts due inside Forge</div></a>
         <a class="stat" href="#pipeline"><div class="k">Submission deadlines (30d)</div><div class="v">${deadlines.length}</div><div class="s">High match or in progress</div></a>
       </section>
+      ${revenuePanel(open)}
       ${myPanel}
       <section class="grid2">
-        <div class="panel"><h2>Forge internal deadlines</h2><p class="help" style="margin-bottom:6px">Two weeks before each submission deadline, unless the team set another date.</p>${dueList(internal, internalOf, "No internal deadlines in the next 14 days for opportunities in progress.", true)}</div>
+        <div class="panel"><h2>Forge internal deadlines</h2><p class="help" style="margin-bottom:6px">${leadLabel()[0].toUpperCase() + leadLabel().slice(1)} before each submission deadline, unless the team set another date.</p>${dueList(internal, internalOf, "No internal deadlines in the next 14 days for opportunities in progress.", true)}</div>
         <div class="panel"><h2>Submission deadlines</h2>${dueList(deadlines, (o) => o.closeDate, "No high-match submission deadlines in the next 30 days.")}</div>
       </section>
       <section><h2 class="sec-title">Top recommended</h2>${table(high.slice(0, 8), "No Claude-evaluated high matches yet.")}</section>
       <section><h2 class="sec-title">Decision funnel</h2><div class="funnel">${STAGES.map((s) => `<a href="#opportunities" data-stage="${s}"><b>${counts[s]}</b> ${LABEL[s]}</a>`).join("")}</div></section>`;
+  }
+
+  // Potential revenue = sum of each opportunity's award ceiling (the most one award can be).
+  function revenuePanel(open) {
+    const sum = (xs) => xs.reduce((t, o) => t + (o.awardCeiling || 0), 0);
+    const missing = (xs) => xs.filter((o) => !o.awardCeiling).length;
+    const pursuing = OPPS.filter((o) => ["go","drafting","submitted"].includes(stageOf(o)) && (stageOf(o) === "submitted" || (daysUntil(o.closeDate) ?? 0) >= 0));
+    const review = open.filter((o) => ["screening","internal_review"].includes(stageOf(o)));
+    const high = open.filter(isHigh);
+    const cell = (k, xs, sub, lead) => `<div><div class="k">${k}</div><div class="v ${lead ? "lead" : ""}">${money(sum(xs))}</div><div class="s">${xs.length} ${xs.length === 1 ? "opportunity" : "opportunities"}${missing(xs) ? ` · ${missing(xs)} with no ceiling listed` : ""}${sub ? ` · ${sub}` : ""}</div></div>`;
+    return `<section class="panel"><h2>Potential revenue to Forge</h2>
+      <div class="revenue">${cell("Pursuing (Go, Drafting, Submitted)", pursuing, "", true)}${cell("Under review", review, "Screening or internal review")}${cell("High match (6+)", high, "Open, evaluated by Claude")}${cell("All open listings", open, "")}</div>
+      <p class="help" style="margin-top:8px">Totals add up each opportunity's award ceiling, the most a single award can be. Actual awards are often lower, and listings without a ceiling count as $0.</p></section>`;
   }
 
   // ---------- opportunities ----------
@@ -393,7 +427,7 @@ td .meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; color:
           <div class="panel facts">
             <div><div class="k">Fit</div>${scoreHtml(o, true)}</div>
             <div><div class="k">Submission deadline</div>${dlHtml(o.closeDate)}</div>
-            <div><div class="k">Forge internal deadline</div>${internal ? `<span class="dl ${urgency(daysUntil(internal))}">${fmtDate(internal)}</span><div class="note">${d.reviewDate ? "Set by the team" : "2 weeks before submission"}</div>` : `<span class="note">Set once a deadline is known</span>`}</div>
+            <div><div class="k">Forge internal deadline</div>${internal ? `<span class="dl ${urgency(daysUntil(internal))}">${fmtDate(internal)}</span><div class="note">${d.reviewDate ? "Set by the team" : `${leadLabel()} before submission`}</div>` : `<span class="note">Set once a deadline is known</span>`}</div>
             <div><div class="k">Award range</div><span class="num">${range(o.awardFloor, o.awardCeiling)}</span></div>
             <div><div class="k">Program total</div><span class="num">${money(o.estimatedFunding)}</span>${o.expectedAwards ? ` <span class="note">· ${o.expectedAwards} awards</span>` : ""}</div>
           </div>
@@ -419,6 +453,8 @@ td .meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; color:
             ${ev.risks.length ? sec("Risks and open questions", `<ul style="margin:0;padding-left:18px">${ev.risks.map((r) => `<li>${esc(r)}</li>`).join("")}</ul>`) : ""}
             <p class="note" style="margin:0">Evaluated ${fmtDate(ev.evaluatedAt)} · ${esc(ev.model)}. AI-generated; verify before relying on it.</p>`
           : `<p class="panel empty">Not yet evaluated by Claude. The score shown is a keyword pre-score.</p>`}
+          ${(() => { const hs = Object.values(S.history).filter((h) => h.kind === "decision" && h.targetId === o.id).sort((a, b) => String(b.at).localeCompare(String(a.at)));
+            return hs.length ? `<section class="panel"><h2>Change history</h2><ul class="hist">${hs.map((h) => entryHtml(h, false)).join("")}</ul></section>` : ""; })()}
           ${o.eligibility ? `<section class="panel"><h2>Eligibility (from listing)</h2><div class="longtext">${esc(o.eligibility)}</div></section>` : ""}
           ${o.description ? `<section class="panel"><h2>Description (from listing)</h2><div class="longtext">${esc(o.description)}</div></section>` : ""}
         </div>
@@ -427,7 +463,7 @@ td .meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; color:
           <div class="row2"><button class="btn-go" data-decide="go" ${ro()}>Go</button><button class="btn-no" data-decide="declined" ${ro()}>No-go</button></div>
           <label for="d-stage">Stage<select id="d-stage" ${ro()}>${STAGES.map((s) => `<option value="${s}" ${s === st ? "selected" : ""}>${LABEL[s]}</option>`).join("")}</select></label>
           <label for="d-review">Forge internal deadline<input type="date" id="d-review" value="${internal ? internal.slice(0, 10) : ""}" ${ro()}></label>
-          <p class="help" style="margin-top:-4px">Defaults to 2 weeks before submission. Change it only if this one needs more lead time.</p>
+          <p class="help" style="margin-top:-4px">Defaults to ${leadLabel()} before submission. Change it only if this one needs more lead time.</p>
           <label for="d-owner">Owner<input id="d-owner" value="${esc(d.owner || "")}" placeholder="Who is leading this?" ${ro()}></label>
           <label for="d-notes">Notes<textarea id="d-notes" rows="6" placeholder="Partner conversations, reasons for the decision…" ${ro()}>${esc(d.notes || "")}</textarea></label>
           <button class="btn" id="d-save" ${ro()}>Save decision</button>
@@ -580,29 +616,74 @@ td .meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; color:
       }).join("") || `<p class="panel empty">No categories yet. Add one, for example "Grid cybersecurity" with keywords like OT, ICS, SCADA, utility.</p>`}</section>`;
   }
 
-  // ---------- profile with editable keywords ----------
+  // ---------- profile (editable) ----------
+  const PROFILE_LISTS = [["capabilities", "Capabilities"], ["partners", "Core partners"], ["goodFit", "Good fit"], ["poorFit", "Poor fit"], ["decisionCriteria", "Decision criteria"]];
+  const DEFAULT_CRITERIA = ["501(c)(3) can be the lead applicant", "No cash match", "Indirect costs allowed", "Funds operating expenses", "Open solicitation (no invitation required)"];
+  // The repo's profile file stores decisionCriteria as flags; the team's edited list is an array.
+  const critOf = (p) => Array.isArray(p.decisionCriteria) ? p.decisionCriteria : DEFAULT_CRITERIA;
   function viewProfile() {
-    const p = META.profile, ul = (xs) => `<ul style="margin:0;padding-left:18px">${xs.map((x) => `<li>${esc(x)}</li>`).join("")}</ul>`;
+    const p = P(), ul = (xs) => `<ul style="margin:0;padding-left:18px">${(xs || []).map((x) => `<li>${esc(x)}</li>`).join("")}</ul>`;
+    const crit = critOf(p);
     const team = sorted(S.keywords, "text");
-    return `<div class="head"><div><h1>Forge profile</h1><p class="sub" style="margin:4px 0 0">What the screening rules and Claude use to judge fit.</p></div></div>
-      <div class="panel prose"><p>${esc(p.summary)}</p></div>
-      <section class="panel"><h2>Search keywords</h2>
-        <p class="help" style="margin-bottom:8px">The scanner searches Grants.gov for each of these. Keywords the team adds are used from the next scan on.</p>
-        <div class="chips" style="margin-bottom:10px">${p.searchKeywords.map((k) => `<span title="Built in">${esc(k)}</span>`).join("")}${team.map((k) => `<span class="x mine">${esc(k.text)}<button type="button" data-delkw="${esc(k.id)}" aria-label="Remove ${esc(k.text)}" ${ro()}>×</button></span>`).join("")}</div>
+    const edited = S.profile.main;
+    const who = edited?.updatedBy ? names[edited.updatedBy] || "a teammate" : null;
+    const head = `<div class="head"><div><h1>Forge profile</h1><p class="sub" style="margin:4px 0 0">What the screening rules and Claude use to judge fit.${edited ? ` Last edited ${fmtDate(edited.updatedAt)}${who ? ` by ${esc(who)}` : ""}.` : ""}</p></div>
+      ${editing.profile ? "" : `<button class="btn" data-editprofile="1" ${ro()}>Edit profile</button>`}</div>`;
+    const keywords = `<section class="panel"><h2>Search keywords</h2>
+        <p class="help" style="margin-bottom:8px">The scanner searches Grants.gov for each of these. Changes apply from the next scan on.</p>
+        <div class="chips" style="margin-bottom:10px">${(p.searchKeywords || []).map((k) => `<span class="x">${esc(k)}<button type="button" data-delbase="${esc(k)}" aria-label="Remove ${esc(k)}" ${ro()}>×</button></span>`).join("")}${team.map((k) => `<span class="x mine">${esc(k.text)}<button type="button" data-delkw="${esc(k.id)}" aria-label="Remove ${esc(k.text)}" ${ro()}>×</button></span>`).join("")}</div>
         <form class="search" id="kw-form" style="max-width:520px"><input id="kw-input" placeholder="Add keywords, comma-separated" maxlength="400" style="flex:1;width:auto" ${ro()}><button class="btn" ${ro()}>Add</button></form>
         <p class="toast" id="kw-toast">${esc(flash["kw-toast"] || "")}</p>
-        <p class="help">Shaded keywords were added by the team and can be removed. The others come from the profile file in the GitHub repo.</p>
-      </section>
+      </section>`;
+    if (editing.profile) {
+      return `${head}<section class="panel"><h2>Edit profile</h2>
+        <div class="form">
+          ${areaField("pf-summary", "Summary (who Forge is and how it works on grants)", p.summary, "")}
+          ${PROFILE_LISTS.map(([k, label]) => `<label class="wide" for="pf-${k}">${label}<textarea id="pf-${k}" rows="${Math.min(10, Math.max(3, ((k === "decisionCriteria" ? crit : p[k]) || []).length + 1))}" ${ro()}>${esc(((k === "decisionCriteria" ? crit : p[k]) || []).join("\n"))}</textarea><span class="help">One item per line.</span></label>`).join("")}
+          ${field("pf-lead", "Forge internal deadline: days before submission", leadDays(), 'type="number" min="1" max="90"')}
+          <p class="help" style="grid-column:1/-1">Edits show here right away. The scanner and Claude's scoring pick them up once the scanner is set to read this page (it uses the profile file in the repo until then).</p>
+          <div class="actions"><button class="btn" data-saveprofile="1" ${ro()}>Save profile</button><button class="btn-ghost" data-cancelprofile="1">Cancel</button><span class="toast" id="profile-toast">${esc(flash["profile-toast"] || "")}</span></div>
+        </div></section>${keywords}`;
+    }
+    return `${head}
+      <div class="panel prose"><p>${esc(p.summary)}</p></div>
+      ${keywords}
       <div class="grid2">
-        <div class="panel"><h2>Capabilities</h2>${ul(p.capabilities)}</div><div class="panel"><h2>Core partners</h2>${ul(p.partners)}<p class="help" style="margin-top:8px">Add more on the <a href="#partners">Partners</a> tab.</p></div>
+        <div class="panel"><h2>Capabilities</h2>${ul(p.capabilities)}</div><div class="panel"><h2>Core partners</h2>${ul(p.partners)}<p class="help" style="margin-top:8px">Add more, with focus areas, on the <a href="#partners">Partners</a> tab.</p></div>
         <div class="panel"><h2>Good fit</h2>${ul(p.goodFit)}</div><div class="panel"><h2>Poor fit</h2>${ul(p.poorFit)}</div>
-        <div class="panel"><h2>Decision criteria</h2>${ul(["501(c)(3) can be the lead applicant", "No cash match", "Indirect costs allowed", "Funds operating expenses", "Open solicitation (no invitation required)", `Forge internal deadline ${INTERNAL_LEAD_DAYS} days before submission`])}</div>
-      </div>`;
+        <div class="panel"><h2>Decision criteria</h2>${ul([...crit, `Forge internal deadline ${leadDays()} days before submission`])}</div>
+      </div>
+      <p class="toast" id="profile-toast">${esc(flash["profile-toast"] || "")}</p>`;
+  }
+
+  // ---------- history ----------
+  const KIND_LABEL = { decision: "Decision", source: "Source", partner: "Partner", category: "Category", keyword: "Keyword", profile: "Profile" };
+  const show = (v) => v === null || v === undefined || v === "" ? "(empty)" : Array.isArray(v) ? (v.length ? v.join(", ") : "(empty)") : String(v);
+  const changeHtml = (c) => c.added || c.removed
+    ? `<div class="chg"><b>${esc(c.label)}</b>: ${[...(c.added || []).map((x) => `<ins>+ ${esc(x)}</ins>`), ...(c.removed || []).map((x) => `<del>${esc(x)}</del>`)].join(" · ") || "reordered"}</div>`
+    : `<div class="chg"><b>${esc(c.label)}</b>: ${c.from !== undefined ? `<del>${esc(show(c.from))}</del> → ` : ""}<ins>${esc(show(c.to))}</ins></div>`;
+  function entryHtml(h, withTarget = true) {
+    const who = h.by ? names[h.by] || "A teammate" : "Someone";
+    const target = !withTarget ? "" : h.kind === "decision" ? `<a href="#opp-${esc(h.targetId)}">${esc(h.targetName)}</a>` : `<b>${esc(h.targetName || "")}</b>`;
+    return `<li><div style="display:flex;flex-wrap:wrap;gap:6px 10px;align-items:baseline"><span class="kind">${KIND_LABEL[h.kind] || esc(h.kind)}</span><span>${esc(who)} ${esc(h.action)} ${target}</span><span class="when">${new Date(h.at).toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" })}</span></div>
+      ${(h.changes || []).map(changeHtml).join("")}</li>`;
+  }
+  function viewHistory() {
+    const all = Object.entries(S.history).map(([id, h]) => ({ id, ...h })).sort((a, b) => String(b.at).localeCompare(String(a.at)));
+    const people = [...new Set(all.map((h) => h.by).filter(Boolean))];
+    const items = all.filter((h) => (!hf.kind || h.kind === hf.kind) && (!hf.who || h.by === hf.who));
+    const opt = (v, l, cur) => `<option value="${esc(v)}" ${cur === v ? "selected" : ""}>${esc(l)}</option>`;
+    return `<div class="head"><div><h1>History</h1><p class="sub" style="margin:4px 0 0">Every change made on this page: who made it, when, and what it was before and after. Showing the latest ${Math.min(all.length, 500)}.</p></div></div>
+      <div class="panel filters" id="hfilters">
+        <select id="h-kind" aria-label="Type of change">${opt("", "All changes", hf.kind)}${Object.entries(KIND_LABEL).map(([k, l]) => opt(k, l + "s", hf.kind)).join("")}</select>
+        <select id="h-who" aria-label="Person">${opt("", "Everyone", hf.who)}${people.map((id) => opt(id, names[id] || "A teammate", hf.who)).join("")}</select>
+      </div>
+      <section class="panel">${items.length ? `<ul class="hist">${items.map((h) => entryHtml(h)).join("")}</ul>` : `<p class="empty">${all.length ? "No changes match these filters." : "No changes recorded yet. Changes made from now on appear here."}</p>`}</section>`;
   }
 
   // ---------- routing ----------
   const route = () => (location.hash || "#dashboard").slice(1);
-  const VIEWS = { opportunities: viewOpportunities, pipeline: viewPipeline, federal: viewFederal, report: viewReport, profile: viewProfile, sources: viewSources, partners: viewPartners, categories: viewCategories };
+  const VIEWS = { opportunities: viewOpportunities, pipeline: viewPipeline, federal: viewFederal, report: viewReport, profile: viewProfile, history: viewHistory, sources: viewSources, partners: viewPartners, categories: viewCategories };
   function render() {
     const r = route();
     const tab = r.startsWith("opp-") ? "opportunities" : VIEWS[r] ? r : "dashboard";
@@ -620,16 +701,44 @@ td .meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; color:
   // Re-render on shared-data changes without clobbering a field someone is typing in.
   function softRender() {
     const f = document.activeElement;
-    if (f && f.closest && f.closest("#decision, #filters, .form, #kw-form, .picker")) return;
+    if (f && f.closest && f.closest("#decision, #filters, #hfilters, .form, #kw-form, .picker")) return;
     render();
   }
-  addEventListener("hashchange", () => { armed.clear(); for (const k in flash) delete flash[k]; render(); scrollTo(0, 0); });
+  addEventListener("hashchange", () => { armed.clear(); editing.profile = false; for (const k in flash) delete flash[k]; render(); scrollTo(0, 0); });
 
   // ---------- writes ----------
   const flash = {};   // toast id -> message, so a re-render from a live update keeps it
   const toast = (id, msg) => { flash[id] = msg; const t = document.getElementById(id); if (t) t.textContent = msg; };
   const errMsg = (err) => ["permission_denied", "not_granted", "forbidden"].includes(err?.code) ? "You don't have permission to change this." : err?.code === "quota_exceeded" ? "The page's storage is full. Remove old entries and try again." : "Couldn't save. Check your connection and try again.";
   const stamp = async (body) => { body.updatedAt = new Date().toISOString(); try { const uid = await user?.id?.(); if (uid) body.updatedBy = uid; } catch {} return body; };
+
+  // Field-by-field diff for the change log. Long text is clipped in the log only.
+  const clip = (v) => typeof v === "string" && v.length > 400 ? v.slice(0, 400) + "…" : Array.isArray(v) ? v.map(clip) : v;
+  const same = (a, b) => JSON.stringify(a ?? "") === JSON.stringify(b ?? "");
+  function diff(before, after, labels) {
+    return Object.entries(labels).filter(([k]) => !same(before?.[k], after?.[k])).map(([k, label]) => {
+      const a = before?.[k], b = after?.[k];
+      // For an edited list, record just the items added and removed.
+      if (before && after && Array.isArray(a) && Array.isArray(b)) return { field: k, label, added: b.filter((x) => !a.includes(x)).map(clip), removed: a.filter((x) => !b.includes(x)).map(clip) };
+      return { field: k, label, ...(before ? { from: clip(a ?? null) } : {}), to: clip(b ?? null) };
+    });
+  }
+  async function logChange(entry) {
+    if (!db) return;
+    try {
+      const by = await user?.id?.();
+      await db.collection("history").add({ at: new Date().toISOString(), ...(by ? { by } : {}), ...entry });
+    } catch { /* the change itself was saved; a missed log entry should not block the user */ }
+  }
+  const LABELS = {
+    decision: { stage: "Stage", reviewDate: "Forge internal deadline", owner: "Owner", notes: "Notes" },
+    source: { name: "Name", type: "Type", url: "Website", apiUrl: "API URL", credential: "Key name", status: "Status", notes: "Notes" },
+    partner: { name: "Name", type: "Type", url: "Link", contact: "Contact", focus: "Focus areas", notes: "Notes" },
+    category: { name: "Name", keywords: "Keywords", members: "Team members" },
+    profile: { summary: "Summary", capabilities: "Capabilities", partners: "Core partners", goodFit: "Good fit", poorFit: "Poor fit", decisionCriteria: "Decision criteria", internalReviewLeadDays: "Internal deadline lead days", searchKeywords: "Built-in keywords" },
+  };
+  // Team members are stored as ids; log their names as this viewer sees them so the log stays readable.
+  const memberNames = (ids) => (ids || []).map((id) => names[id] || "a teammate");
 
   async function saveDecision() {
     const box = document.getElementById("decision"); if (!box || !db) return;
@@ -643,7 +752,14 @@ td .meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; color:
     });
     box.querySelectorAll("button").forEach((b) => (b.disabled = true));
     toast("d-toast", "Saving…");
-    try { await db.doc("decisions/" + o.id).set(body); toast("d-toast", "Saved"); }
+    const prevRaw = S.decisions[o.id];
+    const before = { stage: stageOf(o), owner: prevRaw?.owner || "", notes: prevRaw?.notes || "", reviewDate: (internalOf(o) || "").slice(0, 10) || null };
+    const after = { stage: body.stage, owner: body.owner, notes: body.notes, reviewDate: (body.reviewDate || defaultInternal(o) || "").slice(0, 10) || null };
+    const changes = diff(before, after, LABELS.decision).map((c) => c.field === "stage" ? { ...c, from: LABEL[c.from] || c.from, to: LABEL[c.to] || c.to } : c);
+    try {
+      await db.doc("decisions/" + o.id).set(body); toast("d-toast", changes.length ? "Saved" : "No changes to save");
+      if (changes.length) logChange({ kind: "decision", action: "updated", targetId: o.id, targetName: o.title, changes });
+    }
     catch (err) { toast("d-toast", errMsg(err)); }
     finally { box.querySelectorAll("button").forEach((b) => (b.disabled = !canWrite)); }
   }
@@ -676,7 +792,12 @@ td .meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; color:
     toast(t, "Saving…");
     try {
       const id = editing[kind];
-      if (id && id !== "new") await db.doc(`${coll}/${id}`).set(body); else await db.collection(coll).add(body);
+      const isEdit = id && id !== "new";
+      const prev = isEdit ? S[coll][id] : null;
+      const view = (x) => x && kind === "category" ? { ...x, members: memberNames(x.members) } : x;
+      if (isEdit) await db.doc(`${coll}/${id}`).set(body); else await db.collection(coll).add(body);
+      const changes = diff(view(prev), view(body), LABELS[kind]);
+      if (changes.length) logChange({ kind, action: isEdit ? "updated" : "added", targetId: id || "", targetName: body.name, changes });
       editing[kind] = null; delete draftMembers[id || "new"];
       render(); toast(t, id && id !== "new" ? "Saved" : "Added");
     } catch (err) { toast(t, errMsg(err)); }
@@ -684,7 +805,11 @@ td .meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; color:
 
   async function removeItem(kind, id) {
     const coll = { source: "sources", partner: "partners", category: "categories" }[kind];
-    try { await db.doc(`${coll}/${id}`).delete(); armed.delete(kind + ":" + id); if (editing[kind] === id) editing[kind] = null; }
+    const prev = S[coll][id];
+    try {
+      await db.doc(`${coll}/${id}`).delete(); armed.delete(kind + ":" + id); if (editing[kind] === id) editing[kind] = null;
+      logChange({ kind, action: "removed", targetId: id, targetName: prev?.name || "", changes: diff(kind === "category" ? { ...prev, members: memberNames(prev?.members) } : prev, null, LABELS[kind]).filter((c) => c.from !== null && c.from !== "").map((c) => ({ ...c, to: null })) });
+    }
     catch (err) { alertInline(errMsg(err)); }
   }
   const alertInline = (msg) => { const b = document.querySelector(".head .sub"); if (b) b.textContent = msg; };
@@ -693,20 +818,56 @@ td .meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; color:
     const c = S.categories[id]; if (!c || !me) return;
     const members = new Set(c.members || []);
     members.has(me) ? members.delete(me) : members.add(me);
-    try { await db.doc("categories/" + id).update({ members: [...members] }); } catch (err) { alertInline(errMsg(err)); }
+    const joining = members.has(me);
+    try {
+      await db.doc("categories/" + id).update({ members: [...members] });
+      logChange({ kind: "category", action: joining ? "joined" : "left", targetId: id, targetName: c.name, changes: [] });
+    } catch (err) { alertInline(errMsg(err)); }
   }
 
   async function addKeywords() {
     const words = splitList(val("kw-input"));
     if (!words.length) return;
-    const existing = new Set([...META.profile.searchKeywords, ...Object.values(S.keywords).map((k) => k.text)].map((x) => x.toLowerCase()));
+    const existing = new Set([...P().searchKeywords, ...Object.values(S.keywords).map((k) => k.text)].map((x) => x.toLowerCase()));
     const fresh = words.filter((w) => !existing.has(w.toLowerCase()) && w.length <= 80);
     if (!fresh.length) return toast("kw-toast", "Those keywords are already on the list.");
     toast("kw-toast", "Saving…");
     try {
       for (const text of fresh) await db.collection("keywords").add(await stamp({ text }));
+      logChange({ kind: "keyword", action: "added", targetName: fresh.join(", "), changes: [{ field: "keywords", label: "Keywords added", to: fresh }] });
       render(); toast("kw-toast", `Added ${fresh.length} keyword${fresh.length > 1 ? "s" : ""}`);
     } catch (err) { toast("kw-toast", errMsg(err)); }
+  }
+
+  const PROFILE_KEYS = ["summary", "capabilities", "partners", "goodFit", "poorFit", "decisionCriteria", "internalReviewLeadDays", "searchKeywords"];
+  const profileSnapshot = () => { const p = P(); return { ...Object.fromEntries(PROFILE_KEYS.map((k) => [k, p[k]])), decisionCriteria: critOf(p), internalReviewLeadDays: leadDays() }; };
+  async function writeProfile(patch, toastId) {
+    const before = profileSnapshot();
+    const after = { ...before, ...patch };
+    const changes = diff(before, after, LABELS.profile);
+    if (!changes.length) { toast(toastId, "No changes to save"); return false; }
+    const body = await stamp({ ...after });
+    await db.doc("profile/main").set(body);
+    logChange({ kind: "profile", action: "updated", targetName: "Forge profile", changes });
+    return true;
+  }
+  async function saveProfile() {
+    if (!db) return;
+    const lines = (id) => [...new Set((document.getElementById(id)?.value || "").split("\n").map((x) => x.trim()).filter(Boolean))].slice(0, 60);
+    const summary = (document.getElementById("pf-summary")?.value || "").trim().slice(0, 5000);
+    if (!summary) return toast("profile-toast", "The summary can't be empty. Claude uses it to judge fit.");
+    const lead = Number(val("pf-lead"));
+    if (!Number.isInteger(lead) || lead < 1 || lead > 90) return toast("profile-toast", "Enter a whole number of days between 1 and 90.");
+    const patch = { summary, internalReviewLeadDays: lead };
+    PROFILE_LISTS.forEach(([k]) => (patch[k] = lines("pf-" + k)));
+    toast("profile-toast", "Saving…");
+    try { if (await writeProfile(patch, "profile-toast")) { editing.profile = false; render(); toast("profile-toast", "Profile saved"); } }
+    catch (err) { toast("profile-toast", errMsg(err)); }
+  }
+  async function removeBaseKeyword(k) {
+    if (!db) return;
+    try { await writeProfile({ searchKeywords: (P().searchKeywords || []).filter((x) => x !== k) }, "kw-toast"); toast("kw-toast", `Removed "${k}"`); }
+    catch (err) { toast("kw-toast", errMsg(err)); }
   }
 
   // ---------- events ----------
@@ -727,7 +888,16 @@ td .meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; color:
     if (ds.disarm) { armed.delete(ds.disarm); return render(); }
     if (ds.remove) return removeItem(ds.remove, ds.id);
     if (ds.join) return toggleJoin(ds.join);
-    if (ds.delkw) return db?.doc("keywords/" + ds.delkw).delete().catch((err) => toast("kw-toast", errMsg(err)));
+    if (ds.delkw) {
+      const text = S.keywords[ds.delkw]?.text;
+      return db?.doc("keywords/" + ds.delkw).delete()
+        .then(() => logChange({ kind: "keyword", action: "removed", targetName: text, changes: [{ field: "keywords", label: "Keyword removed", from: text, to: null }] }))
+        .catch((err) => toast("kw-toast", errMsg(err)));
+    }
+    if (ds.delbase) return removeBaseKeyword(ds.delbase);
+    if (ds.editprofile) { editing.profile = true; for (const k in flash) delete flash[k]; return render(); }
+    if (ds.cancelprofile) { editing.profile = false; return render(); }
+    if (ds.saveprofile) return saveProfile();
     if (ds.unpick) { const k = editing.category || "new"; draftMembers[k] = (draftMembers[k] || []).filter((x) => x !== ds.unpick); return refreshMembers(); }
     if (ds.pick) {
       const k = editing.category || "new"; draftMembers[k] = [...new Set([...(draftMembers[k] || []), ds.pick])];
@@ -754,6 +924,7 @@ td .meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; color:
       list.hidden = false;
       return;
     }
+    if (e.target.id === "h-kind" || e.target.id === "h-who") { hf[e.target.id === "h-kind" ? "kind" : "who"] = e.target.value; return render(); }
     if (!e.target.closest("#filters")) return;
     const map = { "f-q": "q", "f-min": "min", "f-agency": "agency", "f-stage": "stage", "f-cat": "cat" };
     if (map[e.target.id]) ui[map[e.target.id]] = e.target.value;
@@ -771,6 +942,8 @@ td .meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; color:
     if (!user?.profiles) return;
     const ids = new Set();
     Object.values(S.decisions).forEach((d) => d.updatedBy && ids.add(d.updatedBy));
+    Object.values(S.history).forEach((h) => h.by && ids.add(h.by));
+    if (S.profile.main?.updatedBy) ids.add(S.profile.main.updatedBy);
     Object.values(S.categories).forEach((c) => (c.members || []).forEach((m) => ids.add(m)));
     Object.values(draftMembers).forEach((l) => l.forEach((m) => ids.add(m)));
     if (me) ids.add(me);
@@ -792,7 +965,8 @@ td .meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; color:
     try { me = (await user?.id?.()) || null; } catch { me = null; }
     let pending = Object.keys(S).length;
     for (const coll of Object.keys(S)) {
-      db.collection(coll).onSnapshot((snap) => {
+      const q = coll === "history" ? db.collection("history").orderBy("at", "desc").limit(500) : db.collection(coll);
+      q.onSnapshot((snap) => {
         const next = {}; snap.docs.forEach((d) => { if (d.exists) next[d.id] = d.data(); });
         S[coll] = next;
         if (pending > 0 && --pending === 0) clearTimeout(timer);
@@ -803,6 +977,6 @@ td .meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; color:
 
   Promise.all([fetch("opportunities.json").then((r) => r.json()), fetch("meta.json").then((r) => r.json())])
     .then(([opps, meta]) => { OPPS = opps; META = meta; render(); connect(); })
-    .catch(() => { app.innerHTML = `<p class="panel empty">The opportunity data didn't load. Reload the page to try again.</p>`; });
+    .catch((e) => { console.error(e); app.innerHTML = `<p class="panel empty">The opportunity data didn't load. Reload the page to try again.</p>`; });
 })();
 </script>
