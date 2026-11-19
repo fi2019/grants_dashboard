@@ -1,0 +1,491 @@
+<title>Forge Grants</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: navy masthead band, then one working column (max 1200px) that switches view by #hash. */
+:root {
+  --bg: #eef1f6; --surface: #ffffff; --surface-2: #f6f8fb; --line: #dbe1ea;
+  --fg: #172033; --muted: #5d6a80; --navy: #1b2a4e; --navy-ink: #24376a; --on-navy: #ffffff; --on-navy-muted: #b9c3d8;
+  --accent: #c8102e; --link: #24376a;
+  --good: #11704a; --good-bg: #e3f4ec; --info: #135f8f; --info-bg: #e2eff8; --warn: #9a5b00; --warn-bg: #fdf1dc;
+  --bad: #b3261e; --bad-bg: #fbe6e4; --idle: #8a95a8; --idle-bg: #eceff4;
+  --font: "Public Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0e1422; --surface: #161e30; --surface-2: #1c2539; --line: #2a3550;
+  --fg: #e4e9f3; --muted: #9aa6bd; --navy: #121a2e; --navy-ink: #9fb6ec; --on-navy: #f2f5fb; --on-navy-muted: #8e9bb8;
+  --accent: #ef4a5f; --link: #9fb6ec;
+  --good: #5ccf9a; --good-bg: #133528; --info: #6db8e6; --info-bg: #13304a; --warn: #f0b45a; --warn-bg: #3a2a10;
+  --bad: #f2867c; --bad-bg: #3d1a18; --idle: #7f8aa0; --idle-bg: #232c40; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #0e1422; --surface: #161e30; --surface-2: #1c2539; --line: #2a3550;
+  --fg: #e4e9f3; --muted: #9aa6bd; --navy: #121a2e; --navy-ink: #9fb6ec; --on-navy: #f2f5fb; --on-navy-muted: #8e9bb8;
+  --accent: #ef4a5f; --link: #9fb6ec;
+  --good: #5ccf9a; --good-bg: #133528; --info: #6db8e6; --info-bg: #13304a; --warn: #f0b45a; --warn-bg: #3a2a10;
+  --bad: #f2867c; --bad-bg: #3d1a18; --idle: #7f8aa0; --idle-bg: #232c40; color-scheme: dark }
+
+* { box-sizing: border-box }
+body { background: var(--bg); color: var(--fg); font: 15px/1.5 var(--font); }
+a { color: var(--link); text-decoration: none } a:hover { text-decoration: underline }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px }
+h1, h2, h3 { text-wrap: balance; margin: 0; line-height: 1.25 }
+.wrap { max-width: 1200px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)) }
+.mono, .num { font-family: var(--mono); font-variant-numeric: tabular-nums }
+
+header.mast { background: var(--navy); color: var(--on-navy) }
+header.mast .wrap { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 28px; padding-block: 12px }
+.brand { display: flex; align-items: baseline; gap: 10px; color: var(--on-navy); font-weight: 700; letter-spacing: .02em }
+.brand small { color: var(--on-navy-muted); font-weight: 500; letter-spacing: 0 }
+.brand .mark { display: inline-grid; place-items: center; width: 26px; height: 26px; border-radius: 5px; background: var(--accent); color: #fff; font-size: 13px; align-self: center }
+nav.tabs { display: flex; flex-wrap: wrap; gap: 2px }
+nav.tabs a { color: var(--on-navy-muted); padding: 6px 12px; border-radius: 5px; font-size: 14px }
+nav.tabs a:hover { color: var(--on-navy); background: rgba(255,255,255,.08); text-decoration: none }
+nav.tabs a[aria-current="page"] { color: var(--on-navy); background: rgba(255,255,255,.14) }
+
+main { padding-block: 24px 48px; display: grid; gap: 22px; grid-template-columns: minmax(0, 1fr) }
+main > * { min-width: 0 }
+input, select { max-width: 100% }
+.head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: end; gap: 12px }
+.head h1 { font-size: 26px }
+.sub { color: var(--muted); font-size: 13px }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 16px; min-width: 0 }
+.panel h2, .sec-title { font-size: 16px; font-weight: 600; margin-bottom: 8px }
+.sec-title { font-size: 18px }
+.grid2 { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr)) }
+.grid3 { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr)) }
+
+.stats { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)) }
+.stat { display: block; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 14px 16px; color: var(--fg) }
+.stat:hover { border-color: var(--link); text-decoration: none }
+.stat .k { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted) }
+.stat .v { font: 600 32px/1.15 var(--mono); margin-top: 4px }
+.stat .s { font-size: 12px; color: var(--muted) }
+.stat.hot { background: var(--navy); border-color: var(--navy); color: var(--on-navy) }
+.stat.hot .k, .stat.hot .s { color: var(--on-navy-muted) }
+
+.search { display: flex; gap: 0 } .search input { width: min(280px, 60vw) }
+input, select, textarea { font: inherit; font-size: 14px; color: var(--fg); background: var(--surface); border: 1px solid var(--line); border-radius: 5px; padding: 7px 9px }
+textarea { width: 100%; resize: vertical }
+button { font: inherit; font-size: 14px; border-radius: 5px; border: 1px solid transparent; padding: 7px 14px; cursor: pointer }
+.btn { background: var(--navy-ink); color: var(--surface) } .btn:hover { filter: brightness(1.1) }
+.btn-go { background: var(--good); color: var(--surface) } .btn-no { background: var(--idle); color: var(--surface) }
+.btn-ghost { background: transparent; color: var(--link); border-color: var(--line) }
+button:disabled { opacity: .5; cursor: not-allowed }
+
+.list { list-style: none; margin: 0; padding: 0 }
+.list li { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 8px 0; border-top: 1px solid var(--line) }
+.list li:first-child { border-top: 0 }
+.list .t { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap }
+.list .r { display: flex; gap: 8px; align-items: center; flex-shrink: 0 }
+.empty { color: var(--muted); font-size: 14px; margin: 0 }
+
+.score { display: inline-block; min-width: 44px; text-align: center; border-radius: 4px; padding: 1px 6px; font: 600 12px/1.6 var(--mono); color: var(--surface) }
+.score.s8 { background: var(--good) } .score.s6 { background: var(--info) } .score.s4 { background: var(--warn) } .score.s1 { background: var(--idle) }
+.score.pre { opacity: .72 }
+.score.big { font-size: 22px; padding: 4px 12px }
+.dl { font: 12px var(--mono); white-space: nowrap } .dl.urgent { color: var(--bad) } .dl.soon { color: var(--warn) } .dl.ok { color: var(--good) } .dl.none { color: var(--muted) } .dl.flag { color: var(--warn) }
+.pill { display: inline-block; font-size: 12px; border-radius: 999px; padding: 1px 9px; white-space: nowrap; background: var(--idle-bg); color: var(--muted) }
+.pill.screening { background: var(--info-bg); color: var(--info) } .pill.internal_review { background: var(--warn-bg); color: var(--warn) }
+.pill.go, .pill.drafting, .pill.awarded { background: var(--good-bg); color: var(--good) } .pill.submitted { background: var(--info-bg); color: var(--info) }
+.tag { display: inline-block; font: 500 10px var(--mono); letter-spacing: .06em; text-transform: uppercase; padding: 1px 6px; border-radius: 3px; background: var(--navy-ink); color: var(--surface) }
+.dots { display: flex; gap: 4px } .dot { width: 10px; height: 10px; border-radius: 50% } .dot.pass { background: var(--good) } .dot.fail { background: var(--bad) } .dot.unknown { background: var(--line) }
+
+.tablewrap { overflow-x: auto; background: var(--surface); border: 1px solid var(--line); border-radius: 8px }
+table { border-collapse: collapse; width: 100%; font-size: 14px }
+th { text-align: left; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); background: var(--surface-2); padding: 8px 10px; font-weight: 600 }
+td { padding: 9px 10px; border-top: 1px solid var(--line); vertical-align: top }
+tr:hover td { background: var(--surface-2) }
+td .meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; color: var(--muted); font-size: 12px; margin-top: 2px }
+.ttl { font-weight: 600 }
+
+.filters { display: flex; flex-wrap: wrap; gap: 8px; align-items: center }
+.filters label { display: flex; gap: 5px; align-items: center; font-size: 13px; color: var(--muted) }
+.legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: 12px; color: var(--muted); align-items: center }
+.legend span { display: inline-flex; gap: 5px; align-items: center }
+
+.funnel { display: flex; flex-wrap: wrap; gap: 8px }
+.funnel a { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 6px 12px; color: var(--muted); font-size: 14px }
+.funnel b { color: var(--fg); font-family: var(--mono) }
+
+.detail { display: grid; gap: 20px; grid-template-columns: minmax(0, 1fr) 300px; align-items: start }
+@media (max-width: 860px) { .detail { grid-template-columns: minmax(0, 1fr) } }
+.facts { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)) }
+.facts .k { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted) }
+.crit { display: grid; gap: 8px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr)) }
+.crit div { border-radius: 6px; padding: 8px 10px; font-size: 13px; border: 1px solid var(--line) }
+.crit .pass { background: var(--good-bg); color: var(--good) } .crit .fail { background: var(--bad-bg); color: var(--bad) } .crit .unknown { background: var(--surface-2); color: var(--muted) }
+.crit small { display: block; opacity: .85 }
+.prose { font-size: 14px; line-height: 1.6; max-width: 75ch } .prose p { margin: 0 }
+.longtext { white-space: pre-line; max-height: 380px; overflow-y: auto; font-size: 14px; color: var(--muted) }
+.note { font-size: 12px; color: var(--muted) }
+.warnbox { background: var(--warn-bg); color: var(--warn); border-radius: 6px; padding: 10px 12px; font-size: 14px }
+.side { position: sticky; top: 12px; display: grid; gap: 10px }
+.side label { display: grid; gap: 4px; font-size: 12px; color: var(--muted) }
+.side input, .side select { width: 100% }
+.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px }
+
+.board { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(230px, 1fr); gap: 12px; overflow-x: auto; padding-bottom: 6px }
+.col { background: var(--surface-2); border: 1px solid var(--line); border-radius: 8px; padding: 10px; display: grid; gap: 8px; align-content: start }
+.col h2 { font-size: 14px; display: flex; justify-content: space-between }
+.card { display: grid; gap: 4px; background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 10px; color: var(--fg) }
+.card:hover { border-color: var(--link); text-decoration: none }
+.card .ttl { font-size: 14px }
+
+.report-head { background: var(--navy); color: var(--on-navy); border-radius: 10px; padding: 28px }
+.report-head .eyebrow { font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--on-navy-muted) }
+.report-head h1 { font-size: 28px; font-weight: 500; margin-top: 4px }
+.tiles { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 18px }
+.tiles div { background: rgba(255,255,255,.08); border-radius: 8px; padding: 10px 20px; text-align: center }
+.tiles b { display: block; font: 500 28px var(--mono) }
+.tiles span { font-size: 12px; color: var(--on-navy-muted) }
+.rec { display: grid; gap: 12px }
+.rec .bar { display: flex; flex-wrap: wrap; gap: 20px; align-items: center; background: var(--surface-2); border-radius: 6px; padding: 10px 12px }
+.rec h4 { margin: 0 0 2px; font-size: 14px }
+.rowline { display: flex; justify-content: space-between; gap: 12px; padding: 10px 0; border-top: 1px solid var(--line); font-size: 14px }
+.chips { display: flex; flex-wrap: wrap; gap: 6px } .chips span { background: var(--surface-2); border: 1px solid var(--line); border-radius: 4px; padding: 2px 8px; font-size: 12px }
+.banner { font-size: 13px; color: var(--muted); display: flex; flex-wrap: wrap; gap: 6px 16px }
+.toast { font-size: 12px; color: var(--muted); min-height: 1em }
+@media (prefers-reduced-motion: no-preference) { .card, .stat { transition: border-color .12s } }
+</style>
+
+<header class="mast">
+  <div class="wrap">
+    <a class="brand" href="#dashboard"><span class="mark">F</span>Forge Grants <small>Forge Institute</small></a>
+    <nav class="tabs" id="tabs">
+      <a href="#dashboard">Dashboard</a><a href="#opportunities">Opportunities</a><a href="#pipeline">Pipeline</a>
+      <a href="#federal">Federal funding</a><a href="#report">Report</a><a href="#profile">Forge profile</a>
+    </nav>
+  </div>
+</header>
+<main class="wrap" id="app"><p class="empty">Loading opportunities…</p></main>
+
+<script>
+(() => {
+  const STAGES = ["new","screening","internal_review","go","drafting","submitted","awarded","not_awarded","declined"];
+  const LABEL = { new:"New", screening:"Screening", internal_review:"Internal review", go:"Go", drafting:"Drafting", submitted:"Submitted", awarded:"Awarded", not_awarded:"Not awarded", declined:"No-go" };
+  const OPEN = ["new","screening","internal_review","go","drafting"];
+  const DAY = 86400000;
+  const app = document.getElementById("app");
+
+  let OPPS = [], META = { profile: { federalAgencies: [], searchKeywords: [], capabilities: [], partners: [], goodFit: [], poorFit: [] } };
+  let DECISIONS = {};          // id -> {stage, owner, notes, reviewDate, updatedBy, updatedAt}
+  let db = null, user = null, canWrite = false, storeState = "connecting";
+  const names = {};            // user id -> display name (resolved at render time)
+  const ui = { q: "", min: "", agency: "", stage: "", clean: false, closed: false };
+  try { Object.assign(ui, JSON.parse(localStorage.getItem("fg-filters") || "{}")); } catch {}
+
+  const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c]));
+  const today = () => { const n = new Date(); return Date.UTC(n.getUTCFullYear(), n.getUTCMonth(), n.getUTCDate()); };
+  const daysUntil = (iso) => { if (!iso) return null; const t = new Date(iso); if (isNaN(t)) return null; return Math.round((Date.UTC(t.getUTCFullYear(), t.getUTCMonth(), t.getUTCDate()) - today()) / DAY); };
+  const implausible = (iso) => { const d = daysUntil(iso); return d !== null && d > 365 * 5; };
+  const fmtDate = (iso) => iso ? new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" }) : "—";
+  const money = (n) => n == null ? "—" : n >= 1e6 ? `$${(n / 1e6).toFixed(n % 1e6 ? 1 : 0)}M` : n >= 1e3 ? `$${Math.round(n / 1e3)}K` : `$${n}`;
+  const range = (a, b) => a && b ? `${money(a)} – ${money(b)}` : b ? `Up to ${money(b)}` : a ? `From ${money(a)}` : "—";
+
+  // Merged view: snapshot data + shared decision.
+  const stageOf = (o) => DECISIONS[o.id]?.stage || o.defaultStage || "new";
+  const reviewOf = (o) => {
+    const d = DECISIONS[o.id];
+    if (d && "reviewDate" in d) return d.reviewDate || null;
+    if (!o.closeDate || implausible(o.closeDate)) return null;
+    return new Date(Date.parse(o.closeDate) - 14 * DAY).toISOString();
+  };
+  const fit = (o) => o.evaluation ? o.evaluation.score : o.preScore == null ? null : Math.max(1, Math.round(o.preScore / 10));
+  const isHigh = (o) => (o.evaluation?.score ?? 0) >= 6;
+  const isOpen = (o) => { const d = daysUntil(o.closeDate); return OPEN.includes(stageOf(o)) && (d === null || d >= 0); };
+  const byFit = (a, b) => (fit(b) ?? 0) - (fit(a) ?? 0) || (Date.parse(a.closeDate || "9999-01-01") - Date.parse(b.closeDate || "9999-01-01"));
+  const agencyOf = (o) => { const c = (o.agencyCode || "").toUpperCase(); return META.profile.federalAgencies.find((a) => a.grantsGovPrefixes.some((p) => c === p || c.startsWith(p + "-"))) || null; };
+
+  const scoreHtml = (o, big) => {
+    const s = fit(o); if (s == null) return `<span class="note">—</span>`;
+    const cls = s >= 8 ? "s8" : s >= 6 ? "s6" : s >= 4 ? "s4" : "s1";
+    const tip = o.evaluation ? "Claude fit score" : "Keyword pre-score, not yet evaluated by Claude";
+    return `<span class="score ${cls} ${o.evaluation ? "" : "pre"} ${big ? "big" : ""}" title="${tip}">${s}/10${o.evaluation ? "" : "*"}</span>`;
+  };
+  const dlHtml = (iso) => {
+    const d = daysUntil(iso);
+    if (d === null) return `<span class="dl none">No deadline listed</span>`;
+    if (implausible(iso)) return `<span class="dl flag" title="Likely placeholder in the source data">⚠ ${fmtDate(iso)} · check</span>`;
+    const cls = d < 0 ? "none" : d <= 14 ? "urgent" : d <= 30 ? "soon" : "ok";
+    return `<span class="dl ${cls}">${fmtDate(iso)} · ${d < 0 ? "closed" : d === 0 ? "today" : d + "d left"}</span>`;
+  };
+  const pill = (s) => `<span class="pill ${s}">${LABEL[s]}</span>`;
+  const dots = (o) => `<span class="dots">${o.criteria.map((c) => `<span class="dot ${c.status}" title="${esc(c.label)}: ${c.status === "unknown" ? "not stated" : c.status}"></span>`).join("")}</span>`;
+  const oppLink = (o) => `<a href="#opp-${o.id}" class="ttl">${esc(o.title)}</a>`;
+
+  function table(items, empty) {
+    if (!items.length) return `<p class="panel empty">${empty}</p>`;
+    return `<div class="tablewrap"><table><thead><tr><th>Fit</th><th>Opportunity</th><th>Deadline</th><th>Award ceiling</th><th>Criteria</th><th>Stage</th></tr></thead><tbody>${
+      items.map((o) => `<tr><td>${scoreHtml(o)}</td><td style="min-width:260px">${oppLink(o)}<div class="meta"><span class="tag">grants.gov</span><span>${esc(o.agency)}</span>${o.number ? `<span class="mono">${esc(o.number)}</span>` : ""}</div></td><td>${dlHtml(o.closeDate)}</td><td class="num">${money(o.awardCeiling)}</td><td>${dots(o)}</td><td>${pill(stageOf(o))}</td></tr>`).join("")
+    }</tbody></table></div>`;
+  }
+  const dueList = (items, dateOf, empty) => items.length
+    ? `<ul class="list">${items.slice(0, 8).map((o) => `<li><span class="t">${oppLink(o)}</span><span class="r">${dlHtml(dateOf(o))}${scoreHtml(o)}</span></li>`).join("")}</ul>`
+    : `<p class="empty">${empty}</p>`;
+
+  function storeBanner() {
+    const msg = storeState === "ready" ? (canWrite ? "Decisions are shared with everyone on this page." : "You can view decisions. Ask the owner for Contributor access to change them.")
+      : storeState === "offline" ? "Shared decisions are unavailable in this view (sign in to claude.ai to see and record them)."
+      : "Connecting to shared decisions…";
+    return `<div class="banner"><span>Grants.gov snapshot ${fmtDate(META.snapshotAt)} · ${OPPS.length} open listings</span><span>${msg}</span></div>`;
+  }
+
+  // ---------- views ----------
+  function viewDashboard() {
+    const open = OPPS.filter(isOpen);
+    const within = (iso, n) => { const d = daysUntil(iso); return d !== null && d >= 0 && d <= n; };
+    const review = open.filter((o) => ["screening","internal_review"].includes(stageOf(o)) && within(reviewOf(o), 14)).sort((a, b) => Date.parse(reviewOf(a)) - Date.parse(reviewOf(b)));
+    const deadlines = open.filter((o) => within(o.closeDate, 30) && (isHigh(o) || ["internal_review","go","drafting"].includes(stageOf(o)))).sort((a, b) => Date.parse(a.closeDate) - Date.parse(b.closeDate));
+    const high = open.filter(isHigh).sort(byFit);
+    const counts = Object.fromEntries(STAGES.map((s) => [s, 0])); OPPS.forEach((o) => counts[stageOf(o)]++);
+    return `
+      <div class="head"><div><h1>Grant dashboard</h1>${storeBanner()}</div>
+        <form class="search" id="qform"><input id="dash-q" placeholder="Search opportunities…" aria-label="Search opportunities"><button class="btn">Search</button></form></div>
+      <section class="stats">
+        <a class="stat" href="#opportunities"><div class="k">Open opportunities</div><div class="v">${open.length}</div><div class="s">From the latest snapshot</div></a>
+        <a class="stat hot" href="#opportunities" data-min="6"><div class="k">High match (6+)</div><div class="v">${high.length}</div><div class="s">Evaluated by Claude</div></a>
+        <a class="stat" href="#pipeline"><div class="k">Internal review due (14d)</div><div class="v">${review.length}</div><div class="s">Go/no-go decisions to make</div></a>
+        <a class="stat" href="#pipeline"><div class="k">Submission deadlines (30d)</div><div class="v">${deadlines.length}</div><div class="s">High match or in progress</div></a>
+      </section>
+      <section class="grid2">
+        <div class="panel"><h2>Internal review due</h2>${dueList(review, reviewOf, "No go/no-go reviews due in the next 14 days.")}</div>
+        <div class="panel"><h2>Submission deadlines</h2>${dueList(deadlines, (o) => o.closeDate, "No high-match deadlines in the next 30 days.")}</div>
+      </section>
+      <section><h2 class="sec-title">Top recommended</h2>${table(high.slice(0, 8), "No Claude-evaluated high matches yet.")}</section>
+      <section><h2 class="sec-title">Decision funnel</h2><div class="funnel">${STAGES.map((s) => `<a href="#opportunities" data-stage="${s}"><b>${counts[s]}</b> ${LABEL[s]}</a>`).join("")}</div></section>`;
+  }
+
+  function filtered() {
+    const q = ui.q.trim().toLowerCase(), min = Number(ui.min || 0);
+    return OPPS.filter((o) => {
+      if (!ui.closed && !ui.stage && !isOpen(o)) return false;
+      if (ui.stage && stageOf(o) !== ui.stage) return false;
+      if (min && (fit(o) ?? 0) < min) return false;
+      if (ui.agency && agencyOf(o)?.id !== ui.agency) return false;
+      if (ui.clean && o.criteria.some((c) => c.status === "fail")) return false;
+      if (q && ![o.title, o.agency, o.number, o.description].some((f) => f && f.toLowerCase().includes(q))) return false;
+      return true;
+    }).sort(byFit);
+  }
+  function viewOpportunities() {
+    const items = filtered();
+    const opt = (v, l, cur) => `<option value="${esc(v)}" ${String(cur) === String(v) ? "selected" : ""}>${esc(l)}</option>`;
+    return `
+      <div class="head"><h1>Opportunities</h1><span class="sub"><span class="num">${items.length}</span> shown · * keyword pre-score, not yet evaluated by Claude</span></div>
+      <div class="panel filters" id="filters">
+        <input id="f-q" placeholder="Search title, agency, number…" value="${esc(ui.q)}" aria-label="Search">
+        <select id="f-min" aria-label="Fit">${opt("", "Any fit", ui.min)}${opt(8, "Strong (8+)", ui.min)}${opt(6, "Good (6+)", ui.min)}${opt(4, "Possible (4+)", ui.min)}</select>
+        <select id="f-agency" aria-label="Agency">${opt("", "All agencies", ui.agency)}${META.profile.federalAgencies.map((a) => opt(a.id, a.name, ui.agency)).join("")}</select>
+        <select id="f-stage" aria-label="Stage">${opt("", "Open stages", ui.stage)}${STAGES.map((s) => opt(s, LABEL[s], ui.stage)).join("")}</select>
+        <label><input type="checkbox" id="f-clean" ${ui.clean ? "checked" : ""}> No failed criteria</label>
+        <label><input type="checkbox" id="f-closed" ${ui.closed ? "checked" : ""}> Include closed</label>
+        <button class="btn-ghost" id="f-reset" type="button">Reset</button>
+      </div>
+      <div class="legend"><span>Criteria: 501(c)(3) lead · no cash match · indirect costs · operating expenses · open solicitation</span>
+        <span><i class="dot pass"></i>yes</span><span><i class="dot fail"></i>no</span><span><i class="dot unknown"></i>not stated</span></div>
+      <div id="results">${table(items.slice(0, 300), "No opportunities match these filters.")}</div>`;
+  }
+
+  function viewDetail(id) {
+    const o = OPPS.find((x) => x.id === id);
+    if (!o) return `<p class="panel empty">That opportunity is not in the current snapshot. <a href="#opportunities">Back to opportunities</a></p>`;
+    const ev = o.evaluation, d = DECISIONS[o.id] || {}, st = stageOf(o), rv = reviewOf(o);
+    const TXT = { pass: "Yes", fail: "No", unknown: "Not stated" };
+    const sec = (t, body) => `<section class="panel"><h2>${t}</h2><div class="prose">${body}</div></section>`;
+    const who = d.updatedBy ? (names[d.updatedBy] || "a teammate") : null;
+    return `
+      <div><a href="#opportunities">← Opportunities</a></div>
+      <div class="detail">
+        <div style="display:grid;gap:16px;min-width:0">
+          <div><div class="meta" style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;color:var(--muted);font-size:13px"><span class="tag">grants.gov</span>${esc(o.agency)} ${o.number ? `<span class="mono">${esc(o.number)}</span>` : ""} ${pill(st)}</div>
+            <h1 style="font-size:24px;margin-top:6px">${esc(o.title)}</h1>
+            ${o.url ? `<a href="${esc(o.url)}" target="_blank" rel="noopener">View the official listing on Grants.gov ↗</a>` : ""}</div>
+          <div class="panel facts">
+            <div><div class="k">Fit</div>${scoreHtml(o, true)}</div>
+            <div><div class="k">Deadline</div>${dlHtml(o.closeDate)}</div>
+            <div><div class="k">Award range</div><span class="num">${range(o.awardFloor, o.awardCeiling)}</span></div>
+            <div><div class="k">Program total</div><span class="num">${money(o.estimatedFunding)}</span>${o.expectedAwards ? ` <span class="note">· ${o.expectedAwards} awards</span>` : ""}</div>
+          </div>
+          ${o.warnings.length ? `<div class="warnbox">${o.warnings.map((w) => `⚠ ${esc(w)}`).join("<br>")}</div>` : ""}
+          <section class="panel"><h2>Forge decision criteria</h2>
+            ${o.blockers.length ? `<p style="color:var(--bad);margin:0 0 8px;font-weight:600">Blocker: ${esc(o.blockers.join("; "))}</p>` : ""}
+            <div class="crit">${o.criteria.map((c) => `<div class="${c.status}"><b>${esc(c.label)}: ${TXT[c.status]}</b><small>${esc(c.evidence)}</small></div>`).join("")}</div>
+            <p class="note" style="margin:8px 0 0">Automated checks on the listing text. Confirm against the full notice.${o.signals.length ? ` Profile signals: ${esc(o.signals.join(", "))}.` : ""}</p>
+          </section>
+          ${ev ? `
+            ${sec("Why it fits", `<p>${esc(ev.whyItFits)}</p>`)}
+            ${ev.proposedProject ? sec("Proposed project", `<p>${esc(ev.proposedProject)}</p>`) : ""}
+            <div class="grid3">
+              ${ev.targetClients ? sec("Target clients", `<p>${esc(ev.targetClients)}</p>`) : ""}
+              ${ev.recommendedPartners.length ? sec("Recommended partners", `<ol style="margin:0;padding-left:18px">${ev.recommendedPartners.map((p) => `<li>${esc(p)}</li>`).join("")}</ol>`) : ""}
+              ${ev.whyForgeQualifies ? sec("Why Forge qualifies", `<p>${esc(ev.whyForgeQualifies)}</p>`) : ""}
+            </div>
+            ${ev.risks.length ? sec("Risks and open questions", `<ul style="margin:0;padding-left:18px">${ev.risks.map((r) => `<li>${esc(r)}</li>`).join("")}</ul>`) : ""}
+            <p class="note" style="margin:0">Evaluated ${fmtDate(ev.evaluatedAt)} · ${esc(ev.model)}. AI-generated; verify before relying on it.</p>`
+          : `<p class="panel empty">Not yet evaluated by Claude. The score shown is a keyword pre-score.</p>`}
+          ${o.eligibility ? `<section class="panel"><h2>Eligibility (from listing)</h2><div class="longtext">${esc(o.eligibility)}</div></section>` : ""}
+          ${o.description ? `<section class="panel"><h2>Description (from listing)</h2><div class="longtext">${esc(o.description)}</div></section>` : ""}
+        </div>
+        <aside class="panel side" id="decision" data-id="${o.id}">
+          <h2 style="margin:0">Decision</h2>
+          <div class="row2"><button class="btn-go" data-decide="go" ${canWrite ? "" : "disabled"}>Go</button><button class="btn-no" data-decide="declined" ${canWrite ? "" : "disabled"}>No-go</button></div>
+          <label for="d-stage">Stage<select id="d-stage" ${canWrite ? "" : "disabled"}>${STAGES.map((s) => `<option value="${s}" ${s === st ? "selected" : ""}>${LABEL[s]}</option>`).join("")}</select></label>
+          <label for="d-review">Internal review date<input type="date" id="d-review" value="${rv ? rv.slice(0, 10) : ""}" ${canWrite ? "" : "disabled"}></label>
+          <label for="d-owner">Owner<input id="d-owner" value="${esc(d.owner || "")}" placeholder="Who is leading this?" ${canWrite ? "" : "disabled"}></label>
+          <label for="d-notes">Notes<textarea id="d-notes" rows="6" placeholder="Partner conversations, reasons for the decision…" ${canWrite ? "" : "disabled"}>${esc(d.notes || "")}</textarea></label>
+          <button class="btn" id="d-save" ${canWrite ? "" : "disabled"}>Save decision</button>
+          <div class="toast" id="d-toast">${d.updatedAt ? `Last updated ${fmtDate(d.updatedAt)}${who ? ` by ${esc(who)}` : ""}` : storeState === "ready" ? (canWrite ? "" : "View only") : "Shared decisions unavailable here"}</div>
+        </aside>
+      </div>`;
+  }
+
+  function viewPipeline() {
+    const cols = ["screening","internal_review","go","drafting","submitted"];
+    const active = OPPS.filter((o) => cols.includes(stageOf(o)) && (stageOf(o) === "submitted" || (daysUntil(o.closeDate) ?? 0) >= 0));
+    return `<div class="head"><div><h1>Pipeline</h1><p class="sub" style="margin:4px 0 0">Change an opportunity's stage from its page. New and No-go items are on the Opportunities tab.</p></div></div>
+      <div class="board">${cols.map((c) => {
+        const cards = active.filter((o) => stageOf(o) === c).sort((a, b) => Date.parse(a.closeDate || "9999-01-01") - Date.parse(b.closeDate || "9999-01-01"));
+        return `<div class="col"><h2>${LABEL[c]} <span class="num" style="color:var(--muted)">${cards.length}</span></h2>${cards.length ? cards.map((o) => {
+          const rv = reviewOf(o), d = DECISIONS[o.id] || {};
+          return `<a class="card" href="#opp-${o.id}"><span style="display:flex;justify-content:space-between;gap:8px"><span class="ttl">${esc(o.title)}</span>${scoreHtml(o)}</span><span class="note">${esc(o.agency)}</span>${dlHtml(o.closeDate)}${rv ? `<span class="note">Review ${fmtDate(rv)}</span>` : ""}${d.owner ? `<span class="note">Owner: ${esc(d.owner)}</span>` : ""}</a>`;
+        }).join("") : `<p class="empty" style="font-size:13px">Nothing here.</p>`}</div>`;
+      }).join("")}</div>`;
+  }
+
+  function viewFederal() {
+    const open = OPPS.filter(isOpen);
+    return `<div class="head"><div><h1>Federal funding</h1><p class="sub" style="margin:4px 0 0">Open opportunities at Forge's priority agencies, from Grants.gov.</p></div></div>
+      <div class="grid2">${META.profile.federalAgencies.map((a) => {
+        const items = open.filter((o) => agencyOf(o)?.id === a.id).sort(byFit);
+        return `<section class="panel"><div style="display:flex;justify-content:space-between;gap:8px;align-items:baseline"><h2>${esc(a.name)}</h2><a href="#opportunities" data-agency="${a.id}" class="note">${items.length} open · ${items.filter(isHigh).length} high match →</a></div>
+          ${items.length ? `<ul class="list">${items.slice(0, 6).map((o) => `<li><span class="t">${oppLink(o)}</span><span class="r">${dlHtml(o.closeDate)}${scoreHtml(o)}</span></li>`).join("")}</ul>`
+            : `<p class="empty">Nothing open on Grants.gov. Check the <a href="${esc(a.url)}" target="_blank" rel="noopener">agency funding page ↗</a>.</p>`}</section>`;
+      }).join("")}</div>`;
+  }
+
+  function viewReport() {
+    const ev = OPPS.filter((o) => o.evaluation && isOpen(o)).sort((a, b) => b.evaluation.score - a.evaluation.score);
+    const rec = ev.filter((o) => o.evaluation.score >= 6), pos = ev.filter((o) => o.evaluation.score >= 4 && o.evaluation.score < 6), no = ev.filter((o) => o.evaluation.score < 4);
+    const ext = (o) => o.url ? `<a href="${esc(o.url)}" target="_blank" rel="noopener">${esc(o.title)}</a>` : esc(o.title);
+    const blk = (t, b) => b ? `<div><h4>${t}</h4><div class="prose">${b}</div></div>` : "";
+    return `
+      <div class="report-head"><div class="eyebrow">Forge Institute</div><h1>Grant Opportunities Report</h1>
+        <div style="color:var(--on-navy-muted);margin-top:4px">Grants.gov snapshot ${fmtDate(META.snapshotAt)}</div>
+        <div class="tiles"><div><b>${ev.length}</b><span>Evaluated (open)</span></div><div><b>${rec.length}</b><span>Recommended</span></div><div><b>${pos.length}</b><span>Possible</span></div></div></div>
+      <h2 class="sec-title">Recommended opportunities</h2>
+      ${rec.length ? rec.map((o) => { const e = o.evaluation; return `<article class="panel rec">
+        <div><span class="tag" style="background:var(--accent)">grants.gov</span><h3 style="font-size:18px;margin-top:6px">${ext(o)}</h3><div class="note">${esc(o.agency)}${o.number ? ` · ${esc(o.number)}` : ""}</div></div>
+        <div class="bar">${scoreHtml(o, true)}<div><div class="note">DEADLINE</div>${dlHtml(o.closeDate)}</div><div><div class="note">AWARD</div><span class="num">${range(o.awardFloor, o.awardCeiling)}</span></div><div><div class="note">STAGE</div>${pill(stageOf(o))}</div></div>
+        ${blk("Why it fits", esc(e.whyItFits))}${blk("Proposed project", esc(e.proposedProject))}
+        <div class="grid3">${blk("Target clients", esc(e.targetClients))}${blk("Recommended partners", e.recommendedPartners.length ? `<ol style="margin:0;padding-left:18px">${e.recommendedPartners.map((p) => `<li>${esc(p)}</li>`).join("")}</ol>` : "")}${blk("Why Forge qualifies", esc(e.whyForgeQualifies))}</div>
+        ${e.risks.length ? blk("Risks", `<ul style="margin:0;padding-left:18px">${e.risks.map((r) => `<li>${esc(r)}</li>`).join("")}</ul>`) : ""}
+        <a href="#opp-${o.id}">Open decision page →</a></article>`; }).join("") : `<p class="empty">None yet.</p>`}
+      <h2 class="sec-title">Possible fits</h2>
+      ${pos.map((o) => `<article class="panel"><div style="display:flex;justify-content:space-between;gap:12px"><h3 style="font-size:16px">${ext(o)}</h3>${scoreHtml(o)}</div><div class="note">${esc(o.agency)} · ${dlHtml(o.closeDate)}</div><p class="prose" style="margin-top:8px">${esc(o.evaluation.whyItFits)}</p></article>`).join("") || `<p class="empty">None.</p>`}
+      <h2 class="sec-title">Not recommended</h2>
+      <div class="panel">${no.map((o) => `<div class="rowline"><span>${ext(o)} — ${esc(o.evaluation.whyItFits)}</span>${scoreHtml(o)}</div>`).join("") || `<p class="empty">None.</p>`}</div>
+      <p class="note" style="text-align:center">Evaluations generated by Claude (Anthropic) and transcribed from the October 15, 2026 sample report. Verify against each official notice.</p>`;
+  }
+
+  function viewProfile() {
+    const p = META.profile, ul = (xs) => `<ul style="margin:0;padding-left:18px">${xs.map((x) => `<li>${esc(x)}</li>`).join("")}</ul>`;
+    return `<div class="head"><div><h1>Forge profile</h1><p class="sub" style="margin:4px 0 0">What the screening rules and Claude use to judge fit. Edited in <span class="mono">config/forge-profile.json</span> in the GitHub repo.</p></div></div>
+      <div class="panel prose"><p>${esc(p.summary)}</p></div>
+      <div class="grid2">
+        <div class="panel"><h2>Capabilities</h2>${ul(p.capabilities)}</div><div class="panel"><h2>Partners</h2>${ul(p.partners)}</div>
+        <div class="panel"><h2>Good fit</h2>${ul(p.goodFit)}</div><div class="panel"><h2>Poor fit</h2>${ul(p.poorFit)}</div>
+        <div class="panel"><h2>Grants.gov search keywords</h2><div class="chips">${p.searchKeywords.map((k) => `<span>${esc(k)}</span>`).join("")}</div></div>
+        <div class="panel"><h2>Decision criteria</h2>${ul(["501(c)(3) can be the lead applicant", "No cash match", "Indirect costs allowed", "Funds operating expenses", "Open solicitation (no invitation required)", `Internal review ${p.internalReviewLeadDays} days before the deadline`])}</div>
+      </div>`;
+  }
+
+  // ---------- routing & events ----------
+  const route = () => (location.hash || "#dashboard").slice(1);
+  function render() {
+    const r = route();
+    const tab = r.startsWith("opp-") ? "opportunities" : r;
+    document.querySelectorAll("#tabs a").forEach((a) => { if (a.getAttribute("href") !== "#" + tab) a.removeAttribute("aria-current"); else a.setAttribute("aria-current", "page"); });
+    const v = r.startsWith("opp-") ? viewDetail(r.slice(4)) : ({ opportunities: viewOpportunities, pipeline: viewPipeline, federal: viewFederal, report: viewReport, profile: viewProfile }[r] || viewDashboard)();
+    app.innerHTML = v;
+  }
+  const saveFilters = () => { try { localStorage.setItem("fg-filters", JSON.stringify(ui)); } catch {} };
+  const go = (hash, patch) => { Object.assign(ui, patch || {}); saveFilters(); if (location.hash === hash) render(); else location.hash = hash; };
+
+  addEventListener("hashchange", () => { render(); scrollTo(0, 0); });
+  app.addEventListener("click", (e) => {
+    const a = e.target.closest("a[data-min],a[data-stage],a[data-agency]");
+    if (a) { e.preventDefault(); go("#opportunities", { q: "", min: a.dataset.min || "", stage: a.dataset.stage || "", agency: a.dataset.agency || "", clean: false, closed: false }); return; }
+    if (e.target.id === "f-reset") { go("#opportunities", { q: "", min: "", agency: "", stage: "", clean: false, closed: false }); return; }
+    const dec = e.target.closest("[data-decide]");
+    if (dec) { document.getElementById("d-stage").value = dec.dataset.decide; saveDecision(); return; }
+    if (e.target.id === "d-save") saveDecision();
+  });
+  app.addEventListener("submit", (e) => { if (e.target.id === "qform") { e.preventDefault(); go("#opportunities", { q: document.getElementById("dash-q").value, min: "", stage: "", agency: "", clean: false, closed: false }); } });
+  let typing;
+  app.addEventListener("input", (e) => {
+    if (!e.target.closest("#filters")) return;
+    const map = { "f-q": "q", "f-min": "min", "f-agency": "agency", "f-stage": "stage" };
+    if (map[e.target.id]) ui[map[e.target.id]] = e.target.value;
+    if (e.target.id === "f-clean") ui.clean = e.target.checked;
+    if (e.target.id === "f-closed") ui.closed = e.target.checked;
+    saveFilters();
+    clearTimeout(typing);
+    typing = setTimeout(() => { const items = filtered(); document.getElementById("results").innerHTML = table(items.slice(0, 300), "No opportunities match these filters."); document.querySelector(".head .sub .num").textContent = items.length; }, 120);
+  });
+
+  async function saveDecision() {
+    const box = document.getElementById("decision"); if (!box || !db) return;
+    const id = box.dataset.id, toast = document.getElementById("d-toast");
+    const review = document.getElementById("d-review").value;
+    const body = {
+      stage: document.getElementById("d-stage").value,
+      owner: document.getElementById("d-owner").value.trim().slice(0, 120),
+      notes: document.getElementById("d-notes").value.slice(0, 20000),
+      reviewDate: review ? new Date(review + "T12:00:00Z").toISOString() : null,
+      updatedAt: new Date().toISOString(),
+    };
+    try { const uid = await user?.id?.(); if (uid) body.updatedBy = uid; } catch {}
+    box.querySelectorAll("button").forEach((b) => (b.disabled = true));
+    toast.textContent = "Saving…";
+    try {
+      await db.doc("decisions/" + id).set(body);
+      toast.textContent = "Saved";
+    } catch (err) {
+      toast.textContent = err?.code === "permission_denied" || err?.code === "not_granted" ? "You don't have permission to change decisions." : "Couldn't save. Check your connection and try again.";
+    } finally { box.querySelectorAll("button").forEach((b) => (b.disabled = !canWrite)); }
+  }
+
+  async function resolveNames() {
+    if (!user?.profiles) return;
+    const ids = [...new Set(Object.values(DECISIONS).map((d) => d.updatedBy).filter(Boolean))].filter((i) => !(i in names));
+    if (!ids.length) return;
+    try { const ps = await user.profiles(ids); ids.forEach((i) => (names[i] = ps[i]?.name || "")); if (route().startsWith("opp-")) softRender(); } catch {}
+  }
+  // Re-render without clobbering a decision form the viewer is typing in.
+  function softRender() {
+    const f = document.activeElement;
+    if (f && f.closest && f.closest("#decision, #filters")) return;
+    render();
+  }
+
+  async function connect() {
+    const timer = setTimeout(() => { if (storeState === "connecting") { storeState = "offline"; softRender(); } }, 10000);
+    try {
+      [db, user] = await Promise.all([window.claude?.use?.("db") ?? null, window.claude?.use?.("user") ?? null]);
+    } catch { db = null; }
+    if (!db) { clearTimeout(timer); storeState = "offline"; softRender(); return; }
+    canWrite = user?.can ? user.can("data.write") !== false : true;
+    db.collection("decisions").onSnapshot((snap) => {
+      clearTimeout(timer);
+      const next = {}; snap.docs.forEach((d) => { if (d.exists) next[d.id] = d.data(); });
+      DECISIONS = next; storeState = "ready"; softRender(); resolveNames();
+    }, () => { clearTimeout(timer); storeState = "offline"; softRender(); });
+  }
+
+  Promise.all([fetch("opportunities.json").then((r) => r.json()), fetch("meta.json").then((r) => r.json())])
+    .then(([opps, meta]) => { OPPS = opps; META = meta; render(); connect(); })
+    .catch(() => { app.innerHTML = `<p class="panel empty">The opportunity data didn't load. Reload the page to try again.</p>`; });
+})();
+</script>

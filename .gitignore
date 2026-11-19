@@ -7,3 +7,5 @@ next-env.d.ts
 data/opportunities.json
 data/*.tmp
 reports/
+hosted/opportunities.json
+hosted/meta.json

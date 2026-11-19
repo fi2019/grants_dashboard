@@ -4,6 +4,12 @@ Grant discovery and go/no-go decision dashboard for Forge Institute. It pulls op
 
 This is a **baseline**. It is meant to be refined, not deployed as is. See [docs/baseline-notes.md](docs/baseline-notes.md) for what was carried over from the previous project, what changed, and the roadmap.
 
+## Hosted version (claude.ai)
+
+The team view is published as a private claude.ai page: https://claude.ai/artifact/FrxnW51wxBrfZubZJkxu4r
+
+It shows the latest data snapshot. Go/No-go decisions, owners, notes and review dates entered there are shared by everyone the page is shared with. It cannot run scans. To refresh it, run `npm run scan`, then `python3 hosted/build-data.py`, then republish `hosted/index.html` with `hosted/opportunities.json` and `hosted/meta.json` to the same URL.
+
 ## Quick start
 
 ```bash
