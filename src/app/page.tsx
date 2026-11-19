@@ -35,12 +35,12 @@ export default async function Dashboard() {
       <section className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <Stat label="Open opportunities" value={stats.open} sub={`${stats.newThisWeek} new this week`} href="/opportunities" />
         <Stat label="High match (6+)" value={stats.highMatch} sub={`${stats.highMatchNew} new this week`} href="/opportunities?min=6" accent />
-        <Stat label="Internal review due (14d)" value={stats.internalReviewDue.length} sub="Go/no-go decisions to make" href="/pipeline" />
+        <Stat label="Forge internal deadlines (14d)" value={stats.internalReviewDue.length} sub="Go/no-go decisions to make" href="/pipeline" />
         <Stat label="Submission deadlines (30d)" value={stats.submissionDeadlines.length} sub="High match or in progress" href="/pipeline" />
       </section>
 
       <section className="grid gap-4 lg:grid-cols-2">
-        <DueList title="Internal review due" items={stats.internalReviewDue} dateOf={(o) => o.internalReviewDate} empty="No go/no-go reviews due in the next 14 days." />
+        <DueList title="Forge internal deadlines" items={stats.internalReviewDue} dateOf={(o) => o.internalReviewDate} empty="No go/no-go reviews due in the next 14 days." />
         <DueList title="Submission deadlines" items={stats.submissionDeadlines} dateOf={(o) => o.closeDate} empty="No high-match deadlines in the next 30 days." />
       </section>
 

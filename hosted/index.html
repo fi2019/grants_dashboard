@@ -111,7 +111,8 @@ td .meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; color:
 
 .detail { display: grid; gap: 20px; grid-template-columns: minmax(0, 1fr) 300px; align-items: start }
 @media (max-width: 860px) { .detail { grid-template-columns: minmax(0, 1fr) } }
-.facts { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)) }
+.facts { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)) }
+.facts .dl { white-space: normal }
 .facts .k { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted) }
 .crit { display: grid; gap: 8px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr)) }
 .crit div { border-radius: 6px; padding: 8px 10px; font-size: 13px; border: 1px solid var(--line) }
@@ -148,6 +149,42 @@ td .meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; color:
 .banner { font-size: 13px; color: var(--muted); display: flex; flex-wrap: wrap; gap: 6px 16px }
 .toast { font-size: 12px; color: var(--muted); min-height: 1em }
 @media (prefers-reduced-motion: no-preference) { .card, .stat { transition: border-color .12s } }
+.cats { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px }
+.cat { font-size: 11px; border-radius: 4px; padding: 0 6px; background: var(--info-bg); color: var(--info); white-space: nowrap }
+.cat.partner { background: var(--good-bg); color: var(--good) }
+.internal { font: 11px var(--mono); color: var(--muted); white-space: nowrap; display: block; margin-top: 2px }
+.internal.urgent { color: var(--bad) } .internal.soon { color: var(--warn) }
+.form { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); align-items: end }
+.form label { display: grid; gap: 4px; font-size: 12px; color: var(--muted) }
+.form label.wide { grid-column: 1 / -1 }
+.form input, .form select, .form textarea { width: 100% }
+.form .actions { display: flex; gap: 8px; align-items: center; grid-column: 1 / -1 }
+.help { font-size: 12px; color: var(--muted); margin: 0 }
+.items { display: grid; gap: 10px }
+.item { display: grid; gap: 6px; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; min-width: 0 }
+.item .top { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; align-items: baseline }
+.item .top h3 { font-size: 15px }
+.item .kv { display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 13px; color: var(--muted); overflow-wrap: anywhere }
+.item .kv b { color: var(--fg); font-weight: 500 }
+.item .btns { display: flex; gap: 6px }
+.item .btns button { padding: 3px 10px; font-size: 13px }
+.btn-danger { background: var(--bad); color: var(--surface) }
+.status { font-size: 11px; border-radius: 999px; padding: 1px 8px; white-space: nowrap }
+.status.on { background: var(--good-bg); color: var(--good) } .status.todo { background: var(--warn-bg); color: var(--warn) } .status.off { background: var(--idle-bg); color: var(--muted) }
+.chips .x { display: inline-flex; gap: 4px; align-items: center }
+.chips .x button { padding: 0 4px; background: none; color: var(--muted); border: 0; font-size: 14px; line-height: 1 }
+.chips .mine { background: var(--info-bg); border-color: transparent; color: var(--info) }
+.people { display: flex; flex-wrap: wrap; gap: 6px; align-items: center }
+.person { display: inline-flex; align-items: center; gap: 5px; font-size: 13px; background: var(--surface-2); border: 1px solid var(--line); border-radius: 999px; padding: 1px 8px 1px 2px; min-height: 24px }
+.person:not(:has(img)) { padding-left: 8px }
+.person img { width: 20px; height: 20px; border-radius: 50% }
+.person button { padding: 0 2px; background: none; border: 0; color: var(--muted) }
+.picker { position: relative }
+.picker ul { position: absolute; z-index: 5; left: 0; right: 0; top: 100%; margin: 2px 0 0; padding: 4px; list-style: none; background: var(--surface); border: 1px solid var(--line); border-radius: 6px; max-height: 220px; overflow-y: auto }
+.picker li button { width: 100%; text-align: left; background: none; color: var(--fg); display: flex; gap: 6px; align-items: center; padding: 5px 6px }
+.picker li button:hover { background: var(--surface-2) }
+.picker img { width: 20px; height: 20px; border-radius: 50% }
+.nav-badge { display: inline-block; min-width: 18px; margin-left: 5px; padding: 0 5px; border-radius: 9px; background: var(--accent); color: #fff; font: 600 11px/18px var(--mono); text-align: center }
 </style>
 
 <header class="mast">
@@ -155,7 +192,8 @@ td .meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; color:
     <a class="brand" href="#dashboard"><span class="mark">F</span>Forge Grants <small>Forge Institute</small></a>
     <nav class="tabs" id="tabs">
       <a href="#dashboard">Dashboard</a><a href="#opportunities">Opportunities</a><a href="#pipeline">Pipeline</a>
-      <a href="#federal">Federal funding</a><a href="#report">Report</a><a href="#profile">Forge profile</a>
+      <a href="#federal">Federal funding</a><a href="#report">Report</a><a href="#categories">Categories</a>
+      <a href="#partners">Partners</a><a href="#sources">Sources</a><a href="#profile">Forge profile</a>
     </nav>
   </div>
 </header>
@@ -166,106 +204,150 @@ td .meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; color:
   const STAGES = ["new","screening","internal_review","go","drafting","submitted","awarded","not_awarded","declined"];
   const LABEL = { new:"New", screening:"Screening", internal_review:"Internal review", go:"Go", drafting:"Drafting", submitted:"Submitted", awarded:"Awarded", not_awarded:"Not awarded", declined:"No-go" };
   const OPEN = ["new","screening","internal_review","go","drafting"];
-  const DAY = 86400000;
+  const DAY = 86400000, INTERNAL_LEAD_DAYS = 14;
+  const PARTNER_TYPES = ["Federal lab", "University", "Researcher", "Program area", "Industry", "Utility", "Nonprofit", "Other"];
+  const SOURCE_TYPES = ["Website", "Database", "API", "RSS feed", "Email list"];
   const app = document.getElementById("app");
 
   let OPPS = [], META = { profile: { federalAgencies: [], searchKeywords: [], capabilities: [], partners: [], goodFit: [], poorFit: [] } };
-  let DECISIONS = {};          // id -> {stage, owner, notes, reviewDate, updatedBy, updatedAt}
-  let db = null, user = null, canWrite = false, storeState = "connecting";
-  const names = {};            // user id -> display name (resolved at render time)
-  const ui = { q: "", min: "", agency: "", stage: "", clean: false, closed: false };
+  // Shared, team-editable state (db collections).
+  const S = { decisions: {}, sources: {}, partners: {}, categories: {}, keywords: {} };
+  let db = null, user = null, me = null, canWrite = false, storeState = "connecting";
+  const names = {}, avatars = {};
+  const ui = { q: "", min: "", agency: "", stage: "", cat: "", partner: false, clean: false, closed: false };
   try { Object.assign(ui, JSON.parse(localStorage.getItem("fg-filters") || "{}")); } catch {}
+  const editing = { source: null, partner: null, category: null };   // id being edited, or "new"
+  const draftMembers = {};      // category form: ids picked so far
+  const armed = new Set();      // remove buttons awaiting confirmation
 
   const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c]));
+  const safeUrl = (u) => /^https?:\/\//i.test(u || "") ? u : null;
   const today = () => { const n = new Date(); return Date.UTC(n.getUTCFullYear(), n.getUTCMonth(), n.getUTCDate()); };
   const daysUntil = (iso) => { if (!iso) return null; const t = new Date(iso); if (isNaN(t)) return null; return Math.round((Date.UTC(t.getUTCFullYear(), t.getUTCMonth(), t.getUTCDate()) - today()) / DAY); };
   const implausible = (iso) => { const d = daysUntil(iso); return d !== null && d > 365 * 5; };
   const fmtDate = (iso) => iso ? new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" }) : "—";
   const money = (n) => n == null ? "—" : n >= 1e6 ? `$${(n / 1e6).toFixed(n % 1e6 ? 1 : 0)}M` : n >= 1e3 ? `$${Math.round(n / 1e3)}K` : `$${n}`;
   const range = (a, b) => a && b ? `${money(a)} – ${money(b)}` : b ? `Up to ${money(b)}` : a ? `From ${money(a)}` : "—";
+  const splitList = (s) => [...new Set(String(s || "").split(/[,\n]/).map((x) => x.trim()).filter(Boolean))].slice(0, 60);
+  const sorted = (obj, key = "name") => Object.entries(obj).map(([id, v]) => ({ id, ...v })).sort((a, b) => String(a[key] || "").localeCompare(String(b[key] || "")));
 
-  // Merged view: snapshot data + shared decision.
-  const stageOf = (o) => DECISIONS[o.id]?.stage || o.defaultStage || "new";
-  const reviewOf = (o) => {
-    const d = DECISIONS[o.id];
-    if (d && "reviewDate" in d) return d.reviewDate || null;
-    if (!o.closeDate || implausible(o.closeDate)) return null;
-    return new Date(Date.parse(o.closeDate) - 14 * DAY).toISOString();
+  // ---------- matching ----------
+  const textOf = (o) => (o._text ??= [o.title, o.description, o.eligibility, o.agency].filter(Boolean).join(" \n ").toLowerCase());
+  // Whole-word, case-insensitive match, so "AI" doesn't match "maintain".
+  const reCache = new Map();
+  const kwRe = (k) => {
+    if (!reCache.has(k)) reCache.set(k, new RegExp(`(^|[^a-z0-9])${k.toLowerCase().replace(/[.*+?^${}()|[\]\\]/g, "\\$&").replace(/\s+/g, "\\s+")}(?=$|[^a-z0-9])`));
+    return reCache.get(k);
   };
+  const hits = (o, kws) => (kws || []).filter((k) => k && kwRe(String(k)).test(textOf(o)));
+  const catsFor = (o) => sorted(S.categories).filter((c) => hits(o, c.keywords).length);
+  const partnersFor = (o) => sorted(S.partners).map((p) => ({ ...p, matched: hits(o, p.focus) })).filter((p) => p.matched.length);
+  const myCats = () => me ? sorted(S.categories).filter((c) => (c.members || []).includes(me)) : [];
+
+  // ---------- merged opportunity state ----------
+  const stageOf = (o) => S.decisions[o.id]?.stage || o.defaultStage || "new";
+  // Forge internal deadline: 2 weeks before submission unless the team set a date.
+  const defaultInternal = (o) => !o.closeDate || implausible(o.closeDate) ? null : new Date(Date.parse(o.closeDate) - INTERNAL_LEAD_DAYS * DAY).toISOString();
+  const internalOf = (o) => { const d = S.decisions[o.id]; return d && d.reviewDate ? d.reviewDate : defaultInternal(o); };
   const fit = (o) => o.evaluation ? o.evaluation.score : o.preScore == null ? null : Math.max(1, Math.round(o.preScore / 10));
   const isHigh = (o) => (o.evaluation?.score ?? 0) >= 6;
   const isOpen = (o) => { const d = daysUntil(o.closeDate); return OPEN.includes(stageOf(o)) && (d === null || d >= 0); };
   const byFit = (a, b) => (fit(b) ?? 0) - (fit(a) ?? 0) || (Date.parse(a.closeDate || "9999-01-01") - Date.parse(b.closeDate || "9999-01-01"));
   const agencyOf = (o) => { const c = (o.agencyCode || "").toUpperCase(); return META.profile.federalAgencies.find((a) => a.grantsGovPrefixes.some((p) => c === p || c.startsWith(p + "-"))) || null; };
 
+  // ---------- small renderers ----------
+  const urgency = (d) => d < 0 ? "none" : d < 30 ? "urgent" : d <= 90 ? "soon" : "ok";
   const scoreHtml = (o, big) => {
     const s = fit(o); if (s == null) return `<span class="note">—</span>`;
     const cls = s >= 8 ? "s8" : s >= 6 ? "s6" : s >= 4 ? "s4" : "s1";
     const tip = o.evaluation ? "Claude fit score" : "Keyword pre-score, not yet evaluated by Claude";
     return `<span class="score ${cls} ${o.evaluation ? "" : "pre"} ${big ? "big" : ""}" title="${tip}">${s}/10${o.evaluation ? "" : "*"}</span>`;
   };
+  // Days-left color: red under 30 days, orange within 3 months, green beyond.
   const dlHtml = (iso) => {
     const d = daysUntil(iso);
     if (d === null) return `<span class="dl none">No deadline listed</span>`;
     if (implausible(iso)) return `<span class="dl flag" title="Likely placeholder in the source data">⚠ ${fmtDate(iso)} · check</span>`;
-    const cls = d < 0 ? "none" : d <= 14 ? "urgent" : d <= 30 ? "soon" : "ok";
-    return `<span class="dl ${cls}">${fmtDate(iso)} · ${d < 0 ? "closed" : d === 0 ? "today" : d + "d left"}</span>`;
+    return `<span class="dl ${urgency(d)}">${fmtDate(iso)} · ${d < 0 ? "closed" : d === 0 ? "today" : d + "d left"}</span>`;
   };
+  const internalHtml = (o) => {
+    const iso = internalOf(o); if (!iso) return "";
+    const d = daysUntil(iso);
+    return `<span class="internal ${d >= 0 && d < 30 ? "urgent" : d >= 0 && d <= 90 ? "soon" : ""}" title="Forge internal deadline">Forge: ${fmtDate(iso)}${d < 0 ? " · passed" : d === 0 ? " · today" : ` · ${d}d`}</span>`;
+  };
+  const deadlineCell = (o) => `${dlHtml(o.closeDate)}${internalHtml(o)}`;
   const pill = (s) => `<span class="pill ${s}">${LABEL[s]}</span>`;
   const dots = (o) => `<span class="dots">${o.criteria.map((c) => `<span class="dot ${c.status}" title="${esc(c.label)}: ${c.status === "unknown" ? "not stated" : c.status}"></span>`).join("")}</span>`;
   const oppLink = (o) => `<a href="#opp-${o.id}" class="ttl">${esc(o.title)}</a>`;
+  const tagsHtml = (o) => {
+    const c = catsFor(o), p = partnersFor(o);
+    if (!c.length && !p.length) return "";
+    return `<div class="cats">${c.map((x) => `<span class="cat">${esc(x.name)}</span>`).join("")}${p.slice(0, 2).map((x) => `<span class="cat partner" title="Possible joint submission">With ${esc(x.name)}</span>`).join("")}${p.length > 2 ? `<span class="cat partner">+${p.length - 2} partners</span>` : ""}</div>`;
+  };
+  const personHtml = (id, removable) => `<span class="person">${avatars[id] ? `<img src="${esc(avatars[id])}" alt="">` : ""}${esc(names[id] || (id === me ? "You" : "Team member"))}${removable ? `<button type="button" data-unpick="${esc(id)}" aria-label="Remove">×</button>` : ""}</span>`;
+  const ro = () => canWrite ? "" : "disabled";
 
   function table(items, empty) {
     if (!items.length) return `<p class="panel empty">${empty}</p>`;
     return `<div class="tablewrap"><table><thead><tr><th>Fit</th><th>Opportunity</th><th>Deadline</th><th>Award ceiling</th><th>Criteria</th><th>Stage</th></tr></thead><tbody>${
-      items.map((o) => `<tr><td>${scoreHtml(o)}</td><td style="min-width:260px">${oppLink(o)}<div class="meta"><span class="tag">grants.gov</span><span>${esc(o.agency)}</span>${o.number ? `<span class="mono">${esc(o.number)}</span>` : ""}</div></td><td>${dlHtml(o.closeDate)}</td><td class="num">${money(o.awardCeiling)}</td><td>${dots(o)}</td><td>${pill(stageOf(o))}</td></tr>`).join("")
+      items.map((o) => `<tr><td>${scoreHtml(o)}</td><td style="min-width:260px">${oppLink(o)}<div class="meta"><span class="tag">grants.gov</span><span>${esc(o.agency)}</span>${o.number ? `<span class="mono">${esc(o.number)}</span>` : ""}</div>${tagsHtml(o)}</td><td>${deadlineCell(o)}</td><td class="num">${money(o.awardCeiling)}</td><td>${dots(o)}</td><td>${pill(stageOf(o))}</td></tr>`).join("")
     }</tbody></table></div>`;
   }
-  const dueList = (items, dateOf, empty) => items.length
-    ? `<ul class="list">${items.slice(0, 8).map((o) => `<li><span class="t">${oppLink(o)}</span><span class="r">${dlHtml(dateOf(o))}${scoreHtml(o)}</span></li>`).join("")}</ul>`
+  const dueList = (items, dateOf, empty, showInternal) => items.length
+    ? `<ul class="list">${items.slice(0, 8).map((o) => `<li><span class="t">${oppLink(o)}</span><span class="r">${showInternal ? internalHtml(o) : dlHtml(dateOf(o))}${scoreHtml(o)}</span></li>`).join("")}</ul>`
     : `<p class="empty">${empty}</p>`;
 
   function storeBanner() {
-    const msg = storeState === "ready" ? (canWrite ? "Decisions are shared with everyone on this page." : "You can view decisions. Ask the owner for Contributor access to change them.")
-      : storeState === "offline" ? "Shared decisions are unavailable in this view (sign in to claude.ai to see and record them)."
-      : "Connecting to shared decisions…";
-    return `<div class="banner"><span>Grants.gov snapshot ${fmtDate(META.snapshotAt)} · ${OPPS.length} open listings</span><span>${msg}</span></div>`;
+    const msg = storeState === "ready" ? (canWrite ? "Decisions, categories, partners and sources are shared with everyone on this page." : "View only. Ask the owner for Contributor access to make changes.")
+      : storeState === "offline" ? "Shared data is unavailable in this view. Sign in to claude.ai to see and record it."
+      : "Connecting to shared data…";
+    return `<div class="banner"><span>Grants.gov snapshot ${fmtDate(META.snapshotAt)} · ${OPPS.length} listings</span><span>${msg}</span></div>`;
   }
 
-  // ---------- views ----------
+  // ---------- dashboard ----------
   function viewDashboard() {
     const open = OPPS.filter(isOpen);
     const within = (iso, n) => { const d = daysUntil(iso); return d !== null && d >= 0 && d <= n; };
-    const review = open.filter((o) => ["screening","internal_review"].includes(stageOf(o)) && within(reviewOf(o), 14)).sort((a, b) => Date.parse(reviewOf(a)) - Date.parse(reviewOf(b)));
+    const internal = open.filter((o) => ["screening","internal_review","go","drafting"].includes(stageOf(o)) && within(internalOf(o), 14)).sort((a, b) => Date.parse(internalOf(a)) - Date.parse(internalOf(b)));
     const deadlines = open.filter((o) => within(o.closeDate, 30) && (isHigh(o) || ["internal_review","go","drafting"].includes(stageOf(o)))).sort((a, b) => Date.parse(a.closeDate) - Date.parse(b.closeDate));
     const high = open.filter(isHigh).sort(byFit);
     const counts = Object.fromEntries(STAGES.map((s) => [s, 0])); OPPS.forEach((o) => counts[stageOf(o)]++);
+    const mine = myCats();
+    const mineOpps = open.filter((o) => mine.some((c) => hits(o, c.keywords).length)).sort(byFit);
+    const myPanel = !me ? "" : `<div class="panel"><h2>Your categories</h2>${
+      mine.length ? `<p class="help" style="margin-bottom:8px">${mine.map((c) => esc(c.name)).join(", ")} · <a href="#opportunities" data-mycats="1">${mineOpps.length} open opportunities →</a></p>${dueList(mineOpps, (o) => o.closeDate, "Nothing open matches your categories right now.")}`
+      : `<p class="empty">You aren't in any categories yet. <a href="#categories">Join one</a> to see the opportunities that match it here.</p>`}</div>`;
     return `
       <div class="head"><div><h1>Grant dashboard</h1>${storeBanner()}</div>
         <form class="search" id="qform"><input id="dash-q" placeholder="Search opportunities…" aria-label="Search opportunities"><button class="btn">Search</button></form></div>
       <section class="stats">
-        <a class="stat" href="#opportunities"><div class="k">Open opportunities</div><div class="v">${open.length}</div><div class="s">From the latest snapshot</div></a>
+        <a class="stat" href="#opportunities" data-reset="1"><div class="k">Open opportunities</div><div class="v">${open.length}</div><div class="s">From the latest snapshot</div></a>
         <a class="stat hot" href="#opportunities" data-min="6"><div class="k">High match (6+)</div><div class="v">${high.length}</div><div class="s">Evaluated by Claude</div></a>
-        <a class="stat" href="#pipeline"><div class="k">Internal review due (14d)</div><div class="v">${review.length}</div><div class="s">Go/no-go decisions to make</div></a>
+        <a class="stat" href="#pipeline"><div class="k">Forge internal deadlines (14d)</div><div class="v">${internal.length}</div><div class="s">Go/no-go and drafts due inside Forge</div></a>
         <a class="stat" href="#pipeline"><div class="k">Submission deadlines (30d)</div><div class="v">${deadlines.length}</div><div class="s">High match or in progress</div></a>
       </section>
+      ${myPanel}
       <section class="grid2">
-        <div class="panel"><h2>Internal review due</h2>${dueList(review, reviewOf, "No go/no-go reviews due in the next 14 days.")}</div>
-        <div class="panel"><h2>Submission deadlines</h2>${dueList(deadlines, (o) => o.closeDate, "No high-match deadlines in the next 30 days.")}</div>
+        <div class="panel"><h2>Forge internal deadlines</h2><p class="help" style="margin-bottom:6px">Two weeks before each submission deadline, unless the team set another date.</p>${dueList(internal, internalOf, "No internal deadlines in the next 14 days for opportunities in progress.", true)}</div>
+        <div class="panel"><h2>Submission deadlines</h2>${dueList(deadlines, (o) => o.closeDate, "No high-match submission deadlines in the next 30 days.")}</div>
       </section>
       <section><h2 class="sec-title">Top recommended</h2>${table(high.slice(0, 8), "No Claude-evaluated high matches yet.")}</section>
       <section><h2 class="sec-title">Decision funnel</h2><div class="funnel">${STAGES.map((s) => `<a href="#opportunities" data-stage="${s}"><b>${counts[s]}</b> ${LABEL[s]}</a>`).join("")}</div></section>`;
   }
 
+  // ---------- opportunities ----------
   function filtered() {
     const q = ui.q.trim().toLowerCase(), min = Number(ui.min || 0);
+    const catKw = ui.cat === "@mine" ? myCats().flatMap((c) => c.keywords || []) : ui.cat ? (S.categories[ui.cat]?.keywords || []) : null;
     return OPPS.filter((o) => {
       if (!ui.closed && !ui.stage && !isOpen(o)) return false;
       if (ui.stage && stageOf(o) !== ui.stage) return false;
       if (min && (fit(o) ?? 0) < min) return false;
       if (ui.agency && agencyOf(o)?.id !== ui.agency) return false;
+      if (catKw && !hits(o, catKw).length) return false;
+      if (ui.partner && !partnersFor(o).length) return false;
       if (ui.clean && o.criteria.some((c) => c.status === "fail")) return false;
-      if (q && ![o.title, o.agency, o.number, o.description].some((f) => f && f.toLowerCase().includes(q))) return false;
+      if (q && !textOf(o).includes(q) && !(o.number || "").toLowerCase().includes(q)) return false;
       return true;
     }).sort(byFit);
   }
@@ -278,23 +360,29 @@ td .meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; color:
         <input id="f-q" placeholder="Search title, agency, number…" value="${esc(ui.q)}" aria-label="Search">
         <select id="f-min" aria-label="Fit">${opt("", "Any fit", ui.min)}${opt(8, "Strong (8+)", ui.min)}${opt(6, "Good (6+)", ui.min)}${opt(4, "Possible (4+)", ui.min)}</select>
         <select id="f-agency" aria-label="Agency">${opt("", "All agencies", ui.agency)}${META.profile.federalAgencies.map((a) => opt(a.id, a.name, ui.agency)).join("")}</select>
+        <select id="f-cat" aria-label="Category">${opt("", "All categories", ui.cat)}${me ? opt("@mine", "My categories", ui.cat) : ""}${sorted(S.categories).map((c) => opt(c.id, c.name, ui.cat)).join("")}</select>
         <select id="f-stage" aria-label="Stage">${opt("", "Open stages", ui.stage)}${STAGES.map((s) => opt(s, LABEL[s], ui.stage)).join("")}</select>
+        <label><input type="checkbox" id="f-partner" ${ui.partner ? "checked" : ""}> Partner match</label>
         <label><input type="checkbox" id="f-clean" ${ui.clean ? "checked" : ""}> No failed criteria</label>
         <label><input type="checkbox" id="f-closed" ${ui.closed ? "checked" : ""}> Include closed</label>
         <button class="btn-ghost" id="f-reset" type="button">Reset</button>
       </div>
       <div class="legend"><span>Criteria: 501(c)(3) lead · no cash match · indirect costs · operating expenses · open solicitation</span>
-        <span><i class="dot pass"></i>yes</span><span><i class="dot fail"></i>no</span><span><i class="dot unknown"></i>not stated</span></div>
+        <span><i class="dot pass"></i>yes</span><span><i class="dot fail"></i>no</span><span><i class="dot unknown"></i>not stated</span>
+        <span>Days left: <b class="dl urgent">under 30</b> <b class="dl soon">under 90</b> <b class="dl ok">90+</b></span></div>
       <div id="results">${table(items.slice(0, 300), "No opportunities match these filters.")}</div>`;
   }
 
+  // ---------- detail ----------
   function viewDetail(id) {
     const o = OPPS.find((x) => x.id === id);
     if (!o) return `<p class="panel empty">That opportunity is not in the current snapshot. <a href="#opportunities">Back to opportunities</a></p>`;
-    const ev = o.evaluation, d = DECISIONS[o.id] || {}, st = stageOf(o), rv = reviewOf(o);
+    const ev = o.evaluation, d = S.decisions[o.id] || {}, st = stageOf(o), internal = internalOf(o);
     const TXT = { pass: "Yes", fail: "No", unknown: "Not stated" };
     const sec = (t, body) => `<section class="panel"><h2>${t}</h2><div class="prose">${body}</div></section>`;
     const who = d.updatedBy ? (names[d.updatedBy] || "a teammate") : null;
+    const cats = catsFor(o), parts = partnersFor(o);
+    const watchers = [...new Set(cats.flatMap((c) => c.members || []))];
     return `
       <div><a href="#opportunities">← Opportunities</a></div>
       <div class="detail">
@@ -304,11 +392,17 @@ td .meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; color:
             ${o.url ? `<a href="${esc(o.url)}" target="_blank" rel="noopener">View the official listing on Grants.gov ↗</a>` : ""}</div>
           <div class="panel facts">
             <div><div class="k">Fit</div>${scoreHtml(o, true)}</div>
-            <div><div class="k">Deadline</div>${dlHtml(o.closeDate)}</div>
+            <div><div class="k">Submission deadline</div>${dlHtml(o.closeDate)}</div>
+            <div><div class="k">Forge internal deadline</div>${internal ? `<span class="dl ${urgency(daysUntil(internal))}">${fmtDate(internal)}</span><div class="note">${d.reviewDate ? "Set by the team" : "2 weeks before submission"}</div>` : `<span class="note">Set once a deadline is known</span>`}</div>
             <div><div class="k">Award range</div><span class="num">${range(o.awardFloor, o.awardCeiling)}</span></div>
             <div><div class="k">Program total</div><span class="num">${money(o.estimatedFunding)}</span>${o.expectedAwards ? ` <span class="note">· ${o.expectedAwards} awards</span>` : ""}</div>
           </div>
           ${o.warnings.length ? `<div class="warnbox">${o.warnings.map((w) => `⚠ ${esc(w)}`).join("<br>")}</div>` : ""}
+          ${cats.length || parts.length ? `<section class="panel"><h2>Team routing</h2>
+            ${cats.length ? `<p class="help" style="margin-bottom:6px">Categories: ${cats.map((c) => `<span class="cat">${esc(c.name)}</span> <span class="note">(${esc(hits(o, c.keywords).join(", "))})</span>`).join(" ")}</p>
+              ${watchers.length ? `<div class="people">${watchers.map((w) => personHtml(w)).join("")}</div>` : `<p class="help">No one is assigned to these categories yet.</p>`}` : ""}
+            ${parts.length ? `<h2 style="margin-top:12px">Possible joint-submission partners</h2><ul class="list">${parts.map((p) => `<li><span class="t">${safeUrl(p.url) ? `<a href="${esc(p.url)}" target="_blank" rel="noopener">${esc(p.name)}</a>` : esc(p.name)} <span class="note">· ${esc(p.type || "Partner")} · matched ${esc(p.matched.join(", "))}</span></span></li>`).join("")}</ul>` : ""}
+          </section>` : ""}
           <section class="panel"><h2>Forge decision criteria</h2>
             ${o.blockers.length ? `<p style="color:var(--bad);margin:0 0 8px;font-weight:600">Blocker: ${esc(o.blockers.join("; "))}</p>` : ""}
             <div class="crit">${o.criteria.map((c) => `<div class="${c.status}"><b>${esc(c.label)}: ${TXT[c.status]}</b><small>${esc(c.evidence)}</small></div>`).join("")}</div>
@@ -330,17 +424,19 @@ td .meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; color:
         </div>
         <aside class="panel side" id="decision" data-id="${o.id}">
           <h2 style="margin:0">Decision</h2>
-          <div class="row2"><button class="btn-go" data-decide="go" ${canWrite ? "" : "disabled"}>Go</button><button class="btn-no" data-decide="declined" ${canWrite ? "" : "disabled"}>No-go</button></div>
-          <label for="d-stage">Stage<select id="d-stage" ${canWrite ? "" : "disabled"}>${STAGES.map((s) => `<option value="${s}" ${s === st ? "selected" : ""}>${LABEL[s]}</option>`).join("")}</select></label>
-          <label for="d-review">Internal review date<input type="date" id="d-review" value="${rv ? rv.slice(0, 10) : ""}" ${canWrite ? "" : "disabled"}></label>
-          <label for="d-owner">Owner<input id="d-owner" value="${esc(d.owner || "")}" placeholder="Who is leading this?" ${canWrite ? "" : "disabled"}></label>
-          <label for="d-notes">Notes<textarea id="d-notes" rows="6" placeholder="Partner conversations, reasons for the decision…" ${canWrite ? "" : "disabled"}>${esc(d.notes || "")}</textarea></label>
-          <button class="btn" id="d-save" ${canWrite ? "" : "disabled"}>Save decision</button>
+          <div class="row2"><button class="btn-go" data-decide="go" ${ro()}>Go</button><button class="btn-no" data-decide="declined" ${ro()}>No-go</button></div>
+          <label for="d-stage">Stage<select id="d-stage" ${ro()}>${STAGES.map((s) => `<option value="${s}" ${s === st ? "selected" : ""}>${LABEL[s]}</option>`).join("")}</select></label>
+          <label for="d-review">Forge internal deadline<input type="date" id="d-review" value="${internal ? internal.slice(0, 10) : ""}" ${ro()}></label>
+          <p class="help" style="margin-top:-4px">Defaults to 2 weeks before submission. Change it only if this one needs more lead time.</p>
+          <label for="d-owner">Owner<input id="d-owner" value="${esc(d.owner || "")}" placeholder="Who is leading this?" ${ro()}></label>
+          <label for="d-notes">Notes<textarea id="d-notes" rows="6" placeholder="Partner conversations, reasons for the decision…" ${ro()}>${esc(d.notes || "")}</textarea></label>
+          <button class="btn" id="d-save" ${ro()}>Save decision</button>
           <div class="toast" id="d-toast">${d.updatedAt ? `Last updated ${fmtDate(d.updatedAt)}${who ? ` by ${esc(who)}` : ""}` : storeState === "ready" ? (canWrite ? "" : "View only") : "Shared decisions unavailable here"}</div>
         </aside>
       </div>`;
   }
 
+  // ---------- pipeline / federal / report (unchanged logic, new deadline display) ----------
   function viewPipeline() {
     const cols = ["screening","internal_review","go","drafting","submitted"];
     const active = OPPS.filter((o) => cols.includes(stageOf(o)) && (stageOf(o) === "submitted" || (daysUntil(o.closeDate) ?? 0) >= 0));
@@ -348,8 +444,8 @@ td .meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; color:
       <div class="board">${cols.map((c) => {
         const cards = active.filter((o) => stageOf(o) === c).sort((a, b) => Date.parse(a.closeDate || "9999-01-01") - Date.parse(b.closeDate || "9999-01-01"));
         return `<div class="col"><h2>${LABEL[c]} <span class="num" style="color:var(--muted)">${cards.length}</span></h2>${cards.length ? cards.map((o) => {
-          const rv = reviewOf(o), d = DECISIONS[o.id] || {};
-          return `<a class="card" href="#opp-${o.id}"><span style="display:flex;justify-content:space-between;gap:8px"><span class="ttl">${esc(o.title)}</span>${scoreHtml(o)}</span><span class="note">${esc(o.agency)}</span>${dlHtml(o.closeDate)}${rv ? `<span class="note">Review ${fmtDate(rv)}</span>` : ""}${d.owner ? `<span class="note">Owner: ${esc(d.owner)}</span>` : ""}</a>`;
+          const d = S.decisions[o.id] || {};
+          return `<a class="card" href="#opp-${o.id}"><span style="display:flex;justify-content:space-between;gap:8px"><span class="ttl">${esc(o.title)}</span>${scoreHtml(o)}</span><span class="note">${esc(o.agency)}</span>${deadlineCell(o)}${d.owner ? `<span class="note">Owner: ${esc(d.owner)}</span>` : ""}</a>`;
         }).join("") : `<p class="empty" style="font-size:13px">Nothing here.</p>`}</div>`;
       }).join("")}</div>`;
   }
@@ -375,9 +471,9 @@ td .meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; color:
         <div style="color:var(--on-navy-muted);margin-top:4px">Grants.gov snapshot ${fmtDate(META.snapshotAt)}</div>
         <div class="tiles"><div><b>${ev.length}</b><span>Evaluated (open)</span></div><div><b>${rec.length}</b><span>Recommended</span></div><div><b>${pos.length}</b><span>Possible</span></div></div></div>
       <h2 class="sec-title">Recommended opportunities</h2>
-      ${rec.length ? rec.map((o) => { const e = o.evaluation; return `<article class="panel rec">
-        <div><span class="tag" style="background:var(--accent)">grants.gov</span><h3 style="font-size:18px;margin-top:6px">${ext(o)}</h3><div class="note">${esc(o.agency)}${o.number ? ` · ${esc(o.number)}` : ""}</div></div>
-        <div class="bar">${scoreHtml(o, true)}<div><div class="note">DEADLINE</div>${dlHtml(o.closeDate)}</div><div><div class="note">AWARD</div><span class="num">${range(o.awardFloor, o.awardCeiling)}</span></div><div><div class="note">STAGE</div>${pill(stageOf(o))}</div></div>
+      ${rec.length ? rec.map((o) => { const e = o.evaluation, internal = internalOf(o); return `<article class="panel rec">
+        <div><span class="tag" style="background:var(--accent)">grants.gov</span><h3 style="font-size:18px;margin-top:6px">${ext(o)}</h3><div class="note">${esc(o.agency)}${o.number ? ` · ${esc(o.number)}` : ""}</div>${tagsHtml(o)}</div>
+        <div class="bar">${scoreHtml(o, true)}<div><div class="note">SUBMISSION</div>${dlHtml(o.closeDate)}</div><div><div class="note">FORGE INTERNAL</div><span class="mono" style="font-size:12px">${fmtDate(internal)}</span></div><div><div class="note">AWARD</div><span class="num">${range(o.awardFloor, o.awardCeiling)}</span></div><div><div class="note">STAGE</div>${pill(stageOf(o))}</div></div>
         ${blk("Why it fits", esc(e.whyItFits))}${blk("Proposed project", esc(e.proposedProject))}
         <div class="grid3">${blk("Target clients", esc(e.targetClients))}${blk("Recommended partners", e.recommendedPartners.length ? `<ol style="margin:0;padding-left:18px">${e.recommendedPartners.map((p) => `<li>${esc(p)}</li>`).join("")}</ol>` : "")}${blk("Why Forge qualifies", esc(e.whyForgeQualifies))}</div>
         ${e.risks.length ? blk("Risks", `<ul style="margin:0;padding-left:18px">${e.risks.map((r) => `<li>${esc(r)}</li>`).join("")}</ul>`) : ""}
@@ -389,99 +485,320 @@ td .meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; color:
       <p class="note" style="text-align:center">Evaluations generated by Claude (Anthropic) and transcribed from the October 15, 2026 sample report. Verify against each official notice.</p>`;
   }
 
+  // ---------- shared editing helpers ----------
+  const removeBtn = (kind, id) => {
+    const key = kind + ":" + id;
+    return armed.has(key) ? `<button class="btn-danger" data-remove="${kind}" data-id="${esc(id)}">Confirm remove</button><button class="btn-ghost" data-disarm="${esc(key)}">Cancel</button>`
+      : `<button class="btn-ghost" data-arm="${esc(key)}" ${ro()}>Remove</button>`;
+  };
+  const editBtn = (kind, id) => `<button class="btn-ghost" data-edit="${kind}" data-id="${esc(id)}" ${ro()}>Edit</button>`;
+  const field = (id, label, value, attrs = "", cls = "") => `<label class="${cls}" for="${id}">${label}<input id="${id}" value="${esc(value ?? "")}" ${attrs} ${ro()}></label>`;
+  const selectField = (id, label, options, value) => `<label for="${id}">${label}<select id="${id}" ${ro()}>${options.map((o) => `<option ${o === value ? "selected" : ""}>${esc(o)}</option>`).join("")}</select></label>`;
+  const areaField = (id, label, value, help) => `<label class="wide" for="${id}">${label}<textarea id="${id}" rows="2" ${ro()}>${esc(value ?? "")}</textarea>${help ? `<span class="help">${help}</span>` : ""}</label>`;
+  const val = (id) => (document.getElementById(id)?.value || "").trim();
+  const formActions = (kind, isNew) => `<div class="actions"><button class="btn" data-save="${kind}" ${ro()}>${isNew ? "Add" : "Save changes"}</button>${isNew ? "" : `<button class="btn-ghost" data-cancel="${kind}">Cancel</button>`}<span class="toast" id="${kind}-toast">${esc(flash[kind + "-toast"] || "")}</span></div>`;
+
+  // ---------- sources ----------
+  function viewSources() {
+    const e = editing.source && editing.source !== "new" ? S.sources[editing.source] || {} : {};
+    const isNew = !editing.source || editing.source === "new";
+    const rows = sorted(S.sources);
+    const builtIn = `<div class="item"><div class="top"><h3>Grants.gov</h3><span class="status on">Connected</span></div>
+      <div class="kv"><span>Type <b>API</b></span><span>Website <a href="https://www.grants.gov" target="_blank" rel="noopener">grants.gov ↗</a></span><span>API <b class="mono">api.grants.gov/v1/api/search2</b></span><span>Credential <b>none needed</b></span></div>
+      <p class="help">Built into the scanner. Searches the Forge keywords plus every open listing at the priority agencies.</p></div>`;
+    return `<div class="head"><div><h1>Sources</h1><p class="sub" style="margin:4px 0 0">Websites and databases the scanner should check. A new source is checked once its connector is built; its status shows here.</p></div></div>
+      <section class="panel"><h2>${isNew ? "Add a source" : "Edit source"}</h2>
+        <div class="form" id="source-form">
+          ${field("s-name", "Name", e.name, 'placeholder="ConnectWerx" maxlength="120"')}
+          ${selectField("s-type", "Type", SOURCE_TYPES, e.type || "Website")}
+          ${field("s-url", "Website URL", e.url, 'type="url" placeholder="https://"', "")}
+          ${field("s-api", "API or feed URL (optional)", e.apiUrl, 'type="url" placeholder="https://"')}
+          ${field("s-cred", "API key name (optional)", e.credential, 'placeholder="CONNECTWERX_API_KEY" maxlength="64" autocomplete="off" spellcheck="false"')}
+          ${selectField("s-status", "Status", ["Needs connector", "Connected", "Paused"], e.status || "Needs connector")}
+          ${areaField("s-notes", "Notes", e.notes, "")}
+          <p class="help" style="grid-column:1/-1"><b>Don't paste API keys here.</b> Everyone who can open this page can read what's saved on it. Enter a name for the key; the key itself is stored in the scanner's environment settings under that name.</p>
+          ${formActions("source", isNew)}
+        </div></section>
+      <section class="items">${builtIn}${rows.map((s) => `<div class="item"><div class="top"><h3>${esc(s.name)}</h3><span class="status ${s.status === "Connected" ? "on" : s.status === "Paused" ? "off" : "todo"}">${esc(s.status || "Needs connector")}</span></div>
+        <div class="kv"><span>Type <b>${esc(s.type)}</b></span>${safeUrl(s.url) ? `<span>Website <a href="${esc(s.url)}" target="_blank" rel="noopener">${esc(s.url.replace(/^https?:\/\//, ""))} ↗</a></span>` : ""}${s.apiUrl ? `<span>API <b class="mono">${esc(s.apiUrl.replace(/^https?:\/\//, ""))}</b></span>` : ""}${s.credential ? `<span>Key name <b class="mono">${esc(s.credential)}</b></span>` : ""}</div>
+        ${s.notes ? `<p class="help">${esc(s.notes)}</p>` : ""}
+        <div class="btns">${editBtn("source", s.id)}${removeBtn("source", s.id)}</div></div>`).join("")}</section>`;
+  }
+
+  // ---------- partners ----------
+  function viewPartners() {
+    const e = editing.partner && editing.partner !== "new" ? S.partners[editing.partner] || {} : {};
+    const isNew = !editing.partner || editing.partner === "new";
+    const open = OPPS.filter(isOpen);
+    return `<div class="head"><div><h1>Partners</h1><p class="sub" style="margin:4px 0 0">Labs, universities, researchers and program areas Forge could submit with. Their focus areas are matched against every opportunity to flag joint-submission candidates.</p></div></div>
+      <section class="panel"><h2>${isNew ? "Add a partner" : "Edit partner"}</h2>
+        <div class="form">
+          ${field("p-name", "Name", e.name, 'placeholder="Idaho National Laboratory" maxlength="160"')}
+          ${selectField("p-type", "Type", PARTNER_TYPES, e.type || "Federal lab")}
+          ${field("p-url", "Link (institution, researcher or program page)", e.url, 'type="url" placeholder="https://"')}
+          ${field("p-contact", "Contact (optional)", e.contact, 'placeholder="Name, role" maxlength="160"')}
+          ${areaField("p-focus", "Focus areas", (e.focus || []).join(", "), "Comma-separated words or phrases. An opportunity that mentions any of them is flagged as a possible joint submission.")}
+          ${areaField("p-notes", "Notes", e.notes, "")}
+          ${formActions("partner", isNew)}
+        </div></section>
+      <section class="items">${sorted(S.partners).map((p) => {
+        const matches = open.filter((o) => hits(o, p.focus).length).sort(byFit);
+        return `<div class="item"><div class="top"><h3>${safeUrl(p.url) ? `<a href="${esc(p.url)}" target="_blank" rel="noopener">${esc(p.name)} ↗</a>` : esc(p.name)}</h3><span class="pill">${esc(p.type)}</span></div>
+          ${p.contact ? `<div class="kv"><span>Contact <b>${esc(p.contact)}</b></span></div>` : ""}
+          ${(p.focus || []).length ? `<div class="chips">${p.focus.map((f) => `<span>${esc(f)}</span>`).join("")}</div>` : `<p class="help">Add focus areas to match opportunities.</p>`}
+          ${p.notes ? `<p class="help">${esc(p.notes)}</p>` : ""}
+          ${matches.length ? `<details><summary class="note">${matches.length} open opportunities mention its focus areas</summary><ul class="list">${matches.slice(0, 8).map((o) => `<li><span class="t">${oppLink(o)}</span><span class="r">${dlHtml(o.closeDate)}${scoreHtml(o)}</span></li>`).join("")}</ul></details>` : ""}
+          <div class="btns">${editBtn("partner", p.id)}${removeBtn("partner", p.id)}</div></div>`;
+      }).join("") || `<p class="panel empty">No partners yet. Add the labs, universities and researchers Forge works with.</p>`}</section>`;
+  }
+
+  // ---------- categories ----------
+  function viewCategories() {
+    const e = editing.category && editing.category !== "new" ? S.categories[editing.category] || {} : {};
+    const isNew = !editing.category || editing.category === "new";
+    const key = editing.category || "new";
+    if (!draftMembers[key]) draftMembers[key] = [...(e.members || [])];
+    const open = OPPS.filter(isOpen);
+    return `<div class="head"><div><h1>Categories</h1><p class="sub" style="margin:4px 0 0">Group keywords into categories and assign team members. Opportunities that match a category are tagged with it and listed on each member's dashboard under "Your categories".</p></div></div>
+      <section class="panel"><h2>${isNew ? "Add a category" : "Edit category"}</h2>
+        <div class="form">
+          ${field("c-name", "Name", e.name, 'placeholder="Grid cybersecurity" maxlength="80"')}
+          ${areaField("c-kw", "Keywords", (e.keywords || []).join(", "), "Comma-separated. Matched against each opportunity's title, description and eligibility.")}
+          <div class="wide" style="grid-column:1/-1;display:grid;gap:6px"><span class="note">Team members</span>
+            <div class="people" id="c-members">${draftMembers[key].map((id) => personHtml(id, canWrite)).join("") || `<span class="help">No one yet.</span>`}</div>
+            ${user?.search ? `<div class="picker"><input id="c-search" placeholder="Add a team member by name…" autocomplete="off" ${ro()}><ul id="c-results" hidden></ul></div>` : `<p class="help">Team member search isn't available in this view.</p>`}
+          </div>
+          ${formActions("category", isNew)}
+        </div></section>
+      <section class="items">${sorted(S.categories).map((c) => {
+        const matches = open.filter((o) => hits(o, c.keywords).length).sort(byFit);
+        const member = me && (c.members || []).includes(me);
+        return `<div class="item"><div class="top"><h3>${esc(c.name)}</h3><a href="#opportunities" data-cat="${esc(c.id)}" class="note">${matches.length} open · ${matches.filter(isHigh).length} high match →</a></div>
+          <div class="chips">${(c.keywords || []).map((k) => `<span>${esc(k)}</span>`).join("")}</div>
+          <div class="people">${(c.members || []).map((id) => personHtml(id)).join("") || `<span class="help">No team members assigned.</span>`}</div>
+          <div class="btns">${me ? `<button class="btn-ghost" data-join="${esc(c.id)}" ${ro()}>${member ? "Leave" : "Join"}</button>` : ""}${editBtn("category", c.id)}${removeBtn("category", c.id)}</div></div>`;
+      }).join("") || `<p class="panel empty">No categories yet. Add one, for example "Grid cybersecurity" with keywords like OT, ICS, SCADA, utility.</p>`}</section>`;
+  }
+
+  // ---------- profile with editable keywords ----------
   function viewProfile() {
     const p = META.profile, ul = (xs) => `<ul style="margin:0;padding-left:18px">${xs.map((x) => `<li>${esc(x)}</li>`).join("")}</ul>`;
-    return `<div class="head"><div><h1>Forge profile</h1><p class="sub" style="margin:4px 0 0">What the screening rules and Claude use to judge fit. Edited in <span class="mono">config/forge-profile.json</span> in the GitHub repo.</p></div></div>
+    const team = sorted(S.keywords, "text");
+    return `<div class="head"><div><h1>Forge profile</h1><p class="sub" style="margin:4px 0 0">What the screening rules and Claude use to judge fit.</p></div></div>
       <div class="panel prose"><p>${esc(p.summary)}</p></div>
+      <section class="panel"><h2>Search keywords</h2>
+        <p class="help" style="margin-bottom:8px">The scanner searches Grants.gov for each of these. Keywords the team adds are used from the next scan on.</p>
+        <div class="chips" style="margin-bottom:10px">${p.searchKeywords.map((k) => `<span title="Built in">${esc(k)}</span>`).join("")}${team.map((k) => `<span class="x mine">${esc(k.text)}<button type="button" data-delkw="${esc(k.id)}" aria-label="Remove ${esc(k.text)}" ${ro()}>×</button></span>`).join("")}</div>
+        <form class="search" id="kw-form" style="max-width:520px"><input id="kw-input" placeholder="Add keywords, comma-separated" maxlength="400" style="flex:1;width:auto" ${ro()}><button class="btn" ${ro()}>Add</button></form>
+        <p class="toast" id="kw-toast">${esc(flash["kw-toast"] || "")}</p>
+        <p class="help">Shaded keywords were added by the team and can be removed. The others come from the profile file in the GitHub repo.</p>
+      </section>
       <div class="grid2">
-        <div class="panel"><h2>Capabilities</h2>${ul(p.capabilities)}</div><div class="panel"><h2>Partners</h2>${ul(p.partners)}</div>
+        <div class="panel"><h2>Capabilities</h2>${ul(p.capabilities)}</div><div class="panel"><h2>Core partners</h2>${ul(p.partners)}<p class="help" style="margin-top:8px">Add more on the <a href="#partners">Partners</a> tab.</p></div>
         <div class="panel"><h2>Good fit</h2>${ul(p.goodFit)}</div><div class="panel"><h2>Poor fit</h2>${ul(p.poorFit)}</div>
-        <div class="panel"><h2>Grants.gov search keywords</h2><div class="chips">${p.searchKeywords.map((k) => `<span>${esc(k)}</span>`).join("")}</div></div>
-        <div class="panel"><h2>Decision criteria</h2>${ul(["501(c)(3) can be the lead applicant", "No cash match", "Indirect costs allowed", "Funds operating expenses", "Open solicitation (no invitation required)", `Internal review ${p.internalReviewLeadDays} days before the deadline`])}</div>
+        <div class="panel"><h2>Decision criteria</h2>${ul(["501(c)(3) can be the lead applicant", "No cash match", "Indirect costs allowed", "Funds operating expenses", "Open solicitation (no invitation required)", `Forge internal deadline ${INTERNAL_LEAD_DAYS} days before submission`])}</div>
       </div>`;
   }
 
-  // ---------- routing & events ----------
+  // ---------- routing ----------
   const route = () => (location.hash || "#dashboard").slice(1);
+  const VIEWS = { opportunities: viewOpportunities, pipeline: viewPipeline, federal: viewFederal, report: viewReport, profile: viewProfile, sources: viewSources, partners: viewPartners, categories: viewCategories };
   function render() {
     const r = route();
-    const tab = r.startsWith("opp-") ? "opportunities" : r;
-    document.querySelectorAll("#tabs a").forEach((a) => { if (a.getAttribute("href") !== "#" + tab) a.removeAttribute("aria-current"); else a.setAttribute("aria-current", "page"); });
-    const v = r.startsWith("opp-") ? viewDetail(r.slice(4)) : ({ opportunities: viewOpportunities, pipeline: viewPipeline, federal: viewFederal, report: viewReport, profile: viewProfile }[r] || viewDashboard)();
-    app.innerHTML = v;
+    const tab = r.startsWith("opp-") ? "opportunities" : VIEWS[r] ? r : "dashboard";
+    const mineCount = myCats().length ? OPPS.filter(isOpen).filter((o) => myCats().some((c) => hits(o, c.keywords).length) && (fit(o) ?? 0) >= 5).length : 0;
+    document.querySelectorAll("#tabs a").forEach((a) => {
+      const h = a.getAttribute("href");
+      if (h === "#" + tab) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current");
+      if (h === "#dashboard") a.innerHTML = `Dashboard${mineCount ? `<span class="nav-badge" title="Open opportunities scoring 5+ in your categories">${mineCount}</span>` : ""}`;
+    });
+    app.innerHTML = r.startsWith("opp-") ? viewDetail(r.slice(4)) : (VIEWS[r] || viewDashboard)();
   }
   const saveFilters = () => { try { localStorage.setItem("fg-filters", JSON.stringify(ui)); } catch {} };
+  const CLEAR = { q: "", min: "", agency: "", stage: "", cat: "", partner: false, clean: false, closed: false };
   const go = (hash, patch) => { Object.assign(ui, patch || {}); saveFilters(); if (location.hash === hash) render(); else location.hash = hash; };
+  // Re-render on shared-data changes without clobbering a field someone is typing in.
+  function softRender() {
+    const f = document.activeElement;
+    if (f && f.closest && f.closest("#decision, #filters, .form, #kw-form, .picker")) return;
+    render();
+  }
+  addEventListener("hashchange", () => { armed.clear(); for (const k in flash) delete flash[k]; render(); scrollTo(0, 0); });
 
-  addEventListener("hashchange", () => { render(); scrollTo(0, 0); });
+  // ---------- writes ----------
+  const flash = {};   // toast id -> message, so a re-render from a live update keeps it
+  const toast = (id, msg) => { flash[id] = msg; const t = document.getElementById(id); if (t) t.textContent = msg; };
+  const errMsg = (err) => ["permission_denied", "not_granted", "forbidden"].includes(err?.code) ? "You don't have permission to change this." : err?.code === "quota_exceeded" ? "The page's storage is full. Remove old entries and try again." : "Couldn't save. Check your connection and try again.";
+  const stamp = async (body) => { body.updatedAt = new Date().toISOString(); try { const uid = await user?.id?.(); if (uid) body.updatedBy = uid; } catch {} return body; };
+
+  async function saveDecision() {
+    const box = document.getElementById("decision"); if (!box || !db) return;
+    const o = OPPS.find((x) => x.id === box.dataset.id);
+    const review = val("d-review");
+    const def = defaultInternal(o);
+    const body = await stamp({
+      stage: val("d-stage"), owner: val("d-owner").slice(0, 120), notes: (document.getElementById("d-notes").value || "").slice(0, 20000),
+      // Only store a date when it differs from the 2-week default, so the default keeps tracking the deadline.
+      reviewDate: review && (!def || review !== def.slice(0, 10)) ? new Date(review + "T12:00:00Z").toISOString() : null,
+    });
+    box.querySelectorAll("button").forEach((b) => (b.disabled = true));
+    toast("d-toast", "Saving…");
+    try { await db.doc("decisions/" + o.id).set(body); toast("d-toast", "Saved"); }
+    catch (err) { toast("d-toast", errMsg(err)); }
+    finally { box.querySelectorAll("button").forEach((b) => (b.disabled = !canWrite)); }
+  }
+
+  async function saveItem(kind) {
+    if (!db) return;
+    const t = kind + "-toast";
+    let body, coll;
+    if (kind === "source") {
+      const name = val("s-name"), url = val("s-url"), apiUrl = val("s-api"), credential = val("s-cred");
+      if (!name) return toast(t, "Give the source a name.");
+      if (url && !safeUrl(url)) return toast(t, "The website URL should start with https://");
+      if (apiUrl && !safeUrl(apiUrl)) return toast(t, "The API URL should start with https://");
+      if (credential && !/^[A-Za-z][A-Za-z0-9_]{1,63}$/.test(credential)) return toast(t, "Use a short name like CONNECTWERX_API_KEY (letters, numbers, underscores), not the key itself.");
+      if (credential && credential.length > 24 && /\d/.test(credential) && /[a-z]/.test(credential) && /[A-Z]/.test(credential)) return toast(t, "That looks like an actual key. Enter a name for it instead, like CONNECTWERX_API_KEY.");
+      coll = "sources"; body = { name, type: val("s-type"), url, apiUrl, credential: credential.toUpperCase(), status: val("s-status"), notes: val("s-notes").slice(0, 2000) };
+    } else if (kind === "partner") {
+      const name = val("p-name"), url = val("p-url");
+      if (!name) return toast(t, "Give the partner a name.");
+      if (url && !safeUrl(url)) return toast(t, "The link should start with https://");
+      coll = "partners"; body = { name, type: val("p-type"), url, contact: val("p-contact"), focus: splitList(val("p-focus")), notes: val("p-notes").slice(0, 2000) };
+    } else {
+      const name = val("c-name");
+      if (!name) return toast(t, "Give the category a name.");
+      const kws = splitList(val("c-kw"));
+      if (!kws.length) return toast(t, "Add at least one keyword so the category can match opportunities.");
+      coll = "categories"; body = { name, keywords: kws, members: draftMembers[editing.category || "new"] || [] };
+    }
+    await stamp(body);
+    toast(t, "Saving…");
+    try {
+      const id = editing[kind];
+      if (id && id !== "new") await db.doc(`${coll}/${id}`).set(body); else await db.collection(coll).add(body);
+      editing[kind] = null; delete draftMembers[id || "new"];
+      render(); toast(t, id && id !== "new" ? "Saved" : "Added");
+    } catch (err) { toast(t, errMsg(err)); }
+  }
+
+  async function removeItem(kind, id) {
+    const coll = { source: "sources", partner: "partners", category: "categories" }[kind];
+    try { await db.doc(`${coll}/${id}`).delete(); armed.delete(kind + ":" + id); if (editing[kind] === id) editing[kind] = null; }
+    catch (err) { alertInline(errMsg(err)); }
+  }
+  const alertInline = (msg) => { const b = document.querySelector(".head .sub"); if (b) b.textContent = msg; };
+
+  async function toggleJoin(id) {
+    const c = S.categories[id]; if (!c || !me) return;
+    const members = new Set(c.members || []);
+    members.has(me) ? members.delete(me) : members.add(me);
+    try { await db.doc("categories/" + id).update({ members: [...members] }); } catch (err) { alertInline(errMsg(err)); }
+  }
+
+  async function addKeywords() {
+    const words = splitList(val("kw-input"));
+    if (!words.length) return;
+    const existing = new Set([...META.profile.searchKeywords, ...Object.values(S.keywords).map((k) => k.text)].map((x) => x.toLowerCase()));
+    const fresh = words.filter((w) => !existing.has(w.toLowerCase()) && w.length <= 80);
+    if (!fresh.length) return toast("kw-toast", "Those keywords are already on the list.");
+    toast("kw-toast", "Saving…");
+    try {
+      for (const text of fresh) await db.collection("keywords").add(await stamp({ text }));
+      render(); toast("kw-toast", `Added ${fresh.length} keyword${fresh.length > 1 ? "s" : ""}`);
+    } catch (err) { toast("kw-toast", errMsg(err)); }
+  }
+
+  // ---------- events ----------
   app.addEventListener("click", (e) => {
-    const a = e.target.closest("a[data-min],a[data-stage],a[data-agency]");
-    if (a) { e.preventDefault(); go("#opportunities", { q: "", min: a.dataset.min || "", stage: a.dataset.stage || "", agency: a.dataset.agency || "", clean: false, closed: false }); return; }
-    if (e.target.id === "f-reset") { go("#opportunities", { q: "", min: "", agency: "", stage: "", clean: false, closed: false }); return; }
-    const dec = e.target.closest("[data-decide]");
-    if (dec) { document.getElementById("d-stage").value = dec.dataset.decide; saveDecision(); return; }
-    if (e.target.id === "d-save") saveDecision();
+    const t = e.target.closest("button, a"); if (!t) return;
+    const ds = t.dataset;
+    if (t.matches("a[data-min],a[data-stage],a[data-agency],a[data-cat],a[data-reset],a[data-mycats]")) {
+      e.preventDefault();
+      return go("#opportunities", { ...CLEAR, min: ds.min || "", stage: ds.stage || "", agency: ds.agency || "", cat: ds.mycats ? "@mine" : ds.cat || "" });
+    }
+    if (t.id === "f-reset") return go("#opportunities", CLEAR);
+    if (ds.decide) { document.getElementById("d-stage").value = ds.decide; return saveDecision(); }
+    if (t.id === "d-save") return saveDecision();
+    if (ds.save) return saveItem(ds.save);
+    if (ds.cancel) { delete draftMembers[editing[ds.cancel]]; editing[ds.cancel] = null; return render(); }
+    if (ds.edit) { editing[ds.edit] = ds.id; delete draftMembers[ds.id]; render(); return scrollTo(0, 0); }
+    if (ds.arm) { armed.add(ds.arm); return render(); }
+    if (ds.disarm) { armed.delete(ds.disarm); return render(); }
+    if (ds.remove) return removeItem(ds.remove, ds.id);
+    if (ds.join) return toggleJoin(ds.join);
+    if (ds.delkw) return db?.doc("keywords/" + ds.delkw).delete().catch((err) => toast("kw-toast", errMsg(err)));
+    if (ds.unpick) { const k = editing.category || "new"; draftMembers[k] = (draftMembers[k] || []).filter((x) => x !== ds.unpick); return refreshMembers(); }
+    if (ds.pick) {
+      const k = editing.category || "new"; draftMembers[k] = [...new Set([...(draftMembers[k] || []), ds.pick])];
+      const s = document.getElementById("c-search"); s.value = ""; document.getElementById("c-results").hidden = true; s.focus();
+      return refreshMembers();
+    }
   });
-  app.addEventListener("submit", (e) => { if (e.target.id === "qform") { e.preventDefault(); go("#opportunities", { q: document.getElementById("dash-q").value, min: "", stage: "", agency: "", clean: false, closed: false }); } });
+  function refreshMembers() {
+    const k = editing.category || "new", box = document.getElementById("c-members");
+    if (box) box.innerHTML = (draftMembers[k] || []).map((id) => personHtml(id, canWrite)).join("") || `<span class="help">No one yet.</span>`;
+  }
+  app.addEventListener("submit", (e) => {
+    e.preventDefault();
+    if (e.target.id === "qform") go("#opportunities", { ...CLEAR, q: val("dash-q") });
+    if (e.target.id === "kw-form") addKeywords();
+  });
   let typing;
-  app.addEventListener("input", (e) => {
+  app.addEventListener("input", async (e) => {
+    if (e.target.id === "c-search") {
+      const list = document.getElementById("c-results");
+      const found = await user.search(e.target.value);
+      found.forEach((p) => { names[p.id] = p.name; avatars[p.id] = p.avatarUrl; });
+      list.innerHTML = found.slice(0, 8).map((p) => `<li><button type="button" data-pick="${esc(p.id)}"><img src="${esc(p.avatarUrl)}" alt="">${esc(p.name)}${p.guest ? ' <span class="note">guest</span>' : ""}</button></li>`).join("") || `<li class="help" style="padding:6px">No matches.</li>`;
+      list.hidden = false;
+      return;
+    }
     if (!e.target.closest("#filters")) return;
-    const map = { "f-q": "q", "f-min": "min", "f-agency": "agency", "f-stage": "stage" };
+    const map = { "f-q": "q", "f-min": "min", "f-agency": "agency", "f-stage": "stage", "f-cat": "cat" };
     if (map[e.target.id]) ui[map[e.target.id]] = e.target.value;
     if (e.target.id === "f-clean") ui.clean = e.target.checked;
     if (e.target.id === "f-closed") ui.closed = e.target.checked;
+    if (e.target.id === "f-partner") ui.partner = e.target.checked;
     saveFilters();
     clearTimeout(typing);
     typing = setTimeout(() => { const items = filtered(); document.getElementById("results").innerHTML = table(items.slice(0, 300), "No opportunities match these filters."); document.querySelector(".head .sub .num").textContent = items.length; }, 120);
   });
+  app.addEventListener("focusin", async (e) => { if (e.target.id === "c-search" && user?.search) { const found = await user.search(""); found.forEach((p) => { names[p.id] = p.name; avatars[p.id] = p.avatarUrl; }); } });
 
-  async function saveDecision() {
-    const box = document.getElementById("decision"); if (!box || !db) return;
-    const id = box.dataset.id, toast = document.getElementById("d-toast");
-    const review = document.getElementById("d-review").value;
-    const body = {
-      stage: document.getElementById("d-stage").value,
-      owner: document.getElementById("d-owner").value.trim().slice(0, 120),
-      notes: document.getElementById("d-notes").value.slice(0, 20000),
-      reviewDate: review ? new Date(review + "T12:00:00Z").toISOString() : null,
-      updatedAt: new Date().toISOString(),
-    };
-    try { const uid = await user?.id?.(); if (uid) body.updatedBy = uid; } catch {}
-    box.querySelectorAll("button").forEach((b) => (b.disabled = true));
-    toast.textContent = "Saving…";
-    try {
-      await db.doc("decisions/" + id).set(body);
-      toast.textContent = "Saved";
-    } catch (err) {
-      toast.textContent = err?.code === "permission_denied" || err?.code === "not_granted" ? "You don't have permission to change decisions." : "Couldn't save. Check your connection and try again.";
-    } finally { box.querySelectorAll("button").forEach((b) => (b.disabled = !canWrite)); }
-  }
-
+  // ---------- people ----------
   async function resolveNames() {
     if (!user?.profiles) return;
-    const ids = [...new Set(Object.values(DECISIONS).map((d) => d.updatedBy).filter(Boolean))].filter((i) => !(i in names));
-    if (!ids.length) return;
-    try { const ps = await user.profiles(ids); ids.forEach((i) => (names[i] = ps[i]?.name || "")); if (route().startsWith("opp-")) softRender(); } catch {}
-  }
-  // Re-render without clobbering a decision form the viewer is typing in.
-  function softRender() {
-    const f = document.activeElement;
-    if (f && f.closest && f.closest("#decision, #filters")) return;
-    render();
+    const ids = new Set();
+    Object.values(S.decisions).forEach((d) => d.updatedBy && ids.add(d.updatedBy));
+    Object.values(S.categories).forEach((c) => (c.members || []).forEach((m) => ids.add(m)));
+    Object.values(draftMembers).forEach((l) => l.forEach((m) => ids.add(m)));
+    if (me) ids.add(me);
+    if (!ids.size) return;
+    try {
+      const ps = await user.profiles([...ids]);
+      let changed = false;
+      for (const id of ids) { const p = ps[id]; if (!p) continue; if (names[id] !== p.name || avatars[id] !== p.avatarUrl) changed = true; names[id] = p.name; avatars[id] = p.avatarUrl; }
+      if (changed) softRender();
+    } catch {}
   }
 
+  // ---------- store connection ----------
   async function connect() {
     const timer = setTimeout(() => { if (storeState === "connecting") { storeState = "offline"; softRender(); } }, 10000);
-    try {
-      [db, user] = await Promise.all([window.claude?.use?.("db") ?? null, window.claude?.use?.("user") ?? null]);
-    } catch { db = null; }
+    try { [db, user] = await Promise.all([window.claude?.use?.("db") ?? null, window.claude?.use?.("user") ?? null]); } catch { db = null; }
     if (!db) { clearTimeout(timer); storeState = "offline"; softRender(); return; }
     canWrite = user?.can ? user.can("data.write") !== false : true;
-    db.collection("decisions").onSnapshot((snap) => {
-      clearTimeout(timer);
-      const next = {}; snap.docs.forEach((d) => { if (d.exists) next[d.id] = d.data(); });
-      DECISIONS = next; storeState = "ready"; softRender(); resolveNames();
-    }, () => { clearTimeout(timer); storeState = "offline"; softRender(); });
+    try { me = (await user?.id?.()) || null; } catch { me = null; }
+    let pending = Object.keys(S).length;
+    for (const coll of Object.keys(S)) {
+      db.collection(coll).onSnapshot((snap) => {
+        const next = {}; snap.docs.forEach((d) => { if (d.exists) next[d.id] = d.data(); });
+        S[coll] = next;
+        if (pending > 0 && --pending === 0) clearTimeout(timer);
+        storeState = "ready"; softRender(); resolveNames();
+      }, () => { clearTimeout(timer); if (storeState !== "ready") storeState = "offline"; softRender(); });
+    }
   }
 
   Promise.all([fetch("opportunities.json").then((r) => r.json()), fetch("meta.json").then((r) => r.json())])

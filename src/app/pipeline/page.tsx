@@ -35,7 +35,7 @@ export default async function PipelinePage() {
                     </div>
                     <div className="mt-1 text-xs text-slate-500">{o.agency}</div>
                     <div className="mt-1"><DeadlineChip iso={o.closeDate} /></div>
-                    {o.internalReviewDate && <div className="text-xs text-violet-700">Review {formatDate(o.internalReviewDate)}</div>}
+                    {o.internalReviewDate && <div className="text-xs text-violet-700">Forge internal: {formatDate(o.internalReviewDate)}</div>}
                     {o.owner && <div className="text-xs text-slate-500">Owner: {o.owner}</div>}
                   </Link>
                 ))}

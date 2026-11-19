@@ -103,7 +103,7 @@ function RecommendedCard({ o }: { o: Opportunity }) {
         <span className={`rounded px-3 py-1.5 text-xl text-white ${ev.score >= 8 ? "bg-emerald-700" : "bg-sky-700"}`}>{ev.score}/10</span>
         <div><div className="text-xs uppercase text-slate-500">Deadline</div><DeadlineChip iso={o.closeDate} /></div>
         <div><div className="text-xs uppercase text-slate-500">Award</div>{formatRange(o.awardFloor, o.awardCeiling)}</div>
-        <div><div className="text-xs uppercase text-slate-500">Internal review</div>{formatDate(o.internalReviewDate)}</div>
+        <div><div className="text-xs uppercase text-slate-500">Forge internal deadline</div>{formatDate(o.internalReviewDate)}</div>
       </div>
       <Block title="Why it fits">{ev.whyItFits}</Block>
       <Block title="Proposed project">{ev.proposedProject}</Block>

@@ -60,7 +60,7 @@ export function DecisionPanel(props: Props) {
           {STAGES.map((s) => <option key={s} value={s}>{STAGE_LABELS[s]}</option>)}
         </select>
       </label>
-      <label className="block text-xs text-slate-500">Internal review date
+      <label className="block text-xs text-slate-500">Forge internal deadline (default: 2 weeks before submission)
         <input type="date" value={review} onChange={(e) => setReview(e.target.value)} className={input} />
       </label>
       <label className="block text-xs text-slate-500">Owner

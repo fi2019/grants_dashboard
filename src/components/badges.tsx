@@ -25,7 +25,8 @@ export function DeadlineChip({ iso }: { iso: string | null }) {
   if (d === null) return <span className="text-xs text-slate-400">No deadline listed</span>;
   if (isImplausibleDeadline(iso))
     return <span className="text-xs text-amber-700" title="Likely placeholder in the source data">⚠ {formatDate(iso)} (check)</span>;
-  const color = d < 0 ? "text-slate-400" : d <= 14 ? "text-red-700" : d <= 30 ? "text-amber-700" : "text-emerald-700";
+  // Red under a month, orange within three months, green beyond.
+  const color = d < 0 ? "text-slate-400" : d < 30 ? "text-red-700" : d <= 90 ? "text-orange-600" : "text-emerald-700";
   return (
     <span className={`text-xs ${color}`}>
       {formatDate(iso)} · {d < 0 ? "closed" : d === 0 ? "today" : `${d}d left`}
