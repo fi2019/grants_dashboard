@@ -211,6 +211,16 @@ td .meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; color:
 .role.partner { background: var(--info-bg); color: var(--info) }
 .role.unclear { background: var(--surface-2); color: var(--muted); border: 1px solid var(--line) }
 .rolebox { display: grid; gap: 4px; border-radius: 6px; padding: 10px 12px; margin-bottom: 10px; font-size: 14px; background: var(--surface-2); border: 1px solid var(--line) }
+.board { grid-auto-columns: minmax(220px, 1fr) }
+.col.over, .dropstrip.over { outline: 2px dashed var(--link); outline-offset: -2px; background: var(--info-bg) }
+.card[draggable="true"] { cursor: grab }
+.card.dragging { opacity: .45 }
+.card .ttl { color: var(--link) }
+.card .score { align-self: flex-start; flex-shrink: 0 }
+.card .move { font-size: 12px; padding: 2px 4px; margin-top: 4px; width: 100% }
+.dropstrips { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr)) }
+.dropstrip { border: 1px dashed var(--line); border-radius: 8px; padding: 10px 12px; font-size: 13px; color: var(--muted); background: var(--surface) }
+.dropstrip b { color: var(--fg) }
 .nav-badge { display: inline-block; min-width: 18px; margin-left: 5px; padding: 0 5px; border-radius: 9px; background: var(--accent); color: #fff; font: 600 11px/18px var(--mono); text-align: center }
 </style>
 
@@ -401,12 +411,16 @@ td .meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; color:
   }
 
   // ---------- opportunities ----------
-  function filtered() {
+  // One set of filters for the Opportunities list and the Pipeline board.
+  // On the board, columns are the stages, so the stage filter and the "open" rule don't apply there.
+  function matcher(board) {
     const q = ui.q.trim().toLowerCase(), min = Number(ui.min || 0);
     const catKw = ui.cat === "@mine" ? myCats().flatMap((c) => c.keywords || []) : ui.cat ? (S.categories[ui.cat]?.keywords || []) : null;
-    return OPPS.filter((o) => {
-      if (!ui.closed && !ui.stage && !isOpen(o)) return false;
-      if (ui.stage && stageOf(o) !== ui.stage) return false;
+    return (o) => {
+      if (!board) {
+        if (!ui.closed && !ui.stage && !isOpen(o)) return false;
+        if (ui.stage && stageOf(o) !== ui.stage) return false;
+      }
       if (min && (fit(o) ?? 0) < min) return false;
       if (ui.agency && agencyOf(o)?.id !== ui.agency) return false;
       if (catKw && !hits(o, catKw).length) return false;
@@ -419,28 +433,34 @@ td .meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; color:
       }
       if (q && !textOf(o).includes(q) && !(o.number || "").toLowerCase().includes(q)) return false;
       return true;
-    }).sort(byFit);
+    };
   }
-  function viewOpportunities() {
-    const items = filtered();
+  const filtered = () => OPPS.filter(matcher(false)).sort(byFit);
+  const anyFilter = () => Boolean(ui.q || ui.min || ui.agency || ui.cat || ui.role || ui.stars || ui.partner || ui.clean);
+
+  function filtersHtml(board) {
     const opt = (v, l, cur) => `<option value="${esc(v)}" ${String(cur) === String(v) ? "selected" : ""}>${esc(l)}</option>`;
-    return `
-      <div class="head"><h1>Opportunities</h1><span class="sub"><span class="num">${items.length}</span> shown · * keyword pre-score, not yet evaluated by Claude</span></div>
-      <div class="panel filters" id="filters">
+    return `<div class="panel filters" id="filters">
         <input id="f-q" placeholder="Search title, agency, number…" value="${esc(ui.q)}" aria-label="Search">
         <select id="f-min" aria-label="Fit">${opt("", "Any fit", ui.min)}${opt(8, "Strong (8+)", ui.min)}${opt(6, "Good (6+)", ui.min)}${opt(4, "Possible (4+)", ui.min)}</select>
         <select id="f-agency" aria-label="Agency">${opt("", "All agencies", ui.agency)}${META.profile.federalAgencies.map((a) => opt(a.id, a.name, ui.agency)).join("")}</select>
         <select id="f-cat" aria-label="Category">${opt("", "All categories", ui.cat)}${me ? opt("@mine", "My categories", ui.cat) : ""}${sorted(S.categories).map((c) => opt(c.id, c.name, ui.cat)).join("")}</select>
-        <select id="f-stage" aria-label="Stage">${opt("", "Open stages", ui.stage)}${STAGES.map((s) => opt(s, LABEL[s], ui.stage)).join("")}</select>
+        ${board ? "" : `<select id="f-stage" aria-label="Stage">${opt("", "Open stages", ui.stage)}${STAGES.map((st) => opt(st, LABEL[st], ui.stage)).join("")}</select>`}
         <select id="f-stars" aria-label="Minimum stars">${opt("", "Any rating", ui.stars)}${[1, 2, 3, 4].map((n) => opt(n, `${n}+ stars`, ui.stars)).join("")}${opt(5, "5 stars", ui.stars)}</select>
         <select id="f-basis" aria-label="Whose rating">${opt("mine", "My rating", ui.starBasis)}${opt("team", "Team average", ui.starBasis)}</select>
         <label title="Show opportunities nobody has rated yet (or you haven't, for My rating)"><input type="checkbox" id="f-unrated" ${ui.unrated ? "checked" : ""}> Include unrated</label>
         <select id="f-role" aria-label="Forge's role">${opt("", "Lead or partner", ui.role)}${opt("lead", "Forge can lead", ui.role)}${opt("partner", "Partner role", ui.role)}${opt("unclear", "Lead: check notice", ui.role)}</select>
         <label><input type="checkbox" id="f-partner" ${ui.partner ? "checked" : ""}> Partner match</label>
         <label><input type="checkbox" id="f-clean" ${ui.clean ? "checked" : ""}> No failed criteria</label>
-        <label><input type="checkbox" id="f-closed" ${ui.closed ? "checked" : ""}> Include closed</label>
+        <label><input type="checkbox" id="f-closed" ${ui.closed ? "checked" : ""}> ${board ? "Include past deadlines" : "Include closed"}</label>
         <button class="btn-ghost" id="f-reset" type="button">Reset</button>
-      </div>
+      </div>`;
+  }
+  function viewOpportunities() {
+    const items = filtered();
+    return `
+      <div class="head"><h1>Opportunities</h1><span class="sub"><span class="num">${items.length}</span> shown · * keyword pre-score, not yet evaluated by Claude</span></div>
+      ${filtersHtml(false)}
       <div class="legend"><span>Role: <span class="role lead">Forge can lead</span> <span class="role partner">Partner role</span> <span class="role unclear">Lead: check notice</span></span><span>Criteria: no cash match · indirect costs · operating expenses · open solicitation</span>
         <span><i class="dot pass"></i>yes</span><span><i class="dot fail"></i>no</span><span><i class="dot unknown"></i>not stated</span>
         <span>Days left: <b class="dl urgent">under 30</b> <b class="dl soon">under 90</b> <b class="dl ok">90+</b></span></div>
@@ -516,17 +536,61 @@ td .meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; color:
   }
 
   // ---------- pipeline / federal / report (unchanged logic, new deadline display) ----------
+  const BOARD_COLS = ["screening", "internal_review", "go", "drafting", "submitted", "awarded", "not_awarded"];
+  const DONE = ["submitted", "awarded", "not_awarded"];
+  function boardCards() {
+    const m = matcher(true);
+    // Active columns hide opportunities whose deadline passed (unless "Include past deadlines"); outcome columns keep everything.
+    return OPPS.filter((o) => BOARD_COLS.includes(stageOf(o)) && (DONE.includes(stageOf(o)) || ui.closed || (daysUntil(o.closeDate) ?? 0) >= 0) && m(o));
+  }
+  function boardHtml() {
+    const active = boardCards();
+    const canMove = Boolean(db && canWrite);
+    return BOARD_COLS.map((c) => {
+      const cards = active.filter((o) => stageOf(o) === c).sort((a, b) => Date.parse(a.closeDate || "9999-01-01") - Date.parse(b.closeDate || "9999-01-01"));
+      return `<div class="col" data-col="${c}"><h2>${LABEL[c]} <span class="num" style="color:var(--muted)">${cards.length}</span></h2>${cards.length ? cards.map((o) => {
+        const d = S.decisions[o.id] || {};
+        return `<div class="card" ${canMove ? `draggable="true"` : ""} data-card="${o.id}">
+          <span style="display:flex;justify-content:space-between;gap:8px"><a class="ttl" href="#opp-${o.id}">${esc(o.title)}</a>${scoreHtml(o)}</span>
+          <span class="note">${esc(o.agency)}</span><span>${roleHtml(o)}</span>${deadlineCell(o)}${d.owner ? `<span class="note">Owner: ${esc(d.owner)}</span>` : ""}
+          ${canMove ? `<select class="move" data-move="${o.id}" aria-label="Move ${esc(o.title)} to another stage">${STAGES.map((st) => `<option value="${st}" ${st === c ? "selected" : ""}>${st === c ? "Move to…" : LABEL[st]}</option>`).join("")}</select>` : ""}
+        </div>`;
+      }).join("") : `<p class="empty" style="font-size:13px">${canMove ? "Drop a card here." : "Nothing here."}</p>`}</div>`;
+    }).join("");
+  }
   function viewPipeline() {
-    const cols = ["screening","internal_review","go","drafting","submitted"];
-    const active = OPPS.filter((o) => cols.includes(stageOf(o)) && (stageOf(o) === "submitted" || (daysUntil(o.closeDate) ?? 0) >= 0));
-    return `<div class="head"><div><h1>Pipeline</h1><p class="sub" style="margin:4px 0 0">Change an opportunity's stage from its page. New and No-go items are on the Opportunities tab.</p></div></div>
-      <div class="board">${cols.map((c) => {
-        const cards = active.filter((o) => stageOf(o) === c).sort((a, b) => Date.parse(a.closeDate || "9999-01-01") - Date.parse(b.closeDate || "9999-01-01"));
-        return `<div class="col"><h2>${LABEL[c]} <span class="num" style="color:var(--muted)">${cards.length}</span></h2>${cards.length ? cards.map((o) => {
-          const d = S.decisions[o.id] || {};
-          return `<a class="card" href="#opp-${o.id}"><span style="display:flex;justify-content:space-between;gap:8px"><span class="ttl">${esc(o.title)}</span>${scoreHtml(o)}</span><span class="note">${esc(o.agency)}</span><span>${roleHtml(o)}</span>${deadlineCell(o)}${d.owner ? `<span class="note">Owner: ${esc(d.owner)}</span>` : ""}</a>`;
-        }).join("") : `<p class="empty" style="font-size:13px">Nothing here.</p>`}</div>`;
-      }).join("")}</div>`;
+    const canMove = Boolean(db && canWrite);
+    const shown = boardCards().length, total = OPPS.filter((o) => BOARD_COLS.includes(stageOf(o))).length;
+    return `<div class="head"><div><h1>Pipeline</h1><p class="sub" style="margin:4px 0 0">${canMove ? "Drag a card to another column, or use its Move menu. Every move is saved for the whole team and recorded in History." : storeState === "ready" ? "View only. Ask the owner for Contributor access to move cards." : "Connecting to shared data…"}</p></div>
+        <span class="sub" id="board-count">${shown === total ? `${total} in the pipeline` : `${shown} of ${total} shown`}</span></div>
+      ${filtersHtml(true)}
+      ${canMove ? `<div class="dropstrips"><div class="dropstrip" data-col="new"><b>Back to New</b> · drop here to take a card out of the pipeline</div><div class="dropstrip" data-col="declined"><b>No-go</b> · drop here to decline</div></div>` : ""}
+      <div class="board" id="board">${boardHtml()}</div>
+      <p class="help">To add an opportunity to the pipeline, open it from the Opportunities tab and choose Go or set its stage.</p>`;
+  }
+  function refreshBoard() {
+    const b = document.getElementById("board"); if (!b) return;
+    b.innerHTML = boardHtml();
+    const shown = boardCards().length, total = OPPS.filter((o) => BOARD_COLS.includes(stageOf(o))).length;
+    const c = document.getElementById("board-count"); if (c) c.textContent = shown === total ? `${total} in the pipeline` : `${shown} of ${total} shown`;
+  }
+
+  // Move a card: write only the stage, keep owner/notes/date, and log it.
+  async function moveCard(id, stage) {
+    const o = OPPS.find((x) => x.id === id);
+    if (!o || !db || !canWrite || !STAGES.includes(stage) || stageOf(o) === stage) return;
+    const from = stageOf(o);
+    const body = await stamp({ ...(S.decisions[id] || {}), stage });
+    S.decisions = { ...S.decisions, [id]: body };   // show the move right away
+    refreshBoard();
+    try {
+      await db.doc("decisions/" + id).set(body);
+      logChange({ kind: "decision", action: "moved", targetId: id, targetName: o.title, changes: [{ field: "stage", label: "Stage", from: LABEL[from], to: LABEL[stage] }] });
+    } catch (err) {
+      const prev = { ...S.decisions }; if (from === (o.defaultStage || "new")) delete prev[id]; else prev[id] = { ...body, stage: from };
+      S.decisions = prev; refreshBoard();
+      const sub = document.querySelector(".head .sub"); if (sub) sub.textContent = errMsg(err);
+    }
   }
 
   function viewFederal() {
@@ -742,10 +806,14 @@ td .meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; color:
   const CLEAR = { q: "", min: "", agency: "", stage: "", cat: "", role: "", partner: false, clean: false, closed: false, stars: "", starBasis: ui.starBasis || "mine", unrated: true };
   const go = (hash, patch) => { Object.assign(ui, patch || {}); saveFilters(); if (location.hash === hash) render(); else location.hash = hash; };
   // Re-render on shared-data changes without clobbering a field someone is typing in.
-  let dirty = false;   // the viewer has typed into a form that isn't saved yet
+  let dirty = false;
+  let dragId = null;   // card being dragged on the pipeline board   // the viewer has typed into a form that isn't saved yet
+  let heldRender = false;   // a live update arrived mid-drag; redraw when the drag ends
   function softRender() {
+    if (dragId) { heldRender = true; return; }
     const f = document.activeElement;
     if (dirty) return route().startsWith("opp-") ? refreshRatings() : undefined;
+    if (route() === "pipeline" && f && f.closest && f.closest("#filters, #board")) return refreshBoard();
     if (f && f.closest && f.closest("#decision, #filters, #hfilters, .form, #kw-form, .picker")) return;
     // Someone rating in the list or on a detail page: redraw only the ratings so nothing else jumps or resets.
     if (f && f.closest && f.closest("#results, #my-stars")) return refreshRatings();
@@ -957,7 +1025,7 @@ td .meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; color:
       e.preventDefault();
       return go("#opportunities", { ...CLEAR, min: ds.min || "", stage: ds.stage || "", agency: ds.agency || "", cat: ds.mycats ? "@mine" : ds.cat || "" });
     }
-    if (t.id === "f-reset") return go("#opportunities", CLEAR);
+    if (t.id === "f-reset") return go(route() === "pipeline" ? "#pipeline" : "#opportunities", CLEAR);
     if (ds.rate) return rate(ds.id, Number(ds.rate));
     if (ds.decide) { document.getElementById("d-stage").value = ds.decide; return saveDecision(); }
     if (t.id === "d-save") return saveDecision();
@@ -995,6 +1063,31 @@ td .meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; color:
     if (e.target.id === "qform") go("#opportunities", { ...CLEAR, q: val("dash-q") });
     if (e.target.id === "kw-form") addKeywords();
   });
+  app.addEventListener("change", (e) => { if (e.target.dataset?.move) moveCard(e.target.dataset.move, e.target.value); });
+
+  app.addEventListener("dragstart", (e) => {
+    const card = e.target.closest?.(".card[data-card]"); if (!card) return;
+    dragId = card.dataset.card; card.classList.add("dragging");
+    e.dataTransfer.effectAllowed = "move";
+    try { e.dataTransfer.setData("text/plain", dragId); } catch {}
+  });
+  app.addEventListener("dragend", (e) => {
+    e.target.closest?.(".card")?.classList.remove("dragging"); document.querySelectorAll(".over").forEach((x) => x.classList.remove("over")); dragId = null;
+    if (heldRender) { heldRender = false; softRender(); }
+  });
+  app.addEventListener("dragover", (e) => {
+    const zone = dragId && e.target.closest?.("[data-col]"); if (!zone) return;
+    e.preventDefault(); e.dataTransfer.dropEffect = "move";
+    document.querySelectorAll(".over").forEach((x) => x !== zone && x.classList.remove("over"));
+    zone.classList.add("over");
+  });
+  app.addEventListener("dragleave", (e) => { const zone = e.target.closest?.("[data-col]"); if (zone && !zone.contains(e.relatedTarget)) zone.classList.remove("over"); });
+  app.addEventListener("drop", (e) => {
+    const zone = e.target.closest?.("[data-col]"); if (!zone || !dragId) return;
+    e.preventDefault(); zone.classList.remove("over");
+    const id = dragId; dragId = null; heldRender = false;
+    moveCard(id, zone.dataset.col);
+  });
   let typing;
   app.addEventListener("input", (e) => { if (e.target.closest("#decision, .form")) dirty = true; });
   app.addEventListener("input", async (e) => {
@@ -1016,7 +1109,10 @@ td .meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; color:
     if (e.target.id === "f-unrated") ui.unrated = e.target.checked;
     saveFilters();
     clearTimeout(typing);
-    typing = setTimeout(() => { const items = filtered(); document.getElementById("results").innerHTML = table(items.slice(0, 300), "No opportunities match these filters."); document.querySelector(".head .sub .num").textContent = items.length; }, 120);
+    typing = setTimeout(() => {
+      if (route() === "pipeline") return refreshBoard();
+      const items = filtered(); document.getElementById("results").innerHTML = table(items.slice(0, 300), "No opportunities match these filters."); document.querySelector(".head .sub .num").textContent = items.length;
+    }, 120);
   });
   app.addEventListener("focusin", async (e) => { if (e.target.id === "c-search" && user?.search) { const found = await user.search(""); found.forEach((p) => { names[p.id] = p.name; avatars[p.id] = p.avatarUrl; }); } });
 
