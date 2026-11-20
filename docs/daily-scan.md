@@ -79,7 +79,8 @@ Never change the page's HTML or capabilities from this session.
 
 ## 6. Record the run
 
-- `settings/scan` (update): `lastRun` (now), `fetched`, `added`, `evaluated`,
+- `settings/scan` (update): `lastRun` (now), `fetched`, `added` (new listings this run; if this run
+  added 0 and the previous run was under 2 hours ago, keep the previous count), `evaluated`,
   `errors` (first 10), `schedule: "scans weekdays ~6:30 AM CT"`, `manual` (true/false).
 - `settings/scanRequest` (if one was running): `status: "done"`, `finishedAt`.
 - `history` (add a document): `{ kind: "scan", action: "ran the daily scan of" (or "ran a requested refresh of"), targetName: "all sources", changes: [{ field: "scan", label: "Result", to: "<n> new, <n> scored, <n> source problems" }], at: now, source: "claude" }` (no `by`, so it shows as "Claude").

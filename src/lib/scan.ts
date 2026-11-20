@@ -85,7 +85,8 @@ export async function runScan(opts: ScanOptions = {}): Promise<ScanLog> {
         errors.push(`evaluate ${o.id}: ${(e as Error).message}`);
       }
     }
-  } else {
+  } else if (maxEvaluations > 0) {
+    // With --max-evaluations 0 the scheduled Claude session scores listings itself, so this isn't a problem.
     errors.push("ANTHROPIC_API_KEY not set: skipped Claude evaluation; pre-scores only.");
   }
 
