@@ -609,7 +609,7 @@ details.addform[open] > summary::before { content: "− " }
         if (!ui.closed && !ui.stage && !isOpen(o)) return false;
         if (ui.stage && stageOf(o) !== ui.stage) return false;
       }
-      if (min && (fit(o) ?? 0) < min) return false;
+      if (min && o.source !== "teaming" && (fit(o) ?? 0) < min) return false;
       if (ui.agency && agencyOf(o)?.id !== ui.agency) return false;
       if (catKw && !hits(o, catKw).length) return false;
       if (ui.partner && !partnersFor(o).length) return false;
@@ -744,7 +744,7 @@ details.addform[open] > summary::before { content: "− " }
         const d = S.decisions[o.id] || {};
         return `<div class="card" ${canMove ? `draggable="true"` : ""} data-card="${o.id}">
           <span style="display:flex;justify-content:space-between;gap:8px"><a class="ttl" href="#opp-${o.id}">${esc(o.title)}</a>${scoreHtml(o)}</span>
-          <span class="note">${esc(o.agency)}</span><span style="display:flex;flex-wrap:wrap;gap:4px">${mechHtml(o)}${roleHtml(o)}</span>${deadlineCell(o)}${d.owner ? `<span class="note">Owner: ${esc(d.owner)}</span>` : ""}
+          <span class="note">${esc(o.agency)}</span><span style="display:flex;flex-wrap:wrap;gap:4px">${o.source === "teaming" ? srcTag(o) : ""}${mechHtml(o)}${roleHtml(o)}</span>${deadlineCell(o)}${d.owner ? `<span class="note">Owner: ${esc(d.owner)}</span>` : ""}
           ${canMove ? `<select class="move" data-move="${o.id}" aria-label="Move ${esc(o.title)} to another stage">${STAGES.map((st) => `<option value="${st}" ${st === c ? "selected" : ""}>${st === c ? "Move to…" : LABEL[st]}</option>`).join("")}</select>` : ""}
         </div>`;
       }).join("") : `<p class="empty" style="font-size:13px">${canMove ? "Drop a card here." : "Nothing here."}</p>`}</div>`;
@@ -1812,8 +1812,8 @@ ${JSON.stringify({ partners: inp.partners, fundingSponsors: inp.sources, opportu
   function topicActionsHtml(c, i) {
     const x = c.concepts[i], pid = proposalId(c.id, i), added = S.proposals[pid];
     return `<div class="cact"><span class="note">Rate this topic</span>${starsHtml({ id: topicKey(c.id, i), title: x.title })}
-      ${added ? `<span class="moved">✓ Moving forward · in Opportunities</span><a href="#opp-${esc(pid)}">Open it →</a>${armed.has("prop:" + pid) ? `<button class="btn-danger" data-unpropose="${esc(pid)}" style="padding:2px 10px;font-size:13px">Confirm remove from opportunities</button><button class="btn-ghost" data-disarm="prop:${esc(pid)}" style="padding:2px 10px;font-size:13px">Cancel</button>` : `<button class="btn-ghost" data-arm="prop:${esc(pid)}" ${ro()} style="padding:2px 10px;font-size:13px">Remove from opportunities</button>`}`
-        : `<button class="btn" data-propose="${esc(c.id)}" data-idx="${i}" ${ro()}>Move forward: add to opportunities</button>`}</div>`;
+      ${added ? `<span class="moved">✓ Moving forward · in Opportunities and the Pipeline (${esc(LABEL[stageOf({ id: pid, defaultStage: "go" })] || "Go")})</span><a href="#opp-${esc(pid)}">Open it →</a><a href="#pipeline">Pipeline →</a>${armed.has("prop:" + pid) ? `<button class="btn-danger" data-unpropose="${esc(pid)}" style="padding:2px 10px;font-size:13px">Confirm remove from opportunities</button><button class="btn-ghost" data-disarm="prop:${esc(pid)}" style="padding:2px 10px;font-size:13px">Cancel</button>` : `<button class="btn-ghost" data-arm="prop:${esc(pid)}" ${ro()} style="padding:2px 10px;font-size:13px">Remove from opportunities</button>`}`
+        : `<button class="btn" data-propose="${esc(c.id)}" data-idx="${i}" ${ro()}>Move forward: add to Opportunities and Pipeline</button>`}</div>`;
   }
   // Team concepts live in the shared store (proposals/<id>) and are merged into the opportunity list.
   let BASE_OPPS = [];
