@@ -271,6 +271,18 @@ details.addform > summary { cursor: pointer; font-weight: 600; font-size: 16px; 
 details.addform > summary::-webkit-details-marker { display: none }
 details.addform > summary::before { content: "+ "; color: var(--link) }
 details.addform[open] > summary::before { content: "− " }
+.tag.dhs { background: #5a3e8a }
+.health { position: relative; display: inline-flex; align-items: center; gap: 5px; font-size: 11px; border-radius: 999px; padding: 1px 8px 1px 6px; white-space: nowrap; cursor: default; border: 1px solid var(--line); color: var(--muted) }
+.health::before { content: ""; width: 8px; height: 8px; border-radius: 50% ; background: var(--idle) }
+.health.ok::before { background: var(--good) }
+.health.ok { color: var(--good) }
+.health.bad { background: var(--bad-bg); color: var(--bad); border-color: transparent; cursor: help }
+.health.bad::before { background: var(--bad) }
+.health.warn { background: var(--warn-bg); color: var(--warn); border-color: transparent; cursor: help }
+.health.warn::before { background: var(--warn) }
+.health[data-tip]:hover::after, .health[data-tip]:focus::after {
+  content: attr(data-tip); position: absolute; right: 0; top: calc(100% + 6px); z-index: 20; width: min(340px, 80vw); white-space: normal;
+  background: var(--fg); color: var(--bg); font-size: 12px; line-height: 1.45; padding: 8px 10px; border-radius: 6px; box-shadow: 0 4px 14px rgba(0,0,0,.18) }
 .nav-badge { display: inline-block; min-width: 18px; margin-left: 5px; padding: 0 5px; border-radius: 9px; background: var(--accent); color: #fff; font: 600 11px/18px var(--mono); text-align: center }
 </style>
 
@@ -380,6 +392,8 @@ details.addform[open] > summary::before { content: "− " }
   const MECH_SHORT = { "Cooperative agreement": "Coop. agreement", "Prize / challenge": "Prize", "Notice of intent": "NOI" };
   const mechsOf = (o) => o.mechanisms || [];
   const mechHtml = (o) => mechsOf(o).length ? `<span class="mechs">${mechsOf(o).map((m) => `<span class="mech ${MECH_CLASS[m] || ""}" title="${esc(m)}">${esc(MECH_SHORT[m] || m)}</span>`).join("")}</span>` : "";
+  const SRC_LABEL = { "grants.gov": "grants.gov", "dhs-apfs": "DHS forecast" };
+  const srcTag = (o, style) => `<span class="tag ${o.source === "dhs-apfs" ? "dhs" : ""}" ${style ? `style="${style}"` : ""}>${SRC_LABEL[o.source] || esc(o.source || "grants.gov")}</span>`;
   const realCriteria = (o) => o.criteria.filter((c) => c.id !== "lead_eligible");
   const dots = (o) => `<span class="dots">${realCriteria(o).map((c) => `<span class="dot ${c.status}" title="${esc(c.label)}: ${c.status === "unknown" ? "not stated" : c.status}"></span>`).join("")}</span>`;
   const oppLink = (o) => `<a href="#opp-${o.id}" class="ttl">${esc(o.title)}</a>`;
@@ -407,7 +421,7 @@ details.addform[open] > summary::before { content: "− " }
   function table(items, empty) {
     if (!items.length) return `<p class="panel empty">${empty}</p>`;
     return `<div class="tablewrap"><table><thead><tr><th>Fit</th><th>Rating</th><th>Opportunity</th><th>Deadline</th><th>Award ceiling</th><th>Criteria</th><th>Stage</th></tr></thead><tbody>${
-      items.map((o) => `<tr><td>${scoreHtml(o)}</td><td>${starsHtml(o)}</td><td style="min-width:260px">${oppLink(o)}<div class="meta"><span class="tag">grants.gov</span>${mechHtml(o)}${roleHtml(o)}<span>${esc(o.agency)}</span>${o.number ? `<span class="mono">${esc(o.number)}</span>` : ""}</div>${tagsHtml(o)}</td><td>${deadlineCell(o)}</td><td class="num">${money(o.awardCeiling)}</td><td>${dots(o)}</td><td>${pill(stageOf(o))}</td></tr>`).join("")
+      items.map((o) => `<tr><td>${scoreHtml(o)}</td><td>${starsHtml(o)}</td><td style="min-width:260px">${oppLink(o)}<div class="meta">${srcTag(o)}${mechHtml(o)}${roleHtml(o)}<span>${esc(o.agency)}</span>${o.number ? `<span class="mono">${esc(o.number)}</span>` : ""}</div>${tagsHtml(o)}</td><td>${deadlineCell(o)}</td><td class="num">${money(o.awardCeiling)}</td><td>${dots(o)}</td><td>${pill(stageOf(o))}</td></tr>`).join("")
     }</tbody></table></div>`;
   }
   const dueList = (items, dateOf, empty, showInternal) => items.length
@@ -546,9 +560,9 @@ details.addform[open] > summary::before { content: "− " }
       <div><a href="#opportunities">← Opportunities</a></div>
       <div class="detail">
         <div style="display:grid;gap:16px;min-width:0">
-          <div><div class="meta" style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;color:var(--muted);font-size:13px"><span class="tag">grants.gov</span>${esc(o.agency)} ${o.number ? `<span class="mono">${esc(o.number)}</span>` : ""} ${pill(st)} ${roleHtml(o)} ${mechHtml(o)}</div>
+          <div><div class="meta" style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;color:var(--muted);font-size:13px">${srcTag(o)}${esc(o.agency)} ${o.number ? `<span class="mono">${esc(o.number)}</span>` : ""} ${pill(st)} ${roleHtml(o)} ${mechHtml(o)}</div>
             <h1 style="font-size:24px;margin-top:6px">${esc(o.title)}</h1>
-            ${o.url ? `<a href="${esc(o.url)}" target="_blank" rel="noopener">View the official listing on Grants.gov ↗</a>` : ""}</div>
+            ${o.url ? `<a href="${esc(o.url)}" target="_blank" rel="noopener">${o.source === "dhs-apfs" ? "View the DHS forecast page (download the full forecast there) ↗" : "View the official listing on Grants.gov ↗"}</a>` : ""}</div>
           <div class="panel facts">
             <div><div class="k">Fit</div>${scoreHtml(o, true)}</div>
             <div><div class="k">Your rating</div><div id="my-stars" data-id="${o.id}">${starsHtml(o)}</div></div>
@@ -682,7 +696,7 @@ details.addform[open] > summary::before { content: "− " }
         <div class="tiles"><div><b>${ev.length}</b><span>Evaluated (open)</span></div><div><b>${rec.length}</b><span>Recommended</span></div><div><b>${pos.length}</b><span>Possible</span></div></div></div>
       <h2 class="sec-title">Recommended opportunities</h2>
       ${rec.length ? rec.map((o) => { const e = o.evaluation, internal = internalOf(o); return `<article class="panel rec">
-        <div><span class="tag" style="background:var(--accent)">grants.gov</span> ${mechHtml(o)} ${roleHtml(o)}<h3 style="font-size:18px;margin-top:6px">${ext(o)}</h3><div class="note">${esc(o.agency)}${o.number ? ` · ${esc(o.number)}` : ""}</div>${tagsHtml(o)}</div>
+        <div>${srcTag(o, "background:var(--accent)")} ${mechHtml(o)} ${roleHtml(o)}<h3 style="font-size:18px;margin-top:6px">${ext(o)}</h3><div class="note">${esc(o.agency)}${o.number ? ` · ${esc(o.number)}` : ""}</div>${tagsHtml(o)}</div>
         <div class="bar">${scoreHtml(o, true)}<div><div class="note">SUBMISSION</div>${dlHtml(o.closeDate)}</div><div><div class="note">FORGE INTERNAL</div><span class="mono" style="font-size:12px">${fmtDate(internal)}</span></div><div><div class="note">AWARD</div><span class="num">${range(o.awardFloor, o.awardCeiling)}</span></div><div><div class="note">STAGE</div>${pill(stageOf(o))}</div></div>
         ${blk("Why it fits", esc(e.whyItFits))}${blk("Proposed project", esc(e.proposedProject))}
         <div class="grid3">${blk("Target clients", esc(e.targetClients))}${blk("Recommended partners", e.recommendedPartners.length ? `<ol style="margin:0;padding-left:18px">${e.recommendedPartners.map((p) => `<li>${esc(p)}</li>`).join("")}</ol>` : "")}${blk("Why Forge qualifies", esc(e.whyForgeQualifies))}</div>
@@ -714,12 +728,23 @@ details.addform[open] > summary::before { content: "− " }
   const SOURCE_STATUS = ["Connected", "Needs connector", "Manual check", "Paused"];
   const sf = { q: "", cat: "", api: "", status: "" };
   const statusClass = (st) => st === "Connected" ? "on" : st === "Paused" ? "off" : "todo";
+  // Daily source check results (settings/sourceHealth), written by the scheduled scan.
+  const healthOf = (x) => S.settings.sourceHealth?.results?.[x.id];
+  const hasProblem = (x) => { const h = healthOf(x); return Boolean(h && !h.ok); };
+  function healthHtml(x) {
+    const h = healthOf(x);
+    if (!h) return `<span class="health" data-tip="Not checked yet. Sources are checked each weekday morning with the daily scan." tabindex="0">Not checked</span>`;
+    const when = new Date(h.checkedAt).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit", timeZone: "America/Chicago" }) + " CT";
+    if (!h.ok) return `<span class="health bad" tabindex="0" role="note" aria-label="Problem: ${esc(h.problem || "")}" data-tip="${esc(`${h.problem || "Couldn't be checked."} Checked ${when}.`)}">Problem</span>`;
+    if (h.problem) return `<span class="health warn" tabindex="0" role="note" aria-label="Warning: ${esc(h.problem)}" data-tip="${esc(`${h.problem} Checked ${when}.`)}">Check</span>`;
+    return `<span class="health ok" tabindex="0" data-tip="${esc(`Reachable${(h.checks || []).length ? `: ${h.checks.map((c) => `${c.what} answered (HTTP ${c.code})`).join("; ")}` : ""}. Checked ${when}.`)}">OK</span>`;
+  }
   function viewSources() {
     const e = editing.source && editing.source !== "new" ? S.sources[editing.source] || {} : {};
     const isNew = !editing.source || editing.source === "new";
     const all = sorted(S.sources);
     const q = sf.q.trim().toLowerCase();
-    const rows = all.filter((x) => (!sf.cat || (x.category || "Other") === sf.cat) && (!sf.api || (x.api || "No") === sf.api) && (!sf.status || (x.status || "Needs connector") === sf.status)
+    const rows = all.filter((x) => (!sf.cat || (x.category || "Other") === sf.cat) && (!sf.api || (x.api || "No") === sf.api) && (!sf.status || (sf.status === "@problem" ? hasProblem(x) : (x.status || "Needs connector") === sf.status))
       && (!q || [x.name, x.mechanisms, x.focusAreas, x.parentAgency, x.notes, x.category].some((f) => String(f || "").toLowerCase().includes(q))));
     const count = (fn) => all.filter(fn).length;
     const opt = (v, l, cur) => `<option value="${esc(v)}" ${cur === v ? "selected" : ""}>${esc(l)}</option>`;
@@ -728,7 +753,7 @@ details.addform[open] > summary::before { content: "− " }
     const rank = (x) => (x.status === "Connected" ? 0 : 3) + ({ Yes: 0, Partial: 1 }[x.api] ?? 2);
     const groups = SOURCE_CATEGORIES.map((c) => [c, rows.filter((x) => (x.category || "Other") === c).sort((a, b) => rank(a) - rank(b) || a.name.localeCompare(b.name))]).filter(([, xs]) => xs.length);
     const item = (x) => `<div class="item"><div class="top"><h3>${safeUrl(x.url) ? `<a href="${esc(x.url)}" target="_blank" rel="noopener">${esc(x.name)} ↗</a>` : esc(x.name)}</h3>
-        <span style="display:flex;gap:6px;align-items:center">${x.api ? `<span class="api ${String(x.api).toLowerCase()}" title="API available">API: ${esc(x.api)}</span>` : ""}<span class="status ${statusClass(x.status)}">${esc(x.status || "Needs connector")}</span></span></div>
+        <span style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:flex-end">${healthHtml(x)}${x.api ? `<span class="api ${String(x.api).toLowerCase()}" title="API available">API: ${esc(x.api)}</span>` : ""}<span class="status ${statusClass(x.status)}">${esc(x.status || "Needs connector")}</span></span></div>
       <div class="kv">${x.parentAgency ? `<span>Agency <b>${esc(x.parentAgency)}</b></span>` : ""}${x.mechanisms ? `<span>Mechanisms <b>${esc(x.mechanisms)}</b></span>` : ""}</div>
       ${x.apiDetails || x.apiUrl ? `<div class="kv"><span>Data access <b>${esc(x.apiDetails || x.apiUrl)}</b></span>${x.credential ? `<span>Key name <b class="mono">${esc(x.credential)}</b></span>` : ""}</div>` : ""}
       ${x.focusAreas || x.unsolicited || x.cadence || x.notes || x.reference ? `<details><summary class="note">Focus areas, white-paper path, update cadence and notes</summary><div class="kv" style="display:grid;gap:4px;margin-top:6px">
@@ -741,12 +766,12 @@ details.addform[open] > summary::before { content: "− " }
       </div></details>` : ""}
       <div class="btns">${editBtn("source", x.id)}${removeBtn("source", x.id)}</div></div>`;
     return `<div class="head"><div><h1>Sources</h1><p class="sub" style="margin:4px 0 0">Where Forge looks for funding: portals, agencies, DoD and IC innovation offices, consortia and intermediaries. Connected sources feed the scanner; the rest need a connector or a manual check.</p></div></div>
-      <div class="srcstats"><span><b>${all.length}</b> sources</span><span><b>${count((x) => x.status === "Connected")}</b> connected</span><span><b>${count((x) => x.api === "Yes")}</b> with an API</span><span><b>${count((x) => x.api === "Partial")}</b> partial API</span><span><b>${count((x) => (x.status || "") === "Manual check")}</b> manual check</span>${S.settings.catalog?.compiled ? `<span>Catalog compiled ${esc(S.settings.catalog.compiled)}</span>` : ""}</div>
+      <div class="srcstats"><span><b>${all.length}</b> sources</span><span><b>${count((x) => x.status === "Connected")}</b> connected</span><span><b>${count((x) => x.api === "Yes")}</b> with an API</span><span><b>${count((x) => x.api === "Partial")}</b> partial API</span><span><b>${count((x) => (x.status || "") === "Manual check")}</b> manual check</span><span style="color:var(--bad)"><b style="color:inherit">${count(hasProblem)}</b> with a problem</span>${S.settings.sourceHealth?.checkedAt ? `<span>Checked ${new Date(S.settings.sourceHealth.checkedAt).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit", timeZone: "America/Chicago" })} CT · hover a Problem for the reason</span>` : ""}${S.settings.catalog?.compiled ? `<span>Catalog compiled ${esc(S.settings.catalog.compiled)}</span>` : ""}</div>
       <div class="panel filters" id="sfilters">
         <input id="sf-q" placeholder="Search name, mechanism, focus area…" value="${esc(sf.q)}" aria-label="Search sources">
         <select id="sf-cat" aria-label="Category">${opt("", "All categories", sf.cat)}${SOURCE_CATEGORIES.map((c) => opt(c, c, sf.cat)).join("")}</select>
         <select id="sf-api" aria-label="API">${opt("", "Any API", sf.api)}${opt("Yes", "API: Yes", sf.api)}${opt("Partial", "API: Partial", sf.api)}${opt("No", "API: No", sf.api)}</select>
-        <select id="sf-status" aria-label="Status">${opt("", "Any status", sf.status)}${SOURCE_STATUS.map((x) => opt(x, x, sf.status)).join("")}</select>
+        <select id="sf-status" aria-label="Status">${opt("", "Any status", sf.status)}${opt("@problem", "Has a problem", sf.status)}${SOURCE_STATUS.map((x) => opt(x, x, sf.status)).join("")}</select>
         <span class="note" id="sf-count">${rows.length} shown</span>
       </div>
       <details class="panel addform" ${isNew ? "" : "open"}><summary>${isNew ? "Add a source" : "Edit source"}</summary>

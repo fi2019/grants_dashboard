@@ -1,5 +1,5 @@
 /** Where an opportunity came from. Add a value here when you add a source connector. */
-export type SourceId = "grants.gov" | "sam.gov" | "manual";
+export type SourceId = "grants.gov" | "dhs-apfs" | "sam.gov" | "manual";
 
 /**
  * Decision pipeline. Each opportunity moves left to right; "declined" and

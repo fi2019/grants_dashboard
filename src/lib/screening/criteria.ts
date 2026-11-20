@@ -41,6 +41,8 @@ const LEAD_RESTRICTIONS: { reason: string; pattern: RegExp; titleOnly?: boolean 
   { reason: "Requires a tenured or tenure-track PI", pattern: /tenure[- ]track|tenured faculty/i },
   { reason: "Nonprofits are not eligible to apply directly", pattern: /nonprofits? (are|is) not eligible|for[- ]profit (entities )?only/i },
   { reason: "SBIR/STTR: a small business must be the applicant", pattern: /\bSBIR\b|\bSTTR\b|small business innovation research|small business technology transfer/i, titleOnly: true },
+  // Contract forecasts: a set-aside means a small business must prime; a nonprofit can subcontract.
+  { reason: "Small-business set-aside: a small business must be the prime contractor", pattern: /small business set-aside: (full|partial|total|8\(a\)|hubzone|sdvosb|wosb|edwosb|yes)/i },
   { reason: "Restricted to HBCUs / tribal institutions", pattern: /only[^.]{0,40}(HBCU|historically black|tribal colleges)/i },
 ];
 

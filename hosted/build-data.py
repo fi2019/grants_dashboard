@@ -15,7 +15,8 @@ rows = []
 for o in db["opportunities"]:
     sc = o.get("screening") or {}
     rows.append(dict(
-        id="gg-" + o["id"].split(":")[1], url=o["sourceUrl"], number=o["number"], title=o["title"], agency=o["agency"],
+        # Page ids: "gg-361238" for Grants.gov (kept for existing decisions and ratings), "dhs-F2026074886" for the DHS forecast.
+        id=("gg-" if o["source"] == "grants.gov" else o["source"].split("-")[0] + "-") + o["id"].split(":", 1)[1], source=o["source"], url=o["sourceUrl"], number=o["number"], title=o["title"], agency=o["agency"],
         agencyCode=o["agencyCode"], description=(o["description"] or "")[:3500] or None,
         eligibility=(o["eligibilityText"] or "")[:2500] or None, costSharing=o["costSharing"], awardFloor=o["awardFloor"],
         awardCeiling=o["awardCeiling"], estimatedFunding=o["estimatedFunding"], expectedAwards=o["expectedAwards"],

@@ -14,7 +14,8 @@
     "enrich-awards": "tsx scripts/enrich-awards.mts",
     "mcp": "tsx scripts/mcp-stdio.mts",
     "eval-queue": "tsx scripts/evaluation-queue.mts",
-    "apply-evals": "tsx scripts/apply-evaluations.mts"
+    "apply-evals": "tsx scripts/apply-evaluations.mts",
+    "check-sources": "tsx scripts/check-sources.mts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "1.5.0",
