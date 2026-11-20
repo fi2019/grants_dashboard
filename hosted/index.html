@@ -168,6 +168,8 @@ td .meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; color:
 .item .kv b { color: var(--fg); font-weight: 500 }
 .item .btns { display: flex; gap: 6px }
 .item .btns button { padding: 3px 10px; font-size: 13px }
+.refresh { display: flex; flex-direction: column; align-items: flex-end; gap: 3px }
+.refresh .help { font-size: 12px; max-width: 280px; text-align: right }
 .btn-danger { background: var(--bad); color: var(--surface) }
 .status { font-size: 11px; border-radius: 999px; padding: 1px 8px; white-space: nowrap }
 .status.on { background: var(--good-bg); color: var(--good) } .status.todo { background: var(--warn-bg); color: var(--warn) } .status.off { background: var(--idle-bg); color: var(--muted) }
@@ -435,6 +437,46 @@ details.addform[open] > summary::before { content: "− " }
     const when = last ? new Date(last).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit", timeZone: "America/Chicago" }) + " CT" : "never";
     return `${OPPS.length} listings · last scan ${when}${sc?.added != null ? ` (${sc.added} new${sc.evaluated ? `, ${sc.evaluated} scored by Claude` : ""})` : ""} · ${esc(sc?.schedule || "scans weekdays ~6:30 AM CT")}`;
   }
+  // Manual refresh: at most once every 5 hours, counting scheduled runs and earlier requests.
+  const REFRESH_GAP_MS = 5 * 3600e3;
+  const fmtCT = (t) => new Date(t).toLocaleString("en-US", { weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit", timeZone: "America/Chicago" }) + " CT";
+  function refreshState() {
+    const sc = S.settings.scan || {}, rq = S.settings.scanRequest || {};
+    const times = [sc.lastRun, sc.startedAt, rq.requestedAt].map((x) => Date.parse(x || "")).filter((x) => !Number.isNaN(x));
+    const last = times.length ? Math.max(...times) : 0;
+    const running = sc.startedAt && (!sc.lastRun || Date.parse(sc.startedAt) > Date.parse(sc.lastRun)) && Date.now() - Date.parse(sc.startedAt) < 3 * 3600e3;
+    const pending = rq.requestedAt && rq.status === "queued" && !running && (!sc.lastRun || Date.parse(rq.requestedAt) > Date.parse(sc.lastRun));
+    const next = last + REFRESH_GAP_MS;
+    return { running, pending, next, ready: !running && !pending && Date.now() >= next, rq };
+  }
+  function refreshHtml() {
+    const r = refreshState();
+    const note = r.running ? "A scan is running now. New listings appear when it finishes (about 20–40 minutes)."
+      : r.pending ? `Refresh requested ${fmtCT(r.rq.requestedAt)}. It starts within the hour on weekdays, 7 AM–7 PM CT.`
+      : r.ready ? "Checks every source for new opportunities and updates existing ones. Limited to once every 5 hours."
+      : `Available again ${fmtCT(r.next)}. Refreshes are limited to once every 5 hours.`;
+    const can = r.ready && canWrite && storeState === "ready";
+    return `<div class="refresh"><button class="btn" id="refresh-btn" ${can ? "" : "disabled"} title="${esc(note)}">${r.running ? "Refreshing…" : "↻ Refresh"}</button><span class="help" id="refresh-note">${esc(note)}</span></div>`;
+  }
+  async function requestRefresh() {
+    const note = document.getElementById("refresh-note"), btn = document.getElementById("refresh-btn");
+    if (!refreshState().ready) return;
+    if (btn) btn.disabled = true;
+    try {
+      const prev = S.settings.scanRequest;
+      const body = await stamp({ requestedAt: new Date().toISOString(), requestedBy: me || "", status: "queued" });
+      await db.doc("settings/scanRequest").set(body);
+      logChange({ kind: "scan", action: "requested a refresh of", targetName: "all sources", changes: [{ field: "scanRequest", label: "Refresh requested", from: prev?.requestedAt || null, to: body.requestedAt }] });
+      const trig = S.settings.scan?.triggerId;
+      if (trig && user?.isOwner?.()) {
+        try {
+          const mcp = await window.claude?.use?.("mcp");
+          if (mcp) { await mcp.callTool("Claude Code Remote", "fire_trigger", { trigger_id: trig, text: "Manual refresh requested from the dashboard." }); if (note) note.textContent = "Scan started. New listings appear when it finishes (about 20–40 minutes)."; return; }
+        } catch { /* the hourly worker starts it */ }
+      }
+      if (note) note.textContent = "Refresh requested. It starts within the hour on weekdays, 7 AM–7 PM CT.";
+    } catch (err) { if (note) note.textContent = errMsg(err); if (btn) btn.disabled = false; }
+  }
   function storeBanner() {
     const msg = storeState === "ready" ? (canWrite ? "Decisions, categories, partners and sources are shared with everyone on this page." : "View only. Ask the owner for Contributor access to make changes.")
       : storeState === "offline" ? "Shared data is unavailable in this view. Sign in to claude.ai to see and record it."
@@ -457,7 +499,7 @@ details.addform[open] > summary::before { content: "− " }
       : `<p class="empty">You aren't in any categories yet. <a href="#categories">Join one</a> to see the opportunities that match it here.</p>`}</div>`;
     return `
       <div class="head"><div><h1>Grant dashboard</h1>${storeBanner()}</div>
-        <form class="search" id="qform"><input id="dash-q" placeholder="Search opportunities…" aria-label="Search opportunities"><button class="btn">Search</button></form></div>
+        <div style="display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap"><form class="search" id="qform"><input id="dash-q" placeholder="Search opportunities…" aria-label="Search opportunities"><button class="btn">Search</button></form>${refreshHtml()}</div></div>
       <section class="stats">
         <a class="stat" href="#opportunities" data-reset="1"><div class="k">Open opportunities</div><div class="v">${open.length}</div><div class="s">From the latest snapshot</div></a>
         <a class="stat hot" href="#opportunities" data-min="6"><div class="k">High match (6+)</div><div class="v">${high.length}</div><div class="s">Evaluated by Claude</div></a>
@@ -1291,7 +1333,7 @@ Reply with only a JSON object:
   }
 
   // ---------- history ----------
-  const KIND_LABEL = { rating: "Rating", decision: "Decision", source: "Source", partner: "Partner", category: "Category", keyword: "Keyword", profile: "Profile" };
+  const KIND_LABEL = { rating: "Rating", decision: "Decision", source: "Source", partner: "Partner", category: "Category", keyword: "Keyword", profile: "Profile", scan: "Scan" };
   const show = (v) => v === null || v === undefined || v === "" ? "(empty)" : Array.isArray(v) ? (v.length ? v.join(", ") : "(empty)") : String(v);
   const changeHtml = (c) => c.added || c.removed
     ? `<div class="chg"><b>${esc(c.label)}</b>: ${[...(c.added || []).map((x) => `<ins>+ ${esc(x)}</ins>`), ...(c.removed || []).map((x) => `<del>${esc(x)}</del>`)].join(" · ") || "reordered"}</div>`
@@ -1565,6 +1607,7 @@ Reply with only a JSON object:
       e.preventDefault();
       return go("#opportunities", { ...CLEAR, min: ds.min || "", stage: ds.stage || "", agency: ds.agency || "", cat: ds.mycats ? "@mine" : ds.cat || "" });
     }
+    if (t.id === "refresh-btn") return requestRefresh();
     if (t.id === "f-reset") return go(route() === "pipeline" ? "#pipeline" : "#opportunities", CLEAR);
     if (ds.rate) return rate(ds.id, Number(ds.rate));
     if (ds.analyze) return analyzeDoc(ds.analyze);

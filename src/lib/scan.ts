@@ -12,6 +12,8 @@ export interface ScanOptions {
   maxEvaluations?: number;
   /** Only send opportunities at or above this pre-score to Claude. */
   minPreScore?: number;
+  /** Extra search keywords (the team's keywords from the hosted page). */
+  extraKeywords?: string[];
   log?: (msg: string) => void;
 }
 
@@ -29,7 +31,7 @@ export async function runScan(opts: ScanOptions = {}): Promise<ScanLog> {
   const bySource: Record<string, number> = {};
 
   const fetchOpts = {
-    keywords: profile.searchKeywords,
+    keywords: [...new Set([...profile.searchKeywords, ...(opts.extraKeywords ?? [])].map((k) => k.trim()).filter(Boolean))],
     agencyPrefixes: profile.federalAgencies.flatMap((a) => a.grantsGovPrefixes),
     maxPerAgencySweep: 250,
   };
