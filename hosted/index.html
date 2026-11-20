@@ -241,6 +241,10 @@ td .meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; color:
 .formdocs .chip { display: inline-flex; gap: 6px; align-items: center; font-size: 12px; background: var(--surface-2); border: 1px solid var(--line); border-radius: 999px; padding: 2px 4px 2px 10px }
 .formdocs .chip button { background: none; border: 0; padding: 0 4px; color: var(--muted) }
 .partner-summary { font-size: 14px; line-height: 1.55; max-width: 80ch }
+.research { display: grid; gap: 6px; border: 1px solid var(--line); border-left: 3px solid var(--info); border-radius: 6px; padding: 10px 12px; background: var(--surface) }
+.research .top { display: flex; flex-wrap: wrap; gap: 6px 12px; justify-content: space-between; align-items: baseline; font-size: 14px }
+.research ol { margin: 0; padding-left: 18px; font-size: 12px }
+.research ol a { overflow-wrap: anywhere }
 .nav-badge { display: inline-block; min-width: 18px; margin-left: 5px; padding: 0 5px; border-radius: 9px; background: var(--accent); color: #fff; font: 600 11px/18px var(--mono); text-align: center }
 </style>
 
@@ -268,7 +272,7 @@ td .meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; color:
 
   let OPPS = [], META = { profile: { federalAgencies: [], searchKeywords: [], capabilities: [], partners: [], goodFit: [], poorFit: [] } };
   // Shared, team-editable state (db collections).
-  const S = { decisions: {}, sources: {}, partners: {}, categories: {}, keywords: {}, profile: {}, history: {}, ratings: {}, partnerDocs: {} };
+  const S = { decisions: {}, sources: {}, partners: {}, categories: {}, keywords: {}, profile: {}, history: {}, ratings: {}, partnerDocs: {}, research: {}, settings: {} };
   // Effective Forge profile: the repo's profile file, overridden by the team's edits (profile/main).
   const P = () => ({ ...META.profile, ...(S.profile.main || {}) });
   const leadDays = () => Math.min(90, Math.max(1, Number(P().internalReviewLeadDays) || 14));
@@ -711,6 +715,7 @@ td .meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; color:
           ${areaField("p-focus", "Focus areas (search and matching keywords)", pform.focus ?? (e.focus || []).join(", "), "Comma-separated words or phrases. An opportunity that mentions any of them is flagged as a possible joint submission.")}
           <div class="actions" style="grid-column:1/-1;flex-wrap:wrap"><button type="button" class="btn-ghost" data-gendraft="1" ${ro()}>${pform.draftShown ? "Draft again" : "Draft summary and focus areas"}</button>
             <span class="job ${pform.err ? "err" : ""}" id="p-gen" role="status">${pform.status || ""}</span></div>
+          <label style="grid-column:1/-1;display:flex;gap:6px;align-items:center;font-size:13px;color:var(--fg)"><input type="checkbox" id="p-research" checked ${ro()}> Research this partner online after saving: Claude opens the link, searches the web and drafts a cited summary and focus areas (usually ready within the hour)</label>
           ${areaField("p-notes", "Notes", e.notes, "")}
           ${formActions("partner", isNew)}
         </div></section>
@@ -722,6 +727,7 @@ td .meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; color:
           ${(p.focus || []).length ? `<div class="chips">${p.focus.map((f) => `<span>${esc(f)}</span>`).join("")}</div>` : `<p class="help">Add focus areas to match opportunities.</p>`}
           ${p.notes ? `<p class="help">${esc(p.notes)}</p>` : ""}
           ${matches.length ? `<details><summary class="note">${matches.length} open ${matches.length === 1 ? "opportunity mentions" : "opportunities mention"} its focus areas</summary><ul class="list">${matches.slice(0, 8).map((o) => `<li><span class="t">${oppLink(o)}</span><span class="r">${dlHtml(o.closeDate)}${scoreHtml(o)}</span></li>`).join("")}</ul></details>` : ""}
+          ${researchHtml(p)}
           ${docsHtml(p)}
           <div class="btns">${editBtn("partner", p.id)}${removeBtn("partner", p.id)}</div></div>`;
       }).join("") || `<p class="panel empty">No partners yet. Add the labs, universities and researchers Forge works with.</p>`}</section>`;
@@ -850,7 +856,7 @@ ${text}
   }
 
   async function addSuggested(docId) {
-    const d = S.partnerDocs[docId]; if (!d) return;
+    const d = S.partnerDocs[docId] || (S.research[docId] && { partnerId: S.research[docId].partnerId }); if (!d) return;
     const pid = d.partnerId, prev = S.partners[pid]; if (!prev) return;
     const picked = [...document.querySelectorAll(`input[data-sugg="${docId}"]:checked`)].map((i) => i.value);
     if (!picked.length) return setJob(pid, "Tick at least one suggestion first.", true);
@@ -996,6 +1002,69 @@ Reply with only a JSON object:
       logChange({ kind: "partner", action: "added a document to", targetId: partnerId, targetName: partnerName, changes: [{ field: "document", label: "Document", to: `${d.name} (${d.kind})` }] });
     }
     pform.docs = [];
+  }
+
+  // ---------- web research (done by a scheduled Claude session with web search) ----------
+  // The page can't reach the web, so it queues a request in the shared store; a scheduled
+  // Claude Code session opens the link, searches online, and writes back a cited draft.
+  const researchFor = (pid) => Object.entries(S.research).map(([id, r]) => ({ id, ...r })).filter((r) => r.partnerId === pid).sort((a, b) => String(b.requestedAt).localeCompare(String(a.requestedAt)))[0];
+  async function queueResearch(pid, partner) {
+    if (!db || !canWrite) return;
+    const p = partner || S.partners[pid]; if (!p) return;
+    const pending = researchFor(pid);
+    if (pending && (pending.status === "queued" || pending.status === "working")) return setJob(pid, "Web research is already queued for this partner.");
+    try {
+      const ref = db.collection("research").doc();
+      await ref.set(await stamp({ partnerId: pid, name: p.name, type: p.type || "", url: p.url || "", status: "queued", requestedAt: new Date().toISOString() }));
+      logChange({ kind: "partner", action: "requested web research for", targetId: pid, targetName: p.name, changes: [] });
+      setJob(pid, "Queued for web research. Results usually arrive within the hour.");
+      runResearchNow();
+    } catch (err) { setJob(pid, errMsg(err), true); }
+  }
+  // The page owner can start the research session right away; everyone else waits for the hourly run.
+  async function runResearchNow() {
+    const trig = S.settings.research?.triggerId;
+    if (!trig || !user?.isOwner?.()) return;
+    try {
+      const mcp = await window.claude?.use?.("mcp"); if (!mcp) return;
+      await mcp.callTool("Claude Code Remote", "fire_trigger", { trigger_id: trig, text: "Requested from the Partners tab." });
+    } catch { /* the hourly run picks it up */ }
+  }
+  async function applyResearchSummary(rid) {
+    const r = S.research[rid]; const prev = r && S.partners[r.partnerId]; if (!prev || !r.result?.summary) return;
+    const body = await stamp({ ...prev, summary: r.result.summary });
+    try {
+      await db.doc("partners/" + r.partnerId).set(body);
+      const changes = diff(prev, body, { summary: "Focus summary" });
+      if (changes.length) logChange({ kind: "partner", action: "updated", targetId: r.partnerId, targetName: prev.name, changes });
+      setJob(r.partnerId, "Summary replaced with the web research draft. Use Edit to change it.");
+    } catch (err) { setJob(r.partnerId, errMsg(err), true); }
+  }
+  function researchHtml(p) {
+    const r = researchFor(p.id);
+    const btn = (label) => `<button class="btn-ghost" data-research="${esc(p.id)}" ${ro()} ${p.url ? "" : 'disabled title="Add a link first"'}>${label}</button>`;
+    if (!r) return p.url ? `<div class="btns">${btn("Research online")}</div>` : "";
+    if (r.status === "queued" || r.status === "working") {
+      return `<div class="research"><div class="top"><b>Web research</b><span class="note">${r.status === "working" ? "Claude is researching now…" : `Queued ${fmtDate(r.requestedAt)}. Usually ready within the hour (weekdays, 7 AM–7 PM Central).`}</span></div></div>`;
+    }
+    if (r.status === "failed") {
+      return `<div class="research"><div class="top"><b>Web research</b><span class="note">Couldn't finish: ${esc(r.error || "no reliable sources found")}</span></div><div class="btns">${btn("Try again")}</div></div>`;
+    }
+    const res = r.result || {};
+    const have = new Set((p.focus || []).map((f) => f.toLowerCase()));
+    const sugg = (res.focusAreas || []).map((f) => String(f?.phrase || f)).filter(Boolean);
+    return `<div class="research"><div class="top"><b>Web research draft</b><span class="note">Claude, ${fmtDate(r.finishedAt)} · ${(res.sources || []).length} sources</span></div>
+      ${res.summary ? `<div class="prose" style="font-size:13px">${esc(res.summary)}</div>` : ""}
+      ${(res.capabilities || []).length ? `<div class="note"><b>Could contribute:</b> ${esc(res.capabilities.join("; "))}</div>` : ""}
+      ${(res.programs || []).length ? `<div class="note"><b>Programs and facilities:</b> ${esc(res.programs.join("; "))}</div>` : ""}
+      ${res.notes ? `<div class="note"><b>Notes:</b> ${esc(res.notes)}</div>` : ""}
+      ${sugg.length ? `<div class="note">Suggested focus areas · number = open opportunities it matches now</div>
+        <div class="sugg">${sugg.map((f) => { const n = openMatches(f), had = have.has(f.toLowerCase());
+          return `<label class="${had ? "have" : ""}"><input type="checkbox" data-sugg="${esc(r.id)}" value="${esc(f)}" ${had ? "disabled" : n > 0 ? "checked" : ""} ${ro()}>${esc(f)} <span class="n ${n ? "hit" : ""}">${n}</span></label>`; }).join("")}</div>` : ""}
+      ${(res.sources || []).length ? `<details><summary class="note">Sources</summary><ol>${res.sources.map((x) => `<li>${safeUrl(x.url) ? `<a href="${esc(x.url)}" target="_blank" rel="noopener">${esc(x.title || x.url)}</a>` : esc(x.title || "")}</li>`).join("")}</ol></details>` : ""}
+      <div class="btns">${sugg.length ? `<button class="btn" data-addsugg="${esc(r.id)}" ${ro()}>Add selected to focus areas</button>` : ""}
+        ${res.summary ? `<button class="btn-ghost" data-usesummary="${esc(r.id)}" ${ro()}>${p.summary ? "Replace summary with this" : "Use this summary"}</button>` : ""}
+        ${btn("Research again")}</div></div>`;
   }
 
   // ---------- categories ----------
@@ -1216,7 +1285,12 @@ Reply with only a JSON object:
       let savedId = id;
       if (isEdit) await db.doc(`${coll}/${id}`).set(body);
       else { const ref = db.collection(coll).doc(); await ref.set(body); savedId = ref.id; }
-      if (kind === "partner") await attachFormDocs(savedId, body.name);
+      if (kind === "partner") {
+        await attachFormDocs(savedId, body.name);
+        const wantResearch = document.getElementById("p-research")?.checked;
+        const linkChanged = !isEdit || (prev?.url || "") !== body.url;
+        if (wantResearch && body.url && linkChanged) queueResearch(savedId, body);
+      }
       const changes = diff(view(prev), view(body), LABELS[kind]);
       if (changes.length) logChange({ kind, action: isEdit ? "updated" : "added", targetId: id || "", targetName: body.name, changes });
       editing[kind] = null; delete draftMembers[id || "new"];
@@ -1335,6 +1409,8 @@ Reply with only a JSON object:
     if (t.id === "f-reset") return go(route() === "pipeline" ? "#pipeline" : "#opportunities", CLEAR);
     if (ds.rate) return rate(ds.id, Number(ds.rate));
     if (ds.analyze) return analyzeDoc(ds.analyze);
+    if (ds.research) return queueResearch(ds.research);
+    if (ds.usesummary) return applyResearchSummary(ds.usesummary);
     if (ds.addsugg) return addSuggested(ds.addsugg);
     if (ds.deldoc) return removeDoc(ds.deldoc);
     if (ds.decide) { document.getElementById("d-stage").value = ds.decide; return saveDecision(); }
