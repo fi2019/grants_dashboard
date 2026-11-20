@@ -231,13 +231,45 @@ td .meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; color:
 .cgrid ul, .cgrid ol, .gaps ul { margin: 4px 0 0; padding-left: 18px; display: grid; gap: 3px }
 .gaps { font-size: 13px; background: var(--warn-bg); border-radius: 6px; padding: 8px 12px }
 /* Partner hierarchy: centers, departments and faculty nested under the main partner. */
-.children { display: grid; gap: 8px; margin-top: 4px; padding-left: 14px; border-left: 3px solid var(--n-partner) }
-.children .item { background: var(--surface-2) }
+.item.org { border-left: 5px solid var(--navy-ink) }
+.item.org > .top h3 { font-size: 17px }
+.kidcount { font-size: 12px; color: var(--muted) }
+.children { display: grid; gap: 8px; margin-top: 6px; padding: 10px 0 2px 18px; border-left: 3px solid var(--n-partner); position: relative }
+.childhead { font: 600 12px var(--display); letter-spacing: .04em; text-transform: uppercase; color: var(--n-partner) }
+.item.child { background: var(--surface-2); padding: 10px 12px; position: relative; border-left: 3px solid var(--n-partner) }
+.item.child::before { content: ""; position: absolute; left: -21px; top: 20px; width: 18px; border-top: 2px solid var(--n-partner) }
+.item.child > .top h3 { font-size: 14px }
+.item.child .item.child { background: var(--surface) }
+.pbranch { color: var(--n-partner); margin-right: 6px; font-weight: 700 }
+.item.child details.more > summary { cursor: pointer }
+.addkid { justify-self: start; background: transparent; border: 1.5px dashed var(--n-partner); color: var(--link); border-radius: 6px; padding: 6px 12px; font-size: 13px }
+.addkid:hover:not(:disabled) { background: var(--surface) }
+.ptype { display: inline-block; font-size: 11px; font-weight: 600; border-radius: 999px; padding: 1px 9px; white-space: nowrap }
+.ptype.org { background: var(--navy-ink); color: var(--surface) }
+.ptype.unit { background: var(--n-partner); color: #fff }
+.ptype.person { background: var(--warn-bg); color: var(--warn) }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 6px; overflow: hidden }
+.seg button { border: 0; border-radius: 0; background: var(--surface); color: var(--muted); padding: 6px 12px; font-size: 13px }
+.seg button.on { background: var(--navy-ink); color: var(--surface) }
+.ptree, .ptree ul { list-style: none; margin: 0; padding: 0 }
+.ptree ul { margin-left: 14px; padding-left: 16px; border-left: 2px solid var(--n-partner) }
+.ptree li { position: relative }
+.ptree ul > li::before { content: ""; position: absolute; left: -16px; top: 19px; width: 12px; border-top: 2px solid var(--n-partner) }
+.ptree > li { border-bottom: 1px solid var(--line); padding: 4px 0 8px }
+.ptree > li:last-child { border-bottom: 0 }
+.ptrow { display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: center; padding: 6px 4px; border-radius: 6px }
+.ptrow:hover { background: var(--surface-2) }
+.ptrow .ptname { font-weight: 600 }
+.ptrow.lvl0 .ptname { font: 700 16px var(--display); color: var(--fg) }
+.ptrow .ptact { margin-left: auto; display: inline-flex; gap: 6px }
+.ptrow .ptact button { padding: 2px 9px; font-size: 12px }
+.ptree li.ctx > .ptrow { opacity: .5 }
+.childed.quick { margin: 4px 0 }
 .partof { font-size: 12px; color: var(--muted) }
 .childed { grid-column: 1 / -1; display: grid; gap: 8px; border: 1px solid var(--line); border-left: 3px solid var(--n-partner); border-radius: 6px; padding: 10px 12px; background: var(--surface-2) }
 .childadd { display: grid; gap: 8px; grid-template-columns: minmax(0, 2fr) minmax(0, 1.2fr) minmax(0, 2fr) auto }
 @media (max-width: 720px) { .childadd { grid-template-columns: minmax(0, 1fr) } }
-.item.ctx > :not(.kids) { opacity: .55 }
+.item.ctx > :not(.children) { opacity: .55 }
 .prate { display: inline-flex; gap: 8px; align-items: baseline }
 .prate .team-avg { margin-top: 0 }
 .btn-danger { background: var(--bad); color: var(--surface) }
@@ -936,9 +968,9 @@ details.addform[open] > summary::before { content: "− " }
   }
   // Partner ratings share each person's ratings doc, keyed "p_<partner id>" so they never collide with opportunity ids.
   const rateable = (p) => ({ id: "p_" + p.id, title: p.name });
-  const pf = { q: "", type: "", stars: "", basis: "mine", unrated: true, matches: false, focus: "" };
+  const pf = { q: "", type: "", stars: "", basis: "mine", unrated: true, matches: false, focus: "", view: "cards", addUnder: null };
   try { Object.assign(pf, JSON.parse(localStorage.getItem("fg-pfilters") || "{}")); } catch {}
-  const savePf = () => { try { localStorage.setItem("fg-pfilters", JSON.stringify(pf)); } catch {} };
+  const savePf = () => { try { const { addUnder, ...keep } = pf; localStorage.setItem("fg-pfilters", JSON.stringify(keep)); } catch {} };
   function partnerPasses(p) {
     const q = pf.q.trim().toLowerCase();
     if (q && ![p.name, p.type, p.summary, (p.focus || []).join(" "), p.notes].some((f) => String(f || "").toLowerCase().includes(q))) return false;
@@ -956,6 +988,7 @@ details.addform[open] > summary::before { content: "− " }
   function partnerFiltersHtml(shown, total) {
     const opt = (v, l, cur) => `<option value="${esc(v)}" ${String(cur) === String(v) ? "selected" : ""}>${esc(l)}</option>`;
     return `<div class="panel filters" id="pfilters">
+      <span class="seg" role="group" aria-label="View"><button type="button" class="${pf.view !== "tree" ? "on" : ""}" data-pview="cards" aria-pressed="${pf.view !== "tree"}">Cards</button><button type="button" class="${pf.view === "tree" ? "on" : ""}" data-pview="tree" aria-pressed="${pf.view === "tree"}">Tree</button></span>
       <input id="pf-q" placeholder="Search name, focus area, summary…" value="${esc(pf.q)}" aria-label="Search partners" style="flex:1 1 220px">
       <select id="pf-type" aria-label="Type">${opt("", "All types", pf.type)}${PARTNER_TYPES.map((t) => opt(t, t, pf.type)).join("")}</select>
       <select id="pf-stars" aria-label="Minimum stars">${opt("", "Any rating", pf.stars)}${[1, 2, 3, 4].map((n) => opt(n, `${n}+ stars`, pf.stars)).join("")}${opt(5, "5 stars", pf.stars)}</select>
@@ -966,6 +999,29 @@ details.addform[open] > summary::before { content: "− " }
       ${anyPf() ? `<button class="btn-ghost" id="pf-reset" type="button">Reset</button>` : ""}
       <span class="note">${shown === total ? `${total} partners` : `${shown} of ${total} match`}${anyPf() ? " · a parent that doesn't match is shown faded when something under it does" : ""}</span>
     </div>`;
+  }
+  // Partner hierarchy display helpers.
+  const PERSON_TYPES = ["Faculty or researcher", "Researcher"];
+  const UNIT_TYPES = ["Center or institute", "Department or college", "Lab or facility", "Program", "Program area"];
+  const typeClass = (t) => PERSON_TYPES.includes(t) ? "person" : UNIT_TYPES.includes(t) ? "unit" : "org";
+  const typeChip = (p) => `<span class="ptype ${typeClass(p.type)}">${esc(p.type || "Partner")}</span>`;
+  function kidSummary(kids) {
+    const n = (cls) => kids.filter((k) => typeClass(k.type) === cls).length;
+    return [[n("unit"), "center or unit", "centers and units"], [n("person"), "person", "people"], [n("org"), "organization", "organizations"]]
+      .filter(([c]) => c).map(([c, one, many]) => `${c} ${c === 1 ? one : many}`).join(" · ");
+  }
+  // Quick add under any partner, from the list or the tree (one open at a time).
+  function quickAddHtml(p) {
+    const def = typeClass(p.type) === "unit" ? "Faculty or researcher" : "Center or institute";
+    return `<div class="childed quick" id="quickadd"><b style="font-size:13px;color:var(--fg)">Add under ${esc(p.name)}</b>
+      <div class="childadd">
+        <input id="ck-name" placeholder="Name of the center, department or person" maxlength="160" aria-label="Name" ${ro()}>
+        <select id="ck-type" aria-label="Type" ${ro()}>${CHILD_TYPES.map((t) => `<option ${t === def ? "selected" : ""}>${esc(t)}</option>`).join("")}</select>
+        <input id="ck-url" type="url" placeholder="https:// (profile or page)" aria-label="Link" ${ro()}>
+        <button type="button" class="btn" data-addkid="${esc(p.id)}" ${ro()}>Add</button>
+      </div>
+      <span class="help">Press Add for each one; the form stays open so you can keep adding. <button type="button" class="btn-ghost" data-closeadd="1" style="padding:1px 8px;font-size:12px">Done</button></span>
+      <span class="toast" id="kid-toast">${esc(flash["kid-toast"] || "")}</span></div>`;
   }
   // Edit mode: list and quick-add the centers, departments and people under this partner.
   const CHILD_TYPES = ["Center or institute", "Department or college", "Lab or facility", "Program", "Faculty or researcher"];
@@ -984,20 +1040,20 @@ details.addform[open] > summary::before { content: "− " }
       <span class="toast" id="child-toast">${esc(flash["child-toast"] || "")}</span>
     </div>`;
   }
-  async function addChildInline(pid) {
-    const name = val("ch-name"), url = val("ch-url"), type = val("ch-type") || "Center or institute";
-    if (!name) return toast("child-toast", "Give it a name.");
-    if (url && !safeUrl(url)) return toast("child-toast", "The link should start with https://");
+  async function addChildInline(pid, pre = "ch", tid = "child-toast") {
+    const name = val(pre + "-name"), url = val(pre + "-url"), type = val(pre + "-type") || "Center or institute";
+    if (!name) return toast(tid, "Give it a name.");
+    if (url && !safeUrl(url)) return toast(tid, "The link should start with https://");
     const parent = S.partners[pid]; if (!parent || !db || !canWrite) return;
     const body = await stamp({ name, type, parentId: pid, url, links: [], contact: "", summary: "", focus: [], notes: "" });
     try {
       const ref = db.collection("partners").doc(); await ref.set(body);
       logChange({ kind: "partner", action: "added", targetId: ref.id, targetName: name, changes: [{ field: "parentId", label: "Part of", to: parent.name }, { field: "type", label: "Type", to: type }, ...(url ? [{ field: "url", label: "Link", to: url }] : [])] });
       if (url) queueResearch(ref.id, body);
-      document.getElementById("ch-name").value = ""; document.getElementById("ch-url").value = "";
-      toast("child-toast", `Added ${name}${url ? ". Web research is queued for it." : "."}`);
-      const box = document.getElementById("childed"); if (box) { const tmp = document.createElement("div"); tmp.innerHTML = childrenEditorHtml(pid); box.replaceWith(tmp.firstElementChild); }
-    } catch (err) { toast("child-toast", errMsg(err)); }
+      flash[tid] = `Added ${name}${url ? ". Web research is queued for it." : "."}`;
+      if (pre === "ch") { const box = document.getElementById("childed"); if (box) { const tmp = document.createElement("div"); tmp.innerHTML = childrenEditorHtml(pid); box.replaceWith(tmp.firstElementChild); } }
+      else { render(); document.getElementById("ck-name")?.focus(); }
+    } catch (err) { toast(tid, errMsg(err)); }
   }
   function viewPartners() {
     const e = editing.partner && editing.partner !== "new" ? S.partners[editing.partner] || {} : {};
@@ -1036,23 +1092,40 @@ details.addform[open] > summary::before { content: "− " }
         const visible = (p, depth = 0) => { if (memo.has(p.id)) return memo.get(p.id); const v = partnerPasses(p) || (depth < 5 && childrenOf(p.id).some((c) => visible(c, depth + 1))); memo.set(p.id, v); return v; };
         const tops = sorted(S.partners).filter(isTop).filter((p) => visible(p));
         if (!tops.length && Object.keys(S.partners).length) return `<p class="panel empty">No partners match these filters.</p>`;
+        if (!tops.length) return `<p class="panel empty">No partners yet. Add the labs, universities and researchers Forge works with.</p>`;
+        const kidsOf = (p, depth) => (depth < 5 ? childrenOf(p.id).filter((c) => visible(c)) : []);
+        if (pf.view === "tree") {
+          // Tree: the whole hierarchy at a glance, with an add-under action on every row.
+          const row = (p, depth) => { const kids = kidsOf(p, depth), t = teamAvg(rateable(p)), n = open.filter((o) => hits(o, p.focus).length).length, ctx = anyPf() && !partnerPasses(p);
+            return `<li class="${ctx ? "ctx" : ""}"><div class="ptrow lvl${Math.min(depth, 2)}">
+                <a href="#partners" class="ptname" data-gopartner="${esc(p.id)}">${esc(p.name)}</a>${typeChip(p)}
+                <span class="note">${t ? `★ ${t.avg.toFixed(1)} · ` : ""}${(p.focus || []).length} focus ${(p.focus || []).length === 1 ? "area" : "areas"}${n ? ` · ${n} open ${n === 1 ? "match" : "matches"}` : ""}${childrenOf(p.id).length ? ` · ${childrenOf(p.id).length} under it` : ""}</span>
+                <span class="ptact"><button class="btn-ghost" data-edit="partner" data-id="${esc(p.id)}" ${ro()}>Edit</button><button class="btn-ghost" data-addunder="${esc(p.id)}" ${ro()}>+ Add under</button></span></div>
+              ${kids.length || pf.addUnder === p.id ? `<ul>${kids.map((c) => row(c, depth + 1)).join("")}${pf.addUnder === p.id ? `<li>${quickAddHtml(p)}</li>` : ""}</ul>` : ""}</li>`; };
+          return `<div class="panel"><ul class="ptree">${tops.map((p) => row(p, 0)).join("")}</ul></div>`;
+        }
         return tops.map((top) => (function card(p, depth) {
         const matches = open.filter((o) => hits(o, p.focus).length).sort(byFit);
-        const kids = depth < 4 ? childrenOf(p.id).filter((c) => visible(c)) : [];
+        const kids = kidsOf(p, depth), all = childrenOf(p.id);
         const ctx = anyPf() && !partnerPasses(p);
-        return `<div class="item${ctx ? " ctx" : ""}" id="partner-${esc(p.id)}"><div class="top"><h3>${safeUrl(p.url) ? `<a href="${esc(p.url)}" target="_blank" rel="noopener">${esc(p.name)} ↗</a>` : esc(p.name)}</h3><span style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><span class="prate">${starsHtml(rateable(p))}</span><span class="pill">${esc(p.type)}</span></span></div>
-          ${depth ? `<div class="partof">Part of ${esc(lineage(p).join(" › "))}</div>` : ""}
+        const name = safeUrl(p.url) ? `<a href="${esc(p.url)}" target="_blank" rel="noopener">${esc(p.name)} ↗</a>` : esc(p.name);
+        const extras = `${matches.length ? `<details><summary class="note">${matches.length} open ${matches.length === 1 ? "opportunity mentions" : "opportunities mention"} its focus areas</summary><ul class="list">${matches.slice(0, 8).map((o) => `<li><span class="t">${oppLink(o)}</span><span class="r">${dlHtml(o.closeDate)}${scoreHtml(o)}</span></li>`).join("")}</ul></details>` : ""}
+          ${researchHtml(p)}
+          ${docsHtml(p)}`;
+        const counts = all.length ? `<span class="kidcount">${kidSummary(all)}</span>` : "";
+        return `<div class="item ${depth ? "child" : "org"}${ctx ? " ctx" : ""}" id="partner-${esc(p.id)}">
+          <div class="top"><h3>${depth ? `<span class="pbranch" aria-hidden="true">↳</span>` : ""}${name}</h3><span style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><span class="prate">${starsHtml(rateable(p))}</span>${typeChip(p)}</span></div>
+          ${depth ? `<div class="partof">Part of ${lineage(p).map((n) => esc(n)).join(" › ")}</div>` : counts}
           ${p.summary ? `<div class="partner-summary">${esc(p.summary)}</div>` : ""}
           ${(p.links || []).filter(safeUrl).length ? `<div class="plinks">${p.links.filter(safeUrl).map((u) => `<a href="${esc(u)}" target="_blank" rel="noopener">${esc(u.replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, ""))} ↗</a>`).join("")}</div>` : ""}
           ${p.contact ? `<div class="kv"><span>Contact <b>${esc(p.contact)}</b></span></div>` : ""}
           ${(p.focus || []).length ? `<div class="chips">${p.focus.map((f) => `<span>${esc(f)}</span>`).join("")}</div>` : `<p class="help">Add focus areas to match opportunities.</p>`}
           ${p.notes ? `<p class="help">${esc(p.notes)}</p>` : ""}
-          ${matches.length ? `<details><summary class="note">${matches.length} open ${matches.length === 1 ? "opportunity mentions" : "opportunities mention"} its focus areas</summary><ul class="list">${matches.slice(0, 8).map((o) => `<li><span class="t">${oppLink(o)}</span><span class="r">${dlHtml(o.closeDate)}${scoreHtml(o)}</span></li>`).join("")}</ul></details>` : ""}
-          ${researchHtml(p)}
-          ${docsHtml(p)}
-          <div class="btns" style="flex-wrap:wrap">${editBtn("partner", p.id)}<button class="btn-ghost" data-addchild="${esc(p.id)}" ${ro()}>Add center, department or person</button>${removeBtn("partner", p.id)}</div>
-          ${kids.length ? `<details class="kids" open><summary class="note">${kids.length} under ${esc(p.name)}</summary><div class="children">${kids.map((c) => card(c, depth + 1)).join("")}</div></details>` : ""}</div>`;
-      })(top, 0)).join("") || `<p class="panel empty">No partners yet. Add the labs, universities and researchers Forge works with.</p>`; })()}</section>`;
+          ${depth ? `<details class="more"><summary class="note">Documents, web research and matching opportunities</summary>${extras}</details>` : extras}
+          <div class="btns" style="flex-wrap:wrap">${editBtn("partner", p.id)}<button class="btn-ghost" data-addunder="${esc(p.id)}" ${ro()}>+ Add under ${esc(short(p.name, 30))}</button>${removeBtn("partner", p.id)}</div>
+          ${kids.length || pf.addUnder === p.id ? `<div class="children"><div class="childhead">Under ${esc(p.name)}${all.length ? ` · ${kidSummary(all)}` : ""}</div>${kids.map((c) => card(c, depth + 1)).join("")}
+            ${pf.addUnder === p.id ? quickAddHtml(p) : `<button class="addkid" data-addunder="${esc(p.id)}" ${ro()}>+ Add another center, department or person under ${esc(short(p.name, 40))}</button>`}</div>` : ""}</div>`;
+      })(top, 0)).join(""); })()}</section>`;
   }
 
   // ---------- partner documents ----------
@@ -1984,7 +2057,7 @@ ${JSON.stringify({ partners: inp.partners, fundingSponsors: inp.sources, opportu
     const f = document.activeElement;
     if (dirty) return route().startsWith("opp-") ? refreshRatings() : undefined;
     if (route() === "pipeline" && f && f.closest && f.closest("#filters, #board")) return refreshBoard();
-    if (f && f.closest && f.closest("#decision, #filters, #hfilters, #sfilters, .form, #kw-form, .picker, .sugg, #topic-form, #pfilters, #tp-q, #ts-q")) return;
+    if (f && f.closest && f.closest("#decision, #filters, #hfilters, #sfilters, .form, #kw-form, .picker, .sugg, #topic-form, #pfilters, #tp-q, #ts-q, #quickadd")) return;
     // Someone rating in the list or on a detail page: redraw only the ratings so nothing else jumps or resets.
     if (f && f.closest && f.closest("#results, #my-stars")) return refreshRatings();
     render();
@@ -2222,6 +2295,11 @@ ${JSON.stringify({ partners: inp.partners, fundingSponsors: inp.sources, opportu
     if (ds.findpeople) return queuePeople(ds.findpeople, Number(ds.idx));
     if (ds.addperson) return addPerson(ds.addperson, Number(ds.n));
     if (ds.addchildinline) return addChildInline(ds.addchildinline);
+    if (ds.addkid) return addChildInline(ds.addkid, "ck", "kid-toast");
+    if (ds.addunder) { pf.addUnder = ds.addunder; delete flash["kid-toast"]; render(); const q = document.getElementById("quickadd"); q?.scrollIntoView({ block: "center" }); document.getElementById("ck-name")?.focus(); return; }
+    if (ds.closeadd) { pf.addUnder = null; delete flash["kid-toast"]; return render(); }
+    if (ds.pview) { pf.view = ds.pview; savePf(); return render(); }
+    if (ds.gopartner) { e.preventDefault(); pf.view = "cards"; savePf(); render(); document.getElementById("partner-" + ds.gopartner)?.scrollIntoView({ block: "start" }); return; }
     if (ds.unpropose) return unproposeTopic(ds.unpropose);
     if (ds.addchild) { editing.partner = null; resetPartnerForm(); pform.parent = ds.addchild; render(); document.getElementById("p-name")?.focus(); return scrollTo(0, 0); }
     if (t.id === "pf-reset") { Object.assign(pf, { q: "", type: "", stars: "", unrated: true, matches: false, focus: "" }); savePf(); return render(); }
@@ -2269,6 +2347,9 @@ ${JSON.stringify({ partners: inp.partners, fundingSponsors: inp.sources, opportu
   }
   // Remember whether the add-partner panel is open, so a live update doesn't fold it shut.
   app.addEventListener("toggle", (e) => { if (e.target.id === "pform") pform.open = e.target.open; }, true);
+  app.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && e.target.closest?.("#quickadd") && e.target.tagName === "INPUT") { e.preventDefault(); const b = document.querySelector("[data-addkid]"); if (b) addChildInline(b.dataset.addkid, "ck", "kid-toast"); }
+  });
   app.addEventListener("submit", (e) => {
     e.preventDefault();
     if (e.target.id === "qform") go("#opportunities", { ...CLEAR, q: val("dash-q") });
