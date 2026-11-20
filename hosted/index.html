@@ -265,6 +265,21 @@ td .meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; color:
 .ptrow .ptact button { padding: 2px 9px; font-size: 12px }
 .ptree li.ctx > .ptrow { opacity: .5 }
 .childed.quick { margin: 4px 0 }
+.item h3 a.web { font: 400 12px var(--font); margin-left: 6px }
+.pdhead { display: grid; gap: 8px; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 16px 18px; border-left: 6px solid var(--navy-ink) }
+.pdhead.child { border-left-color: var(--n-partner) }
+.pdhead .btns { display: flex; gap: 6px; flex-wrap: wrap }
+.pdhead .btns button { padding: 4px 12px; font-size: 13px }
+.pdhead .top { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center }
+.pdhead h1 { font-size: 24px }
+.pdmeta { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; font-size: 14px }
+.crumbs { font-size: 13px; color: var(--muted) }
+.kidsec { border-top: 4px solid var(--n-partner) }
+.kidgrid { display: grid; gap: 10px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr)); margin-top: 10px }
+.kidcard { display: grid; gap: 4px; align-content: start; justify-items: start; background: var(--surface-2); border: 1px solid var(--line); border-left: 4px solid var(--n-partner); border-radius: 8px; padding: 10px 12px; color: var(--fg) }
+.kidcard:hover { border-color: var(--link); text-decoration: none }
+.kidcard .kidname { font: 600 15px var(--display); color: var(--link) }
+.kidcard .kidsum { font-size: 13px; color: var(--fg) }
 .partof { font-size: 12px; color: var(--muted) }
 .childed { grid-column: 1 / -1; display: grid; gap: 8px; border: 1px solid var(--line); border-left: 3px solid var(--n-partner); border-radius: 6px; padding: 10px 12px; background: var(--surface-2) }
 .childadd { display: grid; gap: 8px; grid-template-columns: minmax(0, 2fr) minmax(0, 1.2fr) minmax(0, 2fr) auto }
@@ -730,7 +745,7 @@ details.addform[open] > summary::before { content: "− " }
           ${cats.length || parts.length ? `<section class="panel"><h2>Team routing</h2>
             ${cats.length ? `<p class="help" style="margin-bottom:6px">Categories: ${cats.map((c) => `<span class="cat">${esc(c.name)}</span> <span class="note">(${esc(hits(o, c.keywords).join(", "))})</span>`).join(" ")}</p>
               ${watchers.length ? `<div class="people">${watchers.map((w) => personHtml(w)).join("")}</div>` : `<p class="help">No one is assigned to these categories yet.</p>`}` : ""}
-            ${parts.length ? `<h2 style="margin-top:12px">Possible joint-submission partners</h2><ul class="list">${parts.map((p) => `<li><span class="t">${safeUrl(p.url) ? `<a href="${esc(p.url)}" target="_blank" rel="noopener">${esc(p.name)}</a>` : esc(p.name)} <span class="note">· ${esc(p.type || "Partner")} · matched ${esc(p.matched.join(", "))}</span></span></li>`).join("")}</ul>` : ""}
+            ${parts.length ? `<h2 style="margin-top:12px">Possible joint-submission partners</h2><ul class="list">${parts.map((p) => `<li><span class="t"><a href="#partner-${esc(p.id)}">${esc(p.name)}</a> <span class="note">· ${esc(p.type || "Partner")} · matched ${esc(p.matched.join(", "))}</span></span></li>`).join("")}</ul>` : ""}
           </section>` : ""}
           <section class="panel"><h2>Forge decision criteria</h2>
             <div class="rolebox"><div>${roleHtml(o)} ${roleOf(o) === "partner" ? "Forge would join an eligible lead (a university, lab or company) as a partner or subrecipient." : roleOf(o) === "unclear" ? "The listing doesn't say whether nonprofits can apply. Forge can partner either way." : "Forge can apply as the lead applicant, or partner if that fits better."}</div>
@@ -1055,6 +1070,52 @@ details.addform[open] > summary::before { content: "− " }
       else { render(); document.getElementById("ck-name")?.focus(); }
     } catch (err) { toast(tid, errMsg(err)); }
   }
+  // ---------- partner detail page ----------
+  function viewPartnerDetail(id) {
+    const p0 = S.partners[id];
+    if (!p0) return storeState === "ready" ? `<p class="panel empty">That partner isn't on the list (it may have been removed). <a href="#partners">Back to partners</a></p>` : `<p class="panel empty">Loading…</p>`;
+    const p = { id, ...p0 }, open = OPPS.filter(isOpen);
+    const matches = open.filter((o) => hits(o, p.focus).length).sort(byFit);
+    const crumbs = [];
+    for (let q = p, guard = 0; q?.parentId && S.partners[q.parentId] && guard < 6; guard++) { q = { id: q.parentId, ...S.partners[q.parentId] }; crumbs.unshift(q); }
+    const kids = childrenOf(id), t = teamAvg(rateable(p));
+    const kidRow = (c) => { const n = childrenOf(c.id).length, ct = teamAvg(rateable(c));
+      return `<a class="kidcard" href="#partner-${esc(c.id)}"><span class="kidname">${esc(c.name)}</span>${typeChip(c)}
+        ${c.summary ? `<span class="kidsum">${esc(short(c.summary, 180))}</span>` : ""}
+        <span class="note">${ct ? `★ ${ct.avg.toFixed(1)} · ` : ""}${(c.focus || []).length} focus ${(c.focus || []).length === 1 ? "area" : "areas"}${n ? ` · ${n} under it` : ""}</span></a>`; };
+    return `<div><a href="${crumbs.length ? `#partner-${esc(crumbs[crumbs.length - 1].id)}` : "#partners"}">← ${crumbs.length ? esc(crumbs[crumbs.length - 1].name) : "Partners"}</a></div>
+      <div class="pdhead ${p.parentId ? "child" : "org"}">
+        ${crumbs.length ? `<div class="crumbs"><a href="#partners">Partners</a>${crumbs.map((c) => ` › <a href="#partner-${esc(c.id)}">${esc(c.name)}</a>`).join("")}</div>` : ""}
+        <div class="top"><h1>${esc(p.name)}</h1>${typeChip(p)}</div>
+        <div class="pdmeta"><span class="prate">${starsHtml(rateable(p))}</span>${safeUrl(p.url) ? `<a href="${esc(p.url)}" target="_blank" rel="noopener">Website ↗</a>` : ""}${p.contact ? `<span class="note">Contact: ${esc(p.contact)}</span>` : ""}</div>
+        ${(p.links || []).filter(safeUrl).length ? `<div class="plinks">${p.links.filter(safeUrl).map((u) => `<a href="${esc(u)}" target="_blank" rel="noopener">${esc(u.replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, ""))} ↗</a>`).join("")}</div>` : ""}
+        <div class="btns">${editBtn("partner", p.id)}<button class="btn-ghost" data-addunder="${esc(p.id)}" ${ro()}>+ Add under ${esc(short(p.name, 30))}</button>${removeBtn("partner", p.id)}</div>
+      </div>
+      <div class="detail">
+        <div style="display:grid;gap:16px;min-width:0">
+          <section class="panel"><h2>Focus</h2>${p.summary ? `<div class="partner-summary">${esc(p.summary)}</div>` : `<p class="help">No summary yet. Use Edit, or Research online below.</p>`}
+            ${(p.focus || []).length ? `<div class="chips" style="margin-top:10px">${p.focus.map((f) => `<span>${esc(f)}</span>`).join("")}</div>` : `<p class="help" style="margin-top:8px">Add focus areas to match opportunities.</p>`}
+            ${p.notes ? `<p class="help" style="margin-top:10px">${esc(p.notes)}</p>` : ""}</section>
+          <section class="panel"><h2>Open opportunities that mention its focus areas <span class="note">${matches.length}</span></h2>
+            ${matches.length ? `<ul class="list">${matches.slice(0, 15).map((o) => `<li><span class="t">${oppLink(o)}</span><span class="r">${dlHtml(o.closeDate)}${scoreHtml(o)}</span></li>`).join("")}</ul>${matches.length > 15 ? `<p class="help" style="margin-top:6px">Showing the 15 best fits.</p>` : ""}` : `<p class="empty">None right now.</p>`}</section>
+          <section class="panel">${researchHtml(p) || `<p class="help">No web research yet.</p>`}${docsHtml(p)}</section>
+        </div>
+        <aside class="panel side">
+          <h2 style="margin:0">At a glance</h2>
+          <div class="note">Type <b style="color:var(--fg)">${esc(p.type || "Partner")}</b></div>
+          ${crumbs.length ? `<div class="note">Part of <b style="color:var(--fg)">${crumbs.map((c) => esc(c.name)).join(" › ")}</b></div>` : ""}
+          <div class="note">Team rating <b style="color:var(--fg)">${t ? `${t.avg.toFixed(1)} (${t.count})` : "none yet"}</b></div>
+          <div class="note">Focus areas <b style="color:var(--fg)">${(p.focus || []).length}</b> · Open matches <b style="color:var(--fg)">${matches.length}</b></div>
+          <div class="note">Under it <b style="color:var(--fg)">${kids.length ? kidSummary(kids) : "nothing yet"}</b></div>
+          <a href="#teaming">Use it on the Teaming page →</a>
+        </aside>
+      </div>
+      <section class="panel kidsec"><div class="tbar"><h2 style="margin:0">Under ${esc(p.name)} <span class="note">${kids.length ? kidSummary(kids) : ""}</span></h2>
+          <button class="btn" data-addunder="${esc(p.id)}" ${ro()}>+ Add a center, department or person</button></div>
+        ${pf.addUnder === p.id ? quickAddHtml(p) : ""}
+        ${kids.length ? `<div class="kidgrid">${kids.map(kidRow).join("")}</div>` : `<p class="empty">Nothing under ${esc(p.name)} yet. Add its centers, departments, labs or people so you can team with them specifically.</p>`}
+      </section>`;
+  }
   function viewPartners() {
     const e = editing.partner && editing.partner !== "new" ? S.partners[editing.partner] || {} : {};
     const isNew = !editing.partner || editing.partner === "new";
@@ -1098,7 +1159,7 @@ details.addform[open] > summary::before { content: "− " }
           // Tree: the whole hierarchy at a glance, with an add-under action on every row.
           const row = (p, depth) => { const kids = kidsOf(p, depth), t = teamAvg(rateable(p)), n = open.filter((o) => hits(o, p.focus).length).length, ctx = anyPf() && !partnerPasses(p);
             return `<li class="${ctx ? "ctx" : ""}"><div class="ptrow lvl${Math.min(depth, 2)}">
-                <a href="#partners" class="ptname" data-gopartner="${esc(p.id)}">${esc(p.name)}</a>${typeChip(p)}
+                <a href="#partner-${esc(p.id)}" class="ptname">${esc(p.name)}</a>${typeChip(p)}
                 <span class="note">${t ? `★ ${t.avg.toFixed(1)} · ` : ""}${(p.focus || []).length} focus ${(p.focus || []).length === 1 ? "area" : "areas"}${n ? ` · ${n} open ${n === 1 ? "match" : "matches"}` : ""}${childrenOf(p.id).length ? ` · ${childrenOf(p.id).length} under it` : ""}</span>
                 <span class="ptact"><button class="btn-ghost" data-edit="partner" data-id="${esc(p.id)}" ${ro()}>Edit</button><button class="btn-ghost" data-addunder="${esc(p.id)}" ${ro()}>+ Add under</button></span></div>
               ${kids.length || pf.addUnder === p.id ? `<ul>${kids.map((c) => row(c, depth + 1)).join("")}${pf.addUnder === p.id ? `<li>${quickAddHtml(p)}</li>` : ""}</ul>` : ""}</li>`; };
@@ -1108,7 +1169,7 @@ details.addform[open] > summary::before { content: "− " }
         const matches = open.filter((o) => hits(o, p.focus).length).sort(byFit);
         const kids = kidsOf(p, depth), all = childrenOf(p.id);
         const ctx = anyPf() && !partnerPasses(p);
-        const name = safeUrl(p.url) ? `<a href="${esc(p.url)}" target="_blank" rel="noopener">${esc(p.name)} ↗</a>` : esc(p.name);
+        const name = `<a href="#partner-${esc(p.id)}">${esc(p.name)}</a>${safeUrl(p.url) ? ` <a class="web" href="${esc(p.url)}" target="_blank" rel="noopener" title="Open their website">Website ↗</a>` : ""}`;
         const extras = `${matches.length ? `<details><summary class="note">${matches.length} open ${matches.length === 1 ? "opportunity mentions" : "opportunities mention"} its focus areas</summary><ul class="list">${matches.slice(0, 8).map((o) => `<li><span class="t">${oppLink(o)}</span><span class="r">${dlHtml(o.closeDate)}${scoreHtml(o)}</span></li>`).join("")}</ul></details>` : ""}
           ${researchHtml(p)}
           ${docsHtml(p)}`;
@@ -1907,6 +1968,7 @@ ${JSON.stringify({ partners: inp.partners, fundingSponsors: inp.sources, opportu
     const nameOf = (key) => itemOf(key)?.label || (c.inputs || []).find((x) => x.key === key)?.name || key;
     const linkOf = (key) => { const it = itemOf(key); if (!it) return esc(nameOf(key));
       if (it.kind === "opportunity") return `<a href="#opp-${esc(it.id)}">${esc(short(it.label, 100))}</a>`;
+      if (it.kind === "partner") return `<a href="#partner-${esc(it.id)}">${esc(it.label)}</a>`;
       return safeUrl(it.ref.url) ? `<a href="${esc(it.ref.url)}" target="_blank" rel="noopener">${esc(it.label)} ↗</a>` : esc(it.label); };
     const who = c.updatedBy ? names[c.updatedBy] || "a teammate" : "the team";
     const key = "concept:" + c.id;
@@ -2035,14 +2097,14 @@ ${JSON.stringify({ partners: inp.partners, fundingSponsors: inp.sources, opportu
   const VIEWS = { teaming: viewTeaming, opportunities: viewOpportunities, pipeline: viewPipeline, federal: viewFederal, report: viewReport, profile: viewProfile, history: viewHistory, sources: viewSources, partners: viewPartners, categories: viewCategories };
   function render() {
     const r = route();
-    const tab = r.startsWith("opp-") ? "opportunities" : VIEWS[r] ? r : "dashboard";
+    const tab = r.startsWith("opp-") ? "opportunities" : r.startsWith("partner-") ? "partners" : VIEWS[r] ? r : "dashboard";
     const mineCount = myCats().length ? OPPS.filter(isOpen).filter((o) => myCats().some((c) => hits(o, c.keywords).length) && (fit(o) ?? 0) >= 5).length : 0;
     document.querySelectorAll("#tabs a").forEach((a) => {
       const h = a.getAttribute("href");
       if (h === "#" + tab) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current");
       if (h === "#dashboard") a.innerHTML = `Dashboard${mineCount ? `<span class="nav-badge" title="Open opportunities scoring 5+ in your categories">${mineCount}</span>` : ""}`;
     });
-    app.innerHTML = r.startsWith("opp-") ? viewDetail(r.slice(4)) : (VIEWS[r] || viewDashboard)();
+    app.innerHTML = r.startsWith("opp-") ? viewDetail(r.slice(4)) : r.startsWith("partner-") ? viewPartnerDetail(decodeURIComponent(r.slice(8))) : (VIEWS[r] || viewDashboard)();
     if (r === "teaming") mountTeamGraph(); else tSim?.stop();
   }
   const saveFilters = () => { try { localStorage.setItem("fg-filters", JSON.stringify(ui)); } catch {} };
@@ -2182,6 +2244,7 @@ ${JSON.stringify({ partners: inp.partners, fundingSponsors: inp.sources, opportu
     const prev = S[coll][id];
     try {
       await db.doc(`${coll}/${id}`).delete(); armed.delete(kind + ":" + id); if (editing[kind] === id) editing[kind] = null;
+      if (kind === "partner" && route() === "partner-" + id) location.hash = prev?.parentId && S.partners[prev.parentId] ? "#partner-" + prev.parentId : "#partners";
       logChange({ kind, action: "removed", targetId: id, targetName: prev?.name || "", changes: diff(kind === "category" ? { ...prev, members: memberNames(prev?.members) } : prev, null, LABELS[kind]).filter((c) => c.from !== null && c.from !== "").map((c) => ({ ...c, to: null })) });
     }
     catch (err) { alertInline(errMsg(err)); }
@@ -2316,7 +2379,7 @@ ${JSON.stringify({ partners: inp.partners, fundingSponsors: inp.sources, opportu
     if (ds.save) return saveItem(ds.save);
     if (ds.cancel || ds.cancelprofile) dirty = false;
     if (ds.cancel) { delete draftMembers[editing[ds.cancel]]; editing[ds.cancel] = null; if (ds.cancel === "partner") resetPartnerForm(); return render(); }
-    if (ds.edit) { editing[ds.edit] = ds.id; delete draftMembers[ds.id]; if (ds.edit === "partner") resetPartnerForm(ds.id); render(); return scrollTo(0, 0); }
+    if (ds.edit) { editing[ds.edit] = ds.id; delete draftMembers[ds.id]; if (ds.edit === "partner") resetPartnerForm(ds.id); if (ds.edit === "partner" && route() !== "partners") { location.hash = "#partners"; return; } render(); return scrollTo(0, 0); }
     if (ds.gendraft) return draftPartner(true);
     if (ds.usedraft) return applyDraft(true);
     if (ds.unformdoc !== undefined) { pform.docs.splice(Number(ds.unformdoc), 1); return refreshFormDocs(); }
