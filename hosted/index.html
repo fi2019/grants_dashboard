@@ -339,6 +339,10 @@ details.addform > summary::-webkit-details-marker { display: none }
 details.addform > summary::before { content: "+ "; color: var(--link) }
 details.addform[open] > summary::before { content: "− " }
 .tag.dhs { background: #5a3e8a }
+.tag.teaming { background: var(--n-partner) }
+.cact { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; border-top: 1px dashed var(--line); padding-top: 8px }
+.cact .stars button { font-size: 19px }
+.moved { display: inline-flex; gap: 6px; align-items: center; font-size: 13px; font-weight: 600; color: var(--good); background: var(--good-bg); border-radius: 999px; padding: 2px 10px }
 .health { position: relative; display: inline-flex; align-items: center; gap: 5px; font-size: 11px; border-radius: 999px; padding: 1px 8px 1px 6px; white-space: nowrap; cursor: default; border: 1px solid var(--line); color: var(--muted) }
 .health::before { content: ""; width: 8px; height: 8px; border-radius: 50% ; background: var(--idle) }
 .health.ok::before { background: var(--good) }
@@ -377,7 +381,7 @@ details.addform[open] > summary::before { content: "− " }
 
   let OPPS = [], META = { profile: { federalAgencies: [], searchKeywords: [], capabilities: [], partners: [], goodFit: [], poorFit: [] } };
   // Shared, team-editable state (db collections).
-  const S = { decisions: {}, sources: {}, partners: {}, categories: {}, keywords: {}, profile: {}, history: {}, ratings: {}, partnerDocs: {}, research: {}, settings: {}, coaching: {}, teaming: {}, concepts: {} };
+  const S = { decisions: {}, sources: {}, partners: {}, categories: {}, keywords: {}, profile: {}, history: {}, ratings: {}, partnerDocs: {}, research: {}, settings: {}, coaching: {}, teaming: {}, concepts: {}, proposals: {} };
   // Effective Forge profile: the repo's profile file, overridden by the team's edits (profile/main).
   const P = () => ({ ...META.profile, ...(S.profile.main || {}) });
   const leadDays = () => Math.min(90, Math.max(1, Number(P().internalReviewLeadDays) || 14));
@@ -459,8 +463,8 @@ details.addform[open] > summary::before { content: "− " }
   const MECH_SHORT = { "Cooperative agreement": "Coop. agreement", "Prize / challenge": "Prize", "Notice of intent": "NOI" };
   const mechsOf = (o) => o.mechanisms || [];
   const mechHtml = (o) => mechsOf(o).length ? `<span class="mechs">${mechsOf(o).map((m) => `<span class="mech ${MECH_CLASS[m] || ""}" title="${esc(m)}">${esc(MECH_SHORT[m] || m)}</span>`).join("")}</span>` : "";
-  const SRC_LABEL = { "grants.gov": "grants.gov", "dhs-apfs": "DHS forecast" };
-  const srcTag = (o, style) => `<span class="tag ${o.source === "dhs-apfs" ? "dhs" : ""}" ${style ? `style="${style}"` : ""}>${SRC_LABEL[o.source] || esc(o.source || "grants.gov")}</span>`;
+  const SRC_LABEL = { "grants.gov": "grants.gov", "dhs-apfs": "DHS forecast", teaming: "Team concept" };
+  const srcTag = (o, style) => `<span class="tag ${o.source === "dhs-apfs" ? "dhs" : o.source === "teaming" ? "teaming" : ""}" ${o.source === "teaming" ? `title="Topic idea from the Teaming page that the team chose to pursue"` : ""} ${style ? `style="${style}"` : ""}>${SRC_LABEL[o.source] || esc(o.source || "grants.gov")}</span>`;
   const realCriteria = (o) => o.criteria.filter((c) => c.id !== "lead_eligible");
   const dots = (o) => `<span class="dots">${realCriteria(o).map((c) => `<span class="dot ${c.status}" title="${esc(c.label)}: ${c.status === "unknown" ? "not stated" : c.status}"></span>`).join("")}</span>`;
   const oppLink = (o) => `<a href="#opp-${o.id}" class="ttl">${esc(o.title)}</a>`;
@@ -669,7 +673,7 @@ details.addform[open] > summary::before { content: "− " }
         <div style="display:grid;gap:16px;min-width:0">
           <div><div class="meta" style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;color:var(--muted);font-size:13px">${srcTag(o)}${esc(o.agency)} ${o.number ? `<span class="mono">${esc(o.number)}</span>` : ""} ${pill(st)} ${roleHtml(o)} ${mechHtml(o)}</div>
             <h1 style="font-size:24px;margin-top:6px">${esc(o.title)}</h1>
-            ${o.url ? `<a href="${esc(o.url)}" target="_blank" rel="noopener">${o.source === "dhs-apfs" ? "View the DHS forecast page (download the full forecast there) ↗" : "View the official listing on Grants.gov ↗"}</a>` : ""}</div>
+            ${o.url ? `<a href="${esc(o.url)}" target="_blank" rel="noopener">${o.source === "dhs-apfs" ? "View the DHS forecast page (download the full forecast there) ↗" : o.source === "teaming" ? "Open the funding sponsor's page ↗" : "View the official listing on Grants.gov ↗"}</a>` : ""}</div>
           <div class="panel facts">
             <div><div class="k">Fit</div>${scoreHtml(o, true)}</div>
             <div><div class="k">Your rating</div><div id="my-stars" data-id="${o.id}">${starsHtml(o)}</div></div>
@@ -686,7 +690,7 @@ details.addform[open] > summary::before { content: "− " }
           </section>` : ""}
           <section class="panel"><h2>Forge decision criteria</h2>
             <div class="rolebox"><div>${roleHtml(o)} ${roleOf(o) === "partner" ? "Forge would join an eligible lead (a university, lab or company) as a partner or subrecipient." : roleOf(o) === "unclear" ? "The listing doesn't say whether nonprofits can apply. Forge can partner either way." : "Forge can apply as the lead applicant, or partner if that fits better."}</div>
-              ${roleWhy(o) ? `<div class="note">${o.evaluation?.roleRationale ? "Claude: " : "From the listing: "}${esc(roleWhy(o))}</div>` : ""}</div>
+              ${roleWhy(o) ? `<div class="note">${o.evaluation?.roleRationale ? "Claude: " : o.source === "teaming" ? "How to propose: " : "From the listing: "}${esc(roleWhy(o))}</div>` : ""}</div>
             ${o.blockers.length ? `<p style="color:var(--bad);margin:0 0 8px;font-weight:600">Rules Forge out: ${esc(o.blockers.join("; "))}</p>` : ""}
             <div class="crit">${realCriteria(o).map((c) => `<div class="${c.status}"><b>${esc(c.label)}: ${TXT[c.status]}</b><small>${esc(c.evidence)}</small></div>`).join("")}</div>
             <p class="note" style="margin:8px 0 0">Automated checks on the listing text. Confirm against the full notice.${o.signals.length ? ` Profile signals: ${esc(o.signals.join(", "))}.` : ""}</p>
@@ -701,13 +705,13 @@ details.addform[open] > summary::before { content: "− " }
             </div>
             ${ev.risks.length ? sec("Risks and open questions", `<ul style="margin:0;padding-left:18px">${ev.risks.map((r) => `<li>${esc(r)}</li>`).join("")}</ul>`) : ""}
             <p class="note" style="margin:0">Evaluated ${fmtDate(ev.evaluatedAt)} · ${esc(ev.model)}. AI-generated; verify before relying on it.</p>`
-          : `<p class="panel empty">Not yet evaluated by Claude. The score shown is a keyword pre-score.</p>`}
+          : o.source === "teaming" ? "" : `<p class="panel empty">Not yet evaluated by Claude. The score shown is a keyword pre-score.</p>`}
           ${(() => { const hs = Object.values(S.history).filter((h) => (h.kind === "decision" || h.kind === "rating") && h.targetId === o.id).sort((a, b) => String(b.at).localeCompare(String(a.at)));
             return hs.length ? `<section class="panel"><h2>Change history</h2><ul class="hist">${hs.map((h) => entryHtml(h, false)).join("")}</ul></section>` : ""; })()}
           ${coachingHtml(o)}
-          ${pastAwardsHtml(o)}
+          ${o.source === "teaming" ? `<section class="panel"><h2>From Teaming</h2><p class="help">The team chose to move forward on this topic idea on ${fmtDate(o.postedDate)}. <a href="#teaming">See it on the Teaming page →</a></p></section>` : pastAwardsHtml(o)}
           ${o.eligibility ? `<section class="panel"><h2>Eligibility (from listing)</h2><div class="longtext">${esc(o.eligibility)}</div></section>` : ""}
-          ${o.description ? `<section class="panel"><h2>Description (from listing)</h2><div class="longtext">${esc(o.description)}</div></section>` : ""}
+          ${o.description ? `<section class="panel"><h2>${o.source === "teaming" ? "Concept" : "Description (from listing)"}</h2><div class="longtext">${esc(o.description)}</div></section>` : ""}
         </div>
         <aside class="panel side" id="decision" data-id="${o.id}">
           <h2 style="margin:0">Decision</h2>
@@ -1460,7 +1464,7 @@ Reply with only a JSON object:
     : `<div class="chg"><b>${esc(c.label)}</b>: ${c.from !== undefined ? `<del>${esc(show(c.from))}</del> → ` : ""}<ins>${esc(show(c.to))}</ins></div>`;
   function entryHtml(h, withTarget = true) {
     const who = h.by ? names[h.by] || "A teammate" : h.source === "claude" ? "Claude" : "Someone";
-    const target = !withTarget ? "" : String(h.targetId || "").startsWith("p_") ? `<a href="#partners">${esc(h.targetName)}</a>` : h.kind === "decision" || h.kind === "rating" ? `<a href="#opp-${esc(h.targetId)}">${esc(h.targetName)}</a>` : `<b>${esc(h.targetName || "")}</b>`;
+    const target = !withTarget ? "" : String(h.targetId || "").startsWith("c_") ? `<a href="#teaming">${esc(h.targetName)}</a>` : String(h.targetId || "").startsWith("tc-") && S.proposals[h.targetId] ? `<a href="#opp-${esc(h.targetId)}">${esc(h.targetName)}</a>` : String(h.targetId || "").startsWith("p_") ? `<a href="#partners">${esc(h.targetName)}</a>` : h.kind === "decision" || h.kind === "rating" ? `<a href="#opp-${esc(h.targetId)}">${esc(h.targetName)}</a>` : `<b>${esc(h.targetName || "")}</b>`;
     return `<li><div style="display:flex;flex-wrap:wrap;gap:6px 10px;align-items:baseline"><span class="kind">${KIND_LABEL[h.kind] || esc(h.kind)}</span><span>${esc(who)} ${esc(h.action)} ${target}</span><span class="when">${new Date(h.at).toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" })}</span></div>
       ${(h.changes || []).map(changeHtml).join("")}</li>`;
   }
@@ -1783,7 +1787,7 @@ ${JSON.stringify({ partners: inp.partners, fundingSponsors: inp.sources, opportu
     return `<article class="item concept"><div class="top"><span class="note">${(c.concepts || []).length} ${(c.concepts || []).length === 1 ? "topic" : "topics"} · ${esc((c.topics || []).join(", "))} · drafted by Claude for ${esc(who)}, ${fmtDate(c.createdAt)}</span>
         <span class="btns">${armed.has(key) ? `<button class="btn-danger" data-delconcept="${esc(c.id)}">Confirm remove</button><button class="btn-ghost" data-disarm="${esc(key)}">Cancel</button>` : `<button class="btn-ghost" data-arm="${esc(key)}" ${ro()}>Remove</button>`}</span></div>
       ${(() => { const groups = new Map(); for (const x of c.concepts || []) { const k = x.sponsorKey || x.fundingFit?.[0]?.key || "?"; if (!groups.has(k)) groups.set(k, []); groups.get(k).push(x); }
-        return [...groups].map(([k, xs]) => `<div class="sponsorh"><span class="tdot ${k.startsWith("o:") ? "opportunity" : "source"}"></span>For ${linkOf(k)} <span class="note">${xs.length} ${xs.length === 1 ? "topic" : "topics"}</span></div>${xs.map((x) => `<div class="cbox"><div class="top"><h3>${esc(x.title)}</h3><span class="role ${x.forgeRole === "lead" ? "lead" : "partner"}">Forge ${x.forgeRole === "lead" ? "leads" : "partners"}</span></div>
+        return [...groups].map(([k, xs]) => `<div class="sponsorh"><span class="tdot ${k.startsWith("o:") ? "opportunity" : "source"}"></span>For ${linkOf(k)} <span class="note">${xs.length} ${xs.length === 1 ? "topic" : "topics"}</span></div>${xs.map((x) => `<div class="cbox" id="topic-${esc(c.id)}-${c.concepts.indexOf(x)}"><div class="top"><h3>${esc(x.title)}</h3><span class="role ${x.forgeRole === "lead" ? "lead" : "partner"}">Forge ${x.forgeRole === "lead" ? "leads" : "partners"}</span></div>
         <p class="ps">${esc(x.problemStatement)}</p>
         ${x.vehicle ? `<div class="vehicle"><b>How to propose:</b> ${esc(x.vehicle)}</div>` : ""}
         <div class="cgrid">
@@ -1792,8 +1796,62 @@ ${JSON.stringify({ partners: inp.partners, fundingSponsors: inp.sources, opportu
           ${x.approach.length ? `<div><b>Approach</b><ol>${x.approach.map((s) => `<li>${esc(s)}</li>`).join("")}</ol></div>` : ""}
           ${x.outcomes.length ? `<div><b>Outcomes</b><ul>${x.outcomes.map((s) => `<li>${esc(s)}</li>`).join("")}</ul></div>` : ""}
         </div>
-        ${x.gaps.length ? `<div class="gaps"><b>Check before committing</b><ul>${x.gaps.map((s) => `<li>${esc(s)}</li>`).join("")}</ul></div>` : ""}</div>`).join("")}`).join(""); })()}
+        ${x.gaps.length ? `<div class="gaps"><b>Check before committing</b><ul>${x.gaps.map((s) => `<li>${esc(s)}</li>`).join("")}</ul></div>` : ""}
+        ${topicActionsHtml(c, c.concepts.indexOf(x))}</div>`).join("")}`).join(""); })()}
     </article>`;
+  }
+  // ---------- topic ideas: ratings and "move forward" ----------
+  // Topic ratings share each person's ratings doc, keyed "c_<concept doc id>_<index>".
+  const topicKey = (docId, i) => `c_${docId}_${i}`;
+  const proposalId = (docId, i) => `tc-${docId}-${i}`;
+  function conceptRateable(key) {
+    const m = /^c_(.+)_(\d+)$/.exec(key || ""); if (!m) return null;
+    const x = S.concepts[m[1]]?.concepts?.[Number(m[2])]; return x ? { id: key, title: x.title } : null;
+  }
+  function topicActionsHtml(c, i) {
+    const x = c.concepts[i], pid = proposalId(c.id, i), added = S.proposals[pid];
+    return `<div class="cact"><span class="note">Rate this topic</span>${starsHtml({ id: topicKey(c.id, i), title: x.title })}
+      ${added ? `<span class="moved">✓ Moving forward · in Opportunities</span><a href="#opp-${esc(pid)}">Open it →</a>${armed.has("prop:" + pid) ? `<button class="btn-danger" data-unpropose="${esc(pid)}" style="padding:2px 10px;font-size:13px">Confirm remove from opportunities</button><button class="btn-ghost" data-disarm="prop:${esc(pid)}" style="padding:2px 10px;font-size:13px">Cancel</button>` : `<button class="btn-ghost" data-arm="prop:${esc(pid)}" ${ro()} style="padding:2px 10px;font-size:13px">Remove from opportunities</button>`}`
+        : `<button class="btn" data-propose="${esc(c.id)}" data-idx="${i}" ${ro()}>Move forward: add to opportunities</button>`}</div>`;
+  }
+  // Team concepts live in the shared store (proposals/<id>) and are merged into the opportunity list.
+  let BASE_OPPS = [];
+  function proposalToOpp(id, d) {
+    return { id, source: "teaming", url: safeUrl(d.sponsorUrl) || null, number: "", title: d.title, agency: d.sponsorName || "Team concept", agencyCode: "",
+      description: d.description || "", eligibility: "", costSharing: null, awardFloor: null, awardCeiling: null, estimatedFunding: null, expectedAwards: null,
+      postedDate: d.createdAt, closeDate: null, status: "posted", fetchedAt: d.createdAt, preScore: null, signals: d.topics || [], criteria: [], blockers: [], warnings: [],
+      evaluation: null, defaultStage: "go", mechanisms: [], leadRole: d.forgeRole === "lead" ? "lead" : "partner", leadReason: d.vehicle || "", concept: d };
+  }
+  function mergeProposals() {
+    OPPS = BASE_OPPS.concat(Object.entries(S.proposals).map(([id, d]) => proposalToOpp(id, d)));
+  }
+  async function proposeTopic(docId, i) {
+    const c = S.concepts[docId], x = c?.concepts?.[i]; if (!x || !db || !canWrite) return;
+    const id = proposalId(docId, i);
+    const nameOf = (k) => itemOf(k)?.label || (c.inputs || []).find((y) => y.key === k)?.name || k;
+    const sponsor = itemOf(x.sponsorKey);
+    const lines = [
+      x.problemStatement, "",
+      x.vehicle ? `How to propose: ${x.vehicle}` : "",
+      x.fundingFit?.length ? `Why the sponsor wants it:\n${x.fundingFit.map((f) => `- ${nameOf(f.key)}: ${f.why}`).join("\n")}` : "",
+      `Who does what:\n${x.partnerRoles.map((f) => `- ${nameOf(f.key)}: ${f.role}`).join("\n")}${x.forgeContribution ? `\n- Forge Institute (${x.forgeRole === "lead" ? "lead" : "partner"}): ${x.forgeContribution}` : ""}`,
+      x.approach?.length ? `Approach:\n${x.approach.map((s, n) => `${n + 1}. ${s}`).join("\n")}` : "",
+      x.outcomes?.length ? `Outcomes:\n${x.outcomes.map((s) => `- ${s}`).join("\n")}` : "",
+      x.gaps?.length ? `Check before committing:\n${x.gaps.map((s) => `- ${s}`).join("\n")}` : "",
+    ].filter(Boolean).join("\n\n");
+    const doc = await stamp({ title: x.title, conceptId: docId, index: i, sponsorKey: x.sponsorKey, sponsorName: sponsor?.label || nameOf(x.sponsorKey),
+      sponsorUrl: sponsor?.kind === "opportunity" ? sponsor.ref.url : sponsor?.ref?.url || "", forgeRole: x.forgeRole, vehicle: x.vehicle || "",
+      partners: x.partnerRoles.map((f) => nameOf(f.key)), topics: x.topics || [], description: lines.slice(0, 12000), createdAt: new Date().toISOString() });
+    try {
+      await db.doc("proposals/" + id).set(doc);
+      await db.doc("decisions/" + id).set(await stamp({ ...(S.decisions[id] || {}), stage: "go" }));
+      logChange({ kind: "teaming", action: "moved forward on", targetId: id, targetName: x.title, changes: [{ field: "stage", label: "Added to opportunities", to: `Go · for ${doc.sponsorName}` }] });
+    } catch (err) { TM.status = errMsg(err); TM.err = true; render(); }
+  }
+  async function unproposeTopic(id) {
+    const d = S.proposals[id]; armed.delete("prop:" + id);
+    try { await db.doc("proposals/" + id).delete(); logChange({ kind: "teaming", action: "removed from opportunities:", targetId: id, targetName: d?.title || id, changes: [] }); }
+    catch (err) { TM.status = errMsg(err); TM.err = true; render(); }
   }
   async function removeConcept(id) {
     const c = S.concepts[id]; armed.delete("concept:" + id);
@@ -2015,7 +2073,7 @@ ${JSON.stringify({ partners: inp.partners, fundingSponsors: inp.sources, opportu
 
   async function rate(oppId, n) {
     if (!db || !me || !canWrite) return;
-    const o = OPPS.find((x) => x.id === oppId) || (oppId.startsWith("p_") && S.partners[oppId.slice(2)] ? rateable({ id: oppId.slice(2), ...S.partners[oppId.slice(2)] }) : null); if (!o) return;
+    const o = OPPS.find((x) => x.id === oppId) || (oppId.startsWith("p_") && S.partners[oppId.slice(2)] ? rateable({ id: oppId.slice(2), ...S.partners[oppId.slice(2)] }) : null) || conceptRateable(oppId); if (!o) return;
     const prev = myRating(o), next = prev === n ? 0 : n;   // clicking your current rating clears it
     const mineDoc = { ...(S.ratings[me] || {}) };
     if (next) mineDoc[oppId] = next; else delete mineDoc[oppId];
@@ -2060,6 +2118,8 @@ ${JSON.stringify({ partners: inp.partners, fundingSponsors: inp.sources, opportu
     if (t.id === "t-suggest") return suggestConcepts();
     if (t.id === "t-clear") return saveBoard({ items: [] }, { action: "cleared the picks on", targetName: "the teaming board", changes: [] });
     if (ds.delconcept) return removeConcept(ds.delconcept);
+    if (ds.propose) return proposeTopic(ds.propose, Number(ds.idx));
+    if (ds.unpropose) return unproposeTopic(ds.unpropose);
     if (ds.addchild) { editing.partner = null; resetPartnerForm(); pform.parent = ds.addchild; render(); document.getElementById("p-name")?.focus(); return scrollTo(0, 0); }
     if (t.id === "pf-reset") { Object.assign(pf, { q: "", type: "", stars: "", unrated: true }); savePf(); return render(); }
     if (t.id === "f-reset") return go(route() === "pipeline" ? "#pipeline" : "#opportunities", CLEAR);
@@ -2230,6 +2290,7 @@ ${JSON.stringify({ partners: inp.partners, fundingSponsors: inp.sources, opportu
       q.onSnapshot((snap) => {
         const next = {}; snap.docs.forEach((d) => { if (d.exists) next[d.id] = d.data(); });
         S[coll] = next;
+        if (coll === "proposals") mergeProposals();
         if (pending > 0 && --pending === 0) clearTimeout(timer);
         storeState = "ready"; softRender(); resolveNames();
       }, () => { clearTimeout(timer); if (storeState !== "ready") storeState = "offline"; softRender(); });
@@ -2237,7 +2298,7 @@ ${JSON.stringify({ partners: inp.partners, fundingSponsors: inp.sources, opportu
   }
 
   Promise.all([fetch("opportunities.json").then((r) => r.json()), fetch("meta.json").then((r) => r.json())])
-    .then(([opps, meta]) => { OPPS = opps; META = meta; render(); connect(); })
+    .then(([opps, meta]) => { BASE_OPPS = opps; OPPS = opps; META = meta; render(); connect(); })
     .catch((e) => { console.error(e); app.innerHTML = `<p class="panel empty">The opportunity data didn't load. Reload the page to try again.</p>`; });
 })();
 </script>
