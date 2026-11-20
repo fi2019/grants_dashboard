@@ -215,17 +215,19 @@ td .meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; color:
 .tlist li .note { text-align: right; flex-shrink: 1; max-width: 45% }
 .tlist label { display: flex; gap: 6px; align-items: baseline }
 .tx { padding: 0 8px; font-size: 15px; line-height: 1.4 }
-.concept { gap: 12px }
+.concept { gap: 12px; background: var(--surface-2) }
+.cgroup { display: grid; gap: 14px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 480px), 1fr)); align-items: start }
+.cbox { display: grid; gap: 10px; align-content: start; background: var(--surface); border: 1px solid var(--line); border-top: 4px solid var(--n-source); border-radius: 10px; padding: 14px 16px; box-shadow: 0 1px 3px rgba(4, 28, 44, .07); min-width: 0 }
+.cbox.fwd { border-top-color: var(--good) }
+.cbox h3 { font-size: 16px }
 .tph { display: flex; justify-content: space-between; align-items: baseline; gap: 8px }
 #tp-q, #ts-q { width: 100%; margin-top: 6px }
 .tpick { max-height: 300px; overflow-y: auto; border: 1px solid var(--line); border-radius: 6px; padding: 2px 10px; margin-top: 6px }
 .tpick li[hidden] { display: none }
-.sponsorh { display: flex; align-items: center; gap: 4px; font: 600 14px var(--display); border-top: 2px solid var(--line); padding-top: 10px; flex-wrap: wrap }
+.sponsorh { display: flex; align-items: center; gap: 4px; font: 600 14px var(--display); padding-top: 6px; flex-wrap: wrap }
 .vehicle { font-size: 13px; background: var(--info-bg); color: var(--fg); border-radius: 6px; padding: 6px 10px }
-.cbox { border-top: 1px solid var(--line); padding-top: 12px; display: grid; gap: 8px }
-.cbox h3 { font-size: 16px }
 .cbox .ps { margin: 0; font-size: 15px; line-height: 1.55 }
-.cgrid { display: grid; gap: 10px 20px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); font-size: 13px }
+.cgrid { display: grid; gap: 10px 20px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr)); font-size: 13px }
 .cgrid ul, .cgrid ol, .gaps ul { margin: 4px 0 0; padding-left: 18px; display: grid; gap: 3px }
 .gaps { font-size: 13px; background: var(--warn-bg); border-radius: 6px; padding: 8px 12px }
 /* Partner hierarchy: centers, departments and faculty nested under the main partner. */
@@ -1783,12 +1785,12 @@ ${JSON.stringify({ partners: inp.partners, fundingSponsors: inp.sources, opportu
     const linkOf = (key) => { const it = itemOf(key); if (!it) return esc(nameOf(key));
       if (it.kind === "opportunity") return `<a href="#opp-${esc(it.id)}">${esc(short(it.label, 100))}</a>`;
       return safeUrl(it.ref.url) ? `<a href="${esc(it.ref.url)}" target="_blank" rel="noopener">${esc(it.label)} ↗</a>` : esc(it.label); };
-    const who = c.updatedBy ? names[c.updatedBy] || "a teammate" : "Claude";
+    const who = c.updatedBy ? names[c.updatedBy] || "a teammate" : "the team";
     const key = "concept:" + c.id;
     return `<article class="item concept"><div class="top"><span class="note">${(c.concepts || []).length} ${(c.concepts || []).length === 1 ? "topic" : "topics"} · ${esc((c.topics || []).join(", "))} · drafted by Claude for ${esc(who)}, ${fmtDate(c.createdAt)}</span>
         <span class="btns">${armed.has(key) ? `<button class="btn-danger" data-delconcept="${esc(c.id)}">Confirm remove</button><button class="btn-ghost" data-disarm="${esc(key)}">Cancel</button>` : `<button class="btn-ghost" data-arm="${esc(key)}" ${ro()}>Remove</button>`}</span></div>
       ${(() => { const groups = new Map(); for (const x of c.concepts || []) { const k = x.sponsorKey || x.fundingFit?.[0]?.key || "?"; if (!groups.has(k)) groups.set(k, []); groups.get(k).push(x); }
-        return [...groups].map(([k, xs]) => `<div class="sponsorh"><span class="tdot ${k.startsWith("o:") ? "opportunity" : "source"}"></span>For ${linkOf(k)} <span class="note">${xs.length} ${xs.length === 1 ? "topic" : "topics"}</span></div>${xs.map((x) => `<div class="cbox" id="topic-${esc(c.id)}-${c.concepts.indexOf(x)}"><div class="top"><h3>${esc(x.title)}</h3><span class="role ${x.forgeRole === "lead" ? "lead" : "partner"}">Forge ${x.forgeRole === "lead" ? "leads" : "partners"}</span></div>
+        return [...groups].map(([k, xs]) => `<div class="sponsorh"><span class="tdot ${k.startsWith("o:") ? "opportunity" : "source"}"></span>For ${linkOf(k)} <span class="note">${xs.length} ${xs.length === 1 ? "topic" : "topics"}</span></div><div class="cgroup">${xs.map((x) => `<div class="cbox${S.proposals[proposalId(c.id, c.concepts.indexOf(x))] ? " fwd" : ""}" id="topic-${esc(c.id)}-${c.concepts.indexOf(x)}"><div class="top"><h3>${esc(x.title)}</h3><span class="role ${x.forgeRole === "lead" ? "lead" : "partner"}">Forge ${x.forgeRole === "lead" ? "leads" : "partners"}</span></div>
         <p class="ps">${esc(x.problemStatement)}</p>
         ${x.vehicle ? `<div class="vehicle"><b>How to propose:</b> ${esc(x.vehicle)}</div>` : ""}
         <div class="cgrid">
@@ -1798,7 +1800,7 @@ ${JSON.stringify({ partners: inp.partners, fundingSponsors: inp.sources, opportu
           ${x.outcomes.length ? `<div><b>Outcomes</b><ul>${x.outcomes.map((s) => `<li>${esc(s)}</li>`).join("")}</ul></div>` : ""}
         </div>
         ${x.gaps.length ? `<div class="gaps"><b>Check before committing</b><ul>${x.gaps.map((s) => `<li>${esc(s)}</li>`).join("")}</ul></div>` : ""}
-        ${topicActionsHtml(c, c.concepts.indexOf(x))}</div>`).join("")}`).join(""); })()}
+        ${topicActionsHtml(c, c.concepts.indexOf(x))}</div>`).join("")}</div>`).join(""); })()}
     </article>`;
   }
   // ---------- topic ideas: ratings and "move forward" ----------
