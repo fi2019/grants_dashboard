@@ -186,7 +186,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:20:57.949Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:334326",
@@ -349,7 +355,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:19:50.508Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:358004",
@@ -522,7 +534,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:19:51.123Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:359266",
@@ -681,7 +699,14 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:15:46.671Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Forecast",
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:329436",
@@ -842,7 +867,14 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:15:47.134Z"
-   }
+   },
+   "fundingInstruments": [
+    "CA"
+   ],
+   "mechanisms": [
+    "Fellowship",
+    "Cooperative agreement"
+   ]
   },
   {
    "id": "grants.gov:362086",
@@ -1001,7 +1033,16 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:15:46.671Z"
-   }
+   },
+   "fundingInstruments": [
+    "CA",
+    "G"
+   ],
+   "mechanisms": [
+    "Forecast",
+    "Grant",
+    "Cooperative agreement"
+   ]
   },
   {
    "id": "grants.gov:359120",
@@ -1160,7 +1201,16 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:15:46.671Z"
-   }
+   },
+   "fundingInstruments": [
+    "CA",
+    "G"
+   ],
+   "mechanisms": [
+    "Forecast",
+    "Grant",
+    "Cooperative agreement"
+   ]
   },
   {
    "id": "grants.gov:361333",
@@ -1327,7 +1377,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:19:51.947Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:361238",
@@ -1501,7 +1557,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:19:52.788Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:347707",
@@ -1660,7 +1722,14 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:15:46.671Z"
-   }
+   },
+   "fundingInstruments": [
+    "CA"
+   ],
+   "mechanisms": [
+    "Forecast",
+    "Cooperative agreement"
+   ]
   },
   {
    "id": "grants.gov:363242",
@@ -1738,7 +1807,14 @@
     "searchUrl": "https://www.usaspending.gov/search/?hash=&program_numbers=20.765",
     "awards": [],
     "fetchedAt": "2026-11-20T16:15:49.358Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Forecast",
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:363786",
@@ -1902,7 +1978,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:15:49.662Z"
-   }
+   },
+   "fundingInstruments": [
+    "CA"
+   ],
+   "mechanisms": [
+    "Cooperative agreement"
+   ]
   },
   {
    "id": "grants.gov:346203",
@@ -2082,7 +2164,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:19:53.298Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:347680",
@@ -2243,7 +2331,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:19:53.620Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:45812",
@@ -2402,7 +2496,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:19:54.160Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:364265",
@@ -2561,7 +2661,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:15:51.641Z"
-   }
+   },
+   "fundingInstruments": [
+    "CA"
+   ],
+   "mechanisms": [
+    "Cooperative agreement"
+   ]
   },
   {
    "id": "grants.gov:356623",
@@ -2723,7 +2829,15 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:15:51.957Z"
-   }
+   },
+   "fundingInstruments": [
+    "CA",
+    "O"
+   ],
+   "mechanisms": [
+    "Cooperative agreement",
+    "Other"
+   ]
   },
   {
    "id": "grants.gov:364179",
@@ -2884,7 +2998,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:15:52.551Z"
-   }
+   },
+   "fundingInstruments": [
+    "CA"
+   ],
+   "mechanisms": [
+    "Cooperative agreement"
+   ]
   },
   {
    "id": "grants.gov:364006",
@@ -3043,7 +3163,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:15:52.875Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:362647",
@@ -3203,7 +3329,14 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:15:53.262Z"
-   }
+   },
+   "fundingInstruments": [
+    "CA"
+   ],
+   "mechanisms": [
+    "Forecast",
+    "Cooperative agreement"
+   ]
   },
   {
    "id": "grants.gov:363945",
@@ -3362,7 +3495,16 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:15:53.613Z"
-   }
+   },
+   "fundingInstruments": [
+    "CA",
+    "G"
+   ],
+   "mechanisms": [
+    "Forecast",
+    "Grant",
+    "Cooperative agreement"
+   ]
   },
   {
    "id": "grants.gov:364008",
@@ -3521,7 +3663,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:15:53.994Z"
-   }
+   },
+   "fundingInstruments": [
+    "CA"
+   ],
+   "mechanisms": [
+    "Cooperative agreement"
+   ]
   },
   {
    "id": "grants.gov:354269",
@@ -3701,7 +3849,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:19:54.753Z"
-   }
+   },
+   "fundingInstruments": [
+    "CA"
+   ],
+   "mechanisms": [
+    "Cooperative agreement"
+   ]
   },
   {
    "id": "grants.gov:356425",
@@ -3861,7 +4015,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:19:55.335Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:358380",
@@ -4021,7 +4181,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:15:55.320Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:359966",
@@ -4194,7 +4360,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:20:58.365Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:364135",
@@ -4357,7 +4529,17 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:15:51.957Z"
-   }
+   },
+   "fundingInstruments": [
+    "CA",
+    "G"
+   ],
+   "mechanisms": [
+    "SBIR",
+    "STTR",
+    "Grant",
+    "Cooperative agreement"
+   ]
   },
   {
    "id": "grants.gov:364136",
@@ -4520,7 +4702,15 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:15:51.957Z"
-   }
+   },
+   "fundingInstruments": [
+    "CA",
+    "O"
+   ],
+   "mechanisms": [
+    "Cooperative agreement",
+    "Other"
+   ]
   },
   {
    "id": "grants.gov:332894",
@@ -4681,7 +4871,18 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:15:56.382Z"
-   }
+   },
+   "fundingInstruments": [
+    "CA",
+    "G",
+    "PC"
+   ],
+   "mechanisms": [
+    "BAA",
+    "Grant",
+    "Cooperative agreement",
+    "Contract"
+   ]
   },
   {
    "id": "grants.gov:359970",
@@ -4842,7 +5043,14 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:15:56.797Z"
-   }
+   },
+   "fundingInstruments": [
+    "CA"
+   ],
+   "mechanisms": [
+    "Forecast",
+    "Cooperative agreement"
+   ]
   },
   {
    "id": "grants.gov:363510",
@@ -5005,7 +5213,14 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:15:57.072Z"
-   }
+   },
+   "fundingInstruments": [
+    "O"
+   ],
+   "mechanisms": [
+    "Notice of intent",
+    "Other"
+   ]
   },
   {
    "id": "grants.gov:363815",
@@ -5164,7 +5379,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:15:57.409Z"
-   }
+   },
+   "fundingInstruments": [
+    "CA"
+   ],
+   "mechanisms": [
+    "Cooperative agreement"
+   ]
   },
   {
    "id": "grants.gov:355196",
@@ -5270,7 +5491,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:19:56.821Z"
-   }
+   },
+   "fundingInstruments": [
+    "CA"
+   ],
+   "mechanisms": [
+    "Cooperative agreement"
+   ]
   },
   {
    "id": "grants.gov:348375",
@@ -5430,7 +5657,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:19:57.374Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:363481",
@@ -5607,7 +5840,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:19:57.881Z"
-   }
+   },
+   "fundingInstruments": [
+    "CA"
+   ],
+   "mechanisms": [
+    "Cooperative agreement"
+   ]
   },
   {
    "id": "grants.gov:351923",
@@ -5776,7 +6015,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:19:58.314Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:357724",
@@ -5938,7 +6183,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:19:58.798Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:351947",
@@ -6109,7 +6360,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:19:59.354Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:344124",
@@ -6269,7 +6526,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:19:59.871Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:359653",
@@ -6428,7 +6691,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:15:53.613Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:364255",
@@ -6520,7 +6789,15 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:20:00.311Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "SBIR",
+    "STTR",
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:358882",
@@ -6633,7 +6910,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:20:00.703Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:361169",
@@ -6792,7 +7075,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:16:02.242Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:364270",
@@ -6943,7 +7232,14 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:16:02.651Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Forecast",
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:350230",
@@ -7108,7 +7404,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:20:01.217Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:344608",
@@ -7287,7 +7589,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:20:01.740Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:334905",
@@ -7446,7 +7754,15 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:16:03.910Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "RFI",
+    "Forecast",
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:352741",
@@ -7605,7 +7921,16 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:16:04.491Z"
-   }
+   },
+   "fundingInstruments": [
+    "CA",
+    "G"
+   ],
+   "mechanisms": [
+    "BAA",
+    "Grant",
+    "Cooperative agreement"
+   ]
   },
   {
    "id": "grants.gov:347858",
@@ -7762,7 +8087,20 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:16:05.049Z"
-   }
+   },
+   "fundingInstruments": [
+    "CA",
+    "G",
+    "O",
+    "PC"
+   ],
+   "mechanisms": [
+    "BAA",
+    "Grant",
+    "Cooperative agreement",
+    "Contract",
+    "Other"
+   ]
   },
   {
    "id": "grants.gov:352238",
@@ -7871,7 +8209,14 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:16:05.443Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "BAA",
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:112354",
@@ -8033,7 +8378,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:20:02.244Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:39841",
@@ -8193,7 +8544,15 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:16:06.385Z"
-   }
+   },
+   "fundingInstruments": [
+    "CA",
+    "G"
+   ],
+   "mechanisms": [
+    "Grant",
+    "Cooperative agreement"
+   ]
   },
   {
    "id": "grants.gov:325932",
@@ -8353,7 +8712,20 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:15:56.382Z"
-   }
+   },
+   "fundingInstruments": [
+    "CA",
+    "G",
+    "O",
+    "PC"
+   ],
+   "mechanisms": [
+    "BAA",
+    "Grant",
+    "Cooperative agreement",
+    "Contract",
+    "Other"
+   ]
   },
   {
    "id": "grants.gov:359864",
@@ -8512,7 +8884,14 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:16:07.193Z"
-   }
+   },
+   "fundingInstruments": [
+    "CA"
+   ],
+   "mechanisms": [
+    "Forecast",
+    "Cooperative agreement"
+   ]
   },
   {
    "id": "grants.gov:360012",
@@ -8672,7 +9051,14 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:15:56.382Z"
-   }
+   },
+   "fundingInstruments": [
+    "O"
+   ],
+   "mechanisms": [
+    "BAA",
+    "Other"
+   ]
   },
   {
    "id": "grants.gov:364160",
@@ -8833,7 +9219,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:16:07.626Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:364290",
@@ -8990,7 +9382,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:16:08.062Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:364263",
@@ -9079,7 +9477,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:16:08.337Z"
-   }
+   },
+   "fundingInstruments": [
+    "CA"
+   ],
+   "mechanisms": [
+    "Cooperative agreement"
+   ]
   },
   {
    "id": "grants.gov:343725",
@@ -9236,7 +9640,20 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:16:09.075Z"
-   }
+   },
+   "fundingInstruments": [
+    "CA",
+    "G",
+    "O",
+    "PC"
+   ],
+   "mechanisms": [
+    "BAA",
+    "Grant",
+    "Cooperative agreement",
+    "Contract",
+    "Other"
+   ]
   },
   {
    "id": "grants.gov:364229",
@@ -9396,7 +9813,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:15:52.551Z"
-   }
+   },
+   "fundingInstruments": [
+    "CA"
+   ],
+   "mechanisms": [
+    "Cooperative agreement"
+   ]
   },
   {
    "id": "grants.gov:355417",
@@ -9555,7 +9978,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:16:09.599Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:334971",
@@ -9712,7 +10141,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:16:09.599Z"
-   }
+   },
+   "fundingInstruments": [
+    "CA"
+   ],
+   "mechanisms": [
+    "Cooperative agreement"
+   ]
   },
   {
    "id": "grants.gov:357019",
@@ -9876,7 +10311,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:16:10.491Z"
-   }
+   },
+   "fundingInstruments": [
+    "CA"
+   ],
+   "mechanisms": [
+    "Cooperative agreement"
+   ]
   },
   {
    "id": "grants.gov:360664",
@@ -10049,7 +10490,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:20:03.295Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:356978",
@@ -10206,7 +10653,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:16:12.721Z"
-   }
+   },
+   "fundingInstruments": [
+    "CA"
+   ],
+   "mechanisms": [
+    "Cooperative agreement"
+   ]
   },
   {
    "id": "grants.gov:356979",
@@ -10363,7 +10816,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:16:12.721Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:328902",
@@ -10520,7 +10979,15 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:16:13.171Z"
-   }
+   },
+   "fundingInstruments": [
+    "CA",
+    "G"
+   ],
+   "mechanisms": [
+    "Grant",
+    "Cooperative agreement"
+   ]
   },
   {
    "id": "grants.gov:362062",
@@ -10611,7 +11078,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:20:03.737Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:363779",
@@ -10771,7 +11244,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:16:13.710Z"
-   }
+   },
+   "fundingInstruments": [
+    "O"
+   ],
+   "mechanisms": [
+    "Other"
+   ]
   },
   {
    "id": "grants.gov:347569",
@@ -10930,7 +11409,14 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:16:14.046Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Forecast",
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:358783",
@@ -11089,7 +11575,14 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:15:46.671Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Forecast",
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:351231",
@@ -11248,7 +11741,14 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:15:46.671Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Forecast",
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:345914",
@@ -11407,7 +11907,14 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:15:46.671Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Forecast",
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:360554",
@@ -11569,7 +12076,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:16:15.279Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:360947",
@@ -11726,7 +12239,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:16:15.663Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:364018",
@@ -11886,7 +12405,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:16:16.074Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:350730",
@@ -12045,7 +12570,21 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:15:56.382Z"
-   }
+   },
+   "fundingInstruments": [
+    "CA",
+    "G",
+    "O",
+    "PC"
+   ],
+   "mechanisms": [
+    "RFI",
+    "Forecast",
+    "Grant",
+    "Cooperative agreement",
+    "Contract",
+    "Other"
+   ]
   },
   {
    "id": "grants.gov:357112",
@@ -12204,7 +12743,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:16:15.663Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:357137",
@@ -12370,7 +12915,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:16:17.252Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:357627",
@@ -12531,7 +13082,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:16:17.933Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:357651",
@@ -12693,7 +13250,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:16:18.504Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:351127",
@@ -12852,7 +13415,14 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:16:18.800Z"
-   }
+   },
+   "fundingInstruments": [
+    "CA"
+   ],
+   "mechanisms": [
+    "Forecast",
+    "Cooperative agreement"
+   ]
   },
   {
    "id": "grants.gov:364180",
@@ -13013,7 +13583,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:15:52.551Z"
-   }
+   },
+   "fundingInstruments": [
+    "CA"
+   ],
+   "mechanisms": [
+    "Cooperative agreement"
+   ]
   },
   {
    "id": "grants.gov:363329",
@@ -13172,7 +13748,14 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:16:19.166Z"
-   }
+   },
+   "fundingInstruments": [
+    "CA"
+   ],
+   "mechanisms": [
+    "Forecast",
+    "Cooperative agreement"
+   ]
   },
   {
    "id": "grants.gov:363508",
@@ -13250,7 +13833,14 @@
     "searchUrl": "https://www.usaspending.gov/search/?hash=&program_numbers=93.746",
     "awards": [],
     "fetchedAt": "2026-11-20T16:16:19.415Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Forecast",
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:359138",
@@ -13409,7 +13999,14 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:16:07.193Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Forecast",
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:363580",
@@ -13568,7 +14165,14 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:16:21.884Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Forecast",
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:363581",
@@ -13727,7 +14331,14 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:16:21.884Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Forecast",
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:363697",
@@ -13805,7 +14416,14 @@
     "searchUrl": "https://www.usaspending.gov/search/?hash=&program_numbers=93.619",
     "awards": [],
     "fetchedAt": "2026-11-20T16:16:22.269Z"
-   }
+   },
+   "fundingInstruments": [
+    "CA"
+   ],
+   "mechanisms": [
+    "Forecast",
+    "Cooperative agreement"
+   ]
   },
   {
    "id": "grants.gov:363509",
@@ -13883,7 +14501,14 @@
     "searchUrl": "https://www.usaspending.gov/search/?hash=&program_numbers=93.692",
     "awards": [],
     "fetchedAt": "2026-11-20T16:16:22.552Z"
-   }
+   },
+   "fundingInstruments": [
+    "CA"
+   ],
+   "mechanisms": [
+    "Forecast",
+    "Cooperative agreement"
+   ]
   },
   {
    "id": "grants.gov:363600",
@@ -13961,7 +14586,14 @@
     "searchUrl": "https://www.usaspending.gov/search/?hash=&program_numbers=93.690",
     "awards": [],
     "fetchedAt": "2026-11-20T16:16:22.824Z"
-   }
+   },
+   "fundingInstruments": [
+    "CA"
+   ],
+   "mechanisms": [
+    "Forecast",
+    "Cooperative agreement"
+   ]
   },
   {
    "id": "grants.gov:363582",
@@ -14120,7 +14752,14 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:16:21.884Z"
-   }
+   },
+   "fundingInstruments": [
+    "CA"
+   ],
+   "mechanisms": [
+    "Forecast",
+    "Cooperative agreement"
+   ]
   },
   {
    "id": "grants.gov:363686",
@@ -14198,7 +14837,14 @@
     "searchUrl": "https://www.usaspending.gov/search/?hash=&program_numbers=93.690",
     "awards": [],
     "fetchedAt": "2026-11-20T16:16:22.824Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Forecast",
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:364144",
@@ -14274,7 +14920,13 @@
     "searchUrl": "https://www.usaspending.gov/search/?hash=&program_numbers=10.742",
     "awards": [],
     "fetchedAt": "2026-11-20T16:16:23.326Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:364145",
@@ -14350,7 +15002,13 @@
     "searchUrl": "https://www.usaspending.gov/search/?hash=&program_numbers=10.742",
     "awards": [],
     "fetchedAt": "2026-11-20T16:16:23.326Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:363601",
@@ -14428,7 +15086,14 @@
     "searchUrl": "https://www.usaspending.gov/search/?hash=&program_numbers=93.690",
     "awards": [],
     "fetchedAt": "2026-11-20T16:16:22.824Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Forecast",
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:363687",
@@ -14506,7 +15171,14 @@
     "searchUrl": "https://www.usaspending.gov/search/?hash=&program_numbers=93.690",
     "awards": [],
     "fetchedAt": "2026-11-20T16:16:22.824Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Forecast",
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:353012",
@@ -14665,7 +15337,14 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:16:14.046Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Forecast",
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:364232",
@@ -14743,7 +15422,14 @@
     "searchUrl": "https://www.usaspending.gov/search/?hash=&program_numbers=93.692",
     "awards": [],
     "fetchedAt": "2026-11-20T16:16:22.552Z"
-   }
+   },
+   "fundingInstruments": [
+    "CA"
+   ],
+   "mechanisms": [
+    "Forecast",
+    "Cooperative agreement"
+   ]
   },
   {
    "id": "grants.gov:363804",
@@ -14900,7 +15586,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:16:24.113Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:360205",
@@ -15057,7 +15749,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:16:02.242Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:348303",
@@ -15216,7 +15914,14 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:16:14.046Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Forecast",
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:363111",
@@ -15376,7 +16081,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:16:24.605Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:364164",
@@ -15533,7 +16244,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:16:24.880Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:345645",
@@ -15692,7 +16409,14 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:16:25.213Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Forecast",
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:361334",
@@ -15851,7 +16575,14 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:16:25.680Z"
-   }
+   },
+   "fundingInstruments": [
+    "CA"
+   ],
+   "mechanisms": [
+    "Forecast",
+    "Cooperative agreement"
+   ]
   },
   {
    "id": "grants.gov:361448",
@@ -16010,7 +16741,14 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:16:25.989Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Forecast",
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:363476",
@@ -16169,7 +16907,14 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:16:26.320Z"
-   }
+   },
+   "fundingInstruments": [
+    "CA"
+   ],
+   "mechanisms": [
+    "Forecast",
+    "Cooperative agreement"
+   ]
   },
   {
    "id": "grants.gov:359140",
@@ -16328,7 +17073,14 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:16:07.193Z"
-   }
+   },
+   "fundingInstruments": [
+    "CA"
+   ],
+   "mechanisms": [
+    "Forecast",
+    "Cooperative agreement"
+   ]
   },
   {
    "id": "grants.gov:347925",
@@ -16487,7 +17239,14 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:16:18.800Z"
-   }
+   },
+   "fundingInstruments": [
+    "CA"
+   ],
+   "mechanisms": [
+    "Forecast",
+    "Cooperative agreement"
+   ]
   },
   {
    "id": "grants.gov:350561",
@@ -16644,7 +17403,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:20:04.273Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:327658",
@@ -16805,7 +17570,14 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:16:14.046Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Forecast",
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:327763",
@@ -16964,7 +17736,14 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:16:09.075Z"
-   }
+   },
+   "fundingInstruments": [
+    "O"
+   ],
+   "mechanisms": [
+    "Forecast",
+    "Other"
+   ]
   },
   {
    "id": "grants.gov:361521",
@@ -17123,7 +17902,14 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:16:25.989Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Forecast",
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:358959",
@@ -17280,7 +18066,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:16:26.320Z"
-   }
+   },
+   "fundingInstruments": [
+    "CA"
+   ],
+   "mechanisms": [
+    "Cooperative agreement"
+   ]
   },
   {
    "id": "grants.gov:361452",
@@ -17439,7 +18231,14 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:16:25.680Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Forecast",
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:363829",
@@ -17598,7 +18397,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:16:27.994Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:345241",
@@ -17755,7 +18560,20 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:15:56.382Z"
-   }
+   },
+   "fundingInstruments": [
+    "CA",
+    "G",
+    "O",
+    "PC"
+   ],
+   "mechanisms": [
+    "BAA",
+    "Grant",
+    "Cooperative agreement",
+    "Contract",
+    "Other"
+   ]
   },
   {
    "id": "grants.gov:334791",
@@ -17914,7 +18732,14 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:15:46.671Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Forecast",
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:362979",
@@ -18073,7 +18898,14 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:16:28.521Z"
-   }
+   },
+   "fundingInstruments": [
+    "CA"
+   ],
+   "mechanisms": [
+    "Forecast",
+    "Cooperative agreement"
+   ]
   },
   {
    "id": "grants.gov:362454",
@@ -18232,7 +19064,14 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:15:53.613Z"
-   }
+   },
+   "fundingInstruments": [
+    "CA"
+   ],
+   "mechanisms": [
+    "Forecast",
+    "Cooperative agreement"
+   ]
   },
   {
    "id": "grants.gov:361282",
@@ -18391,7 +19230,14 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:16:28.938Z"
-   }
+   },
+   "fundingInstruments": [
+    "CA"
+   ],
+   "mechanisms": [
+    "Forecast",
+    "Cooperative agreement"
+   ]
   },
   {
    "id": "grants.gov:364231",
@@ -18551,7 +19397,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:15:52.551Z"
-   }
+   },
+   "fundingInstruments": [
+    "CA"
+   ],
+   "mechanisms": [
+    "Cooperative agreement"
+   ]
   },
   {
    "id": "grants.gov:364217",
@@ -18711,7 +19563,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:16:18.800Z"
-   }
+   },
+   "fundingInstruments": [
+    "CA"
+   ],
+   "mechanisms": [
+    "Cooperative agreement"
+   ]
   },
   {
    "id": "grants.gov:351257",
@@ -18870,7 +19728,16 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:16:18.800Z"
-   }
+   },
+   "fundingInstruments": [
+    "CA",
+    "G"
+   ],
+   "mechanisms": [
+    "Forecast",
+    "Grant",
+    "Cooperative agreement"
+   ]
   },
   {
    "id": "grants.gov:342810",
@@ -19029,7 +19896,14 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:16:18.800Z"
-   }
+   },
+   "fundingInstruments": [
+    "CA"
+   ],
+   "mechanisms": [
+    "Forecast",
+    "Cooperative agreement"
+   ]
   },
   {
    "id": "grants.gov:359726",
@@ -19191,7 +20065,15 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:15:53.262Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "SBIR",
+    "Forecast",
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:359156",
@@ -19360,7 +20242,14 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:16:30.360Z"
-   }
+   },
+   "fundingInstruments": [
+    "CA"
+   ],
+   "mechanisms": [
+    "Forecast",
+    "Cooperative agreement"
+   ]
   },
   {
    "id": "grants.gov:300997",
@@ -19382,7 +20271,7 @@
    "status": "posted",
    "fetchedAt": "2026-11-19T22:10:33.436Z",
    "screening": {
-    "preScore": 44,
+    "preScore": 47,
     "signals": [
      "Tech transfer",
      "Partnership",
@@ -19392,8 +20281,8 @@
      {
       "id": "lead_eligible",
       "label": "Forge can lead",
-      "status": "fail",
-      "evidence": "SBIR/STTR: a small business must be the applicant. Forge can still join as a partner or subrecipient."
+      "status": "pass",
+      "evidence": "…Unrestricted (i.e., open to any type of entity above), subject to any cl…"
      },
      {
       "id": "no_cash_match",
@@ -19422,8 +20311,8 @@
     ],
     "blockers": [],
     "warnings": [],
-    "leadRole": "partner",
-    "leadReason": "SBIR/STTR: a small business must be the applicant. Forge can still join as a partner or subrecipient."
+    "leadRole": "lead",
+    "leadReason": "…Unrestricted (i.e., open to any type of entity above), subject to any cl…"
    },
    "evaluation": null,
    "stage": "new",
@@ -19521,7 +20410,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:16:30.749Z"
-   }
+   },
+   "fundingInstruments": [
+    "CA"
+   ],
+   "mechanisms": [
+    "Cooperative agreement"
+   ]
   },
   {
    "id": "grants.gov:359758",
@@ -19701,7 +20596,14 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:16:32.496Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "SBIR",
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:363944",
@@ -19862,7 +20764,14 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:16:32.845Z"
-   }
+   },
+   "fundingInstruments": [
+    "CA"
+   ],
+   "mechanisms": [
+    "Forecast",
+    "Cooperative agreement"
+   ]
   },
   {
    "id": "grants.gov:359669",
@@ -20049,7 +20958,15 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:16:34.970Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "SBIR",
+    "STTR",
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:358823",
@@ -20218,7 +21135,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:16:35.943Z"
-   }
+   },
+   "fundingInstruments": [
+    "CA"
+   ],
+   "mechanisms": [
+    "Cooperative agreement"
+   ]
   },
   {
    "id": "grants.gov:360446",
@@ -20375,7 +21298,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:16:15.663Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:359892",
@@ -20536,7 +21465,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:16:17.933Z"
-   }
+   },
+   "fundingInstruments": [
+    "CA"
+   ],
+   "mechanisms": [
+    "Cooperative agreement"
+   ]
   },
   {
    "id": "grants.gov:359168",
@@ -20695,7 +21630,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:16:26.320Z"
-   }
+   },
+   "fundingInstruments": [
+    "CA"
+   ],
+   "mechanisms": [
+    "Cooperative agreement"
+   ]
   },
   {
    "id": "grants.gov:359757",
@@ -20885,7 +21826,14 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:16:39.126Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "STTR",
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:363946",
@@ -21042,7 +21990,14 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:16:39.503Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "BAA",
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:336962",
@@ -21204,7 +22159,14 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:16:05.049Z"
-   }
+   },
+   "fundingInstruments": [
+    "O"
+   ],
+   "mechanisms": [
+    "Forecast",
+    "Other"
+   ]
   },
   {
    "id": "grants.gov:361380",
@@ -21369,7 +22331,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:16:40.877Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:364247",
@@ -21528,7 +22496,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:16:41.231Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:355936",
@@ -21687,7 +22661,14 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:16:41.588Z"
-   }
+   },
+   "fundingInstruments": [
+    "CA"
+   ],
+   "mechanisms": [
+    "Forecast",
+    "Cooperative agreement"
+   ]
   },
   {
    "id": "grants.gov:355937",
@@ -21846,7 +22827,14 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:16:41.894Z"
-   }
+   },
+   "fundingInstruments": [
+    "CA"
+   ],
+   "mechanisms": [
+    "Forecast",
+    "Cooperative agreement"
+   ]
   },
   {
    "id": "grants.gov:362489",
@@ -22008,7 +22996,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:15:46.671Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:103313",
@@ -22167,7 +23161,15 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:16:07.626Z"
-   }
+   },
+   "fundingInstruments": [
+    "CA",
+    "G"
+   ],
+   "mechanisms": [
+    "Grant",
+    "Cooperative agreement"
+   ]
   },
   {
    "id": "grants.gov:363840",
@@ -22327,7 +23329,14 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:16:42.558Z"
-   }
+   },
+   "fundingInstruments": [
+    "CA"
+   ],
+   "mechanisms": [
+    "Forecast",
+    "Cooperative agreement"
+   ]
   },
   {
    "id": "grants.gov:337460",
@@ -22488,7 +23497,14 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:16:42.930Z"
-   }
+   },
+   "fundingInstruments": [
+    "O"
+   ],
+   "mechanisms": [
+    "Notice of intent",
+    "Other"
+   ]
   },
   {
    "id": "grants.gov:355044",
@@ -22648,7 +23664,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:16:18.800Z"
-   }
+   },
+   "fundingInstruments": [
+    "CA"
+   ],
+   "mechanisms": [
+    "Cooperative agreement"
+   ]
   },
   {
    "id": "grants.gov:357424",
@@ -22807,7 +23829,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:16:25.989Z"
-   }
+   },
+   "fundingInstruments": [
+    "CA"
+   ],
+   "mechanisms": [
+    "Cooperative agreement"
+   ]
   },
   {
    "id": "grants.gov:364121",
@@ -22966,7 +23994,14 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:16:43.540Z"
-   }
+   },
+   "fundingInstruments": [
+    "CA"
+   ],
+   "mechanisms": [
+    "Forecast",
+    "Cooperative agreement"
+   ]
   },
   {
    "id": "grants.gov:351251",
@@ -23127,7 +24162,16 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:16:18.800Z"
-   }
+   },
+   "fundingInstruments": [
+    "CA",
+    "G"
+   ],
+   "mechanisms": [
+    "Forecast",
+    "Grant",
+    "Cooperative agreement"
+   ]
   },
   {
    "id": "grants.gov:332127",
@@ -23288,7 +24332,15 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:16:44.038Z"
-   }
+   },
+   "fundingInstruments": [
+    "CA",
+    "G"
+   ],
+   "mechanisms": [
+    "Grant",
+    "Cooperative agreement"
+   ]
   },
   {
    "id": "grants.gov:332052",
@@ -23449,7 +24501,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:16:44.038Z"
-   }
+   },
+   "fundingInstruments": [
+    "CA"
+   ],
+   "mechanisms": [
+    "Cooperative agreement"
+   ]
   },
   {
    "id": "grants.gov:332126",
@@ -23610,7 +24668,15 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:16:44.038Z"
-   }
+   },
+   "fundingInstruments": [
+    "CA",
+    "G"
+   ],
+   "mechanisms": [
+    "Grant",
+    "Cooperative agreement"
+   ]
   },
   {
    "id": "grants.gov:332137",
@@ -23771,7 +24837,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:16:44.038Z"
-   }
+   },
+   "fundingInstruments": [
+    "CA"
+   ],
+   "mechanisms": [
+    "Cooperative agreement"
+   ]
   },
   {
    "id": "grants.gov:332125",
@@ -23932,7 +25004,15 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:16:44.038Z"
-   }
+   },
+   "fundingInstruments": [
+    "CA",
+    "G"
+   ],
+   "mechanisms": [
+    "Grant",
+    "Cooperative agreement"
+   ]
   },
   {
    "id": "grants.gov:332138",
@@ -24093,7 +25173,15 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:16:44.038Z"
-   }
+   },
+   "fundingInstruments": [
+    "CA",
+    "G"
+   ],
+   "mechanisms": [
+    "Grant",
+    "Cooperative agreement"
+   ]
   },
   {
    "id": "grants.gov:358289",
@@ -24254,7 +25342,14 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:16:42.930Z"
-   }
+   },
+   "fundingInstruments": [
+    "O"
+   ],
+   "mechanisms": [
+    "Notice of intent",
+    "Other"
+   ]
   },
   {
    "id": "grants.gov:329806",
@@ -24413,7 +25508,14 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:16:27.994Z"
-   }
+   },
+   "fundingInstruments": [
+    "CA"
+   ],
+   "mechanisms": [
+    "Forecast",
+    "Cooperative agreement"
+   ]
   },
   {
    "id": "grants.gov:363268",
@@ -24538,7 +25640,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:20:05.018Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:361526",
@@ -24699,7 +25807,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:16:45.900Z"
-   }
+   },
+   "fundingInstruments": [
+    "O"
+   ],
+   "mechanisms": [
+    "Other"
+   ]
   },
   {
    "id": "grants.gov:362063",
@@ -24863,7 +25977,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:20:05.459Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:362061",
@@ -25025,7 +26145,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:20:05.947Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:363613",
@@ -25147,7 +26273,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:20:06.505Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:320753",
@@ -25307,7 +26439,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:20:06.932Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:358687",
@@ -25468,7 +26606,15 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:15:56.382Z"
-   }
+   },
+   "fundingInstruments": [
+    "CA"
+   ],
+   "mechanisms": [
+    "BAA",
+    "Forecast",
+    "Cooperative agreement"
+   ]
   },
   {
    "id": "grants.gov:361249",
@@ -25628,7 +26774,14 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:20:07.450Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Fellowship",
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:351404",
@@ -25787,7 +26940,20 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:16:05.049Z"
-   }
+   },
+   "fundingInstruments": [
+    "CA",
+    "G",
+    "O",
+    "PC"
+   ],
+   "mechanisms": [
+    "BAA",
+    "Grant",
+    "Cooperative agreement",
+    "Contract",
+    "Other"
+   ]
   },
   {
    "id": "grants.gov:359003",
@@ -25947,7 +27113,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:16:28.938Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:358864",
@@ -26111,7 +27283,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:16:49.459Z"
-   }
+   },
+   "fundingInstruments": [
+    "CA"
+   ],
+   "mechanisms": [
+    "Cooperative agreement"
+   ]
   },
   {
    "id": "grants.gov:362952",
@@ -26280,7 +27458,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:16:50.464Z"
-   }
+   },
+   "fundingInstruments": [
+    "CA"
+   ],
+   "mechanisms": [
+    "Cooperative agreement"
+   ]
   },
   {
    "id": "grants.gov:362029",
@@ -26439,7 +27623,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:16:50.772Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:359152",
@@ -26600,7 +27790,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:16:51.180Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:359070",
@@ -26759,7 +27955,15 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:16:51.708Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Notice of intent",
+    "Forecast",
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:351125",
@@ -26918,7 +28122,14 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:16:18.800Z"
-   }
+   },
+   "fundingInstruments": [
+    "CA"
+   ],
+   "mechanisms": [
+    "Forecast",
+    "Cooperative agreement"
+   ]
   },
   {
    "id": "grants.gov:360910",
@@ -27077,7 +28288,14 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:15:53.613Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Forecast",
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:360453",
@@ -27236,7 +28454,14 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:15:53.613Z"
-   }
+   },
+   "fundingInstruments": [
+    "CA"
+   ],
+   "mechanisms": [
+    "Forecast",
+    "Cooperative agreement"
+   ]
   },
   {
    "id": "grants.gov:361520",
@@ -27395,7 +28620,14 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:16:25.680Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Forecast",
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:328573",
@@ -27555,7 +28787,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:20:08.237Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:356412",
@@ -27714,7 +28952,14 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:16:53.056Z"
-   }
+   },
+   "fundingInstruments": [
+    "CA"
+   ],
+   "mechanisms": [
+    "Forecast",
+    "Cooperative agreement"
+   ]
   },
   {
    "id": "grants.gov:361952",
@@ -27875,7 +29120,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:20:08.524Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:359861",
@@ -28035,7 +29286,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:16:15.663Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:356129",
@@ -28175,7 +29432,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:20:08.991Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:358935",
@@ -28334,7 +29597,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:16:54.394Z"
-   }
+   },
+   "fundingInstruments": [
+    "CA"
+   ],
+   "mechanisms": [
+    "Cooperative agreement"
+   ]
   },
   {
    "id": "grants.gov:359724",
@@ -28495,7 +29764,14 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:16:54.914Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Forecast",
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:344592",
@@ -28652,7 +29928,20 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:15:56.382Z"
-   }
+   },
+   "fundingInstruments": [
+    "CA",
+    "G",
+    "O",
+    "PC"
+   ],
+   "mechanisms": [
+    "BAA",
+    "Grant",
+    "Cooperative agreement",
+    "Contract",
+    "Other"
+   ]
   },
   {
    "id": "grants.gov:361820",
@@ -28820,7 +30109,14 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:16:56.507Z"
-   }
+   },
+   "fundingInstruments": [
+    "CA"
+   ],
+   "mechanisms": [
+    "Forecast",
+    "Cooperative agreement"
+   ]
   },
   {
    "id": "grants.gov:359696",
@@ -28978,7 +30274,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:16:56.985Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:363240",
@@ -29137,7 +30439,15 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:16:57.310Z"
-   }
+   },
+   "fundingInstruments": [
+    "CA",
+    "G"
+   ],
+   "mechanisms": [
+    "Grant",
+    "Cooperative agreement"
+   ]
   },
   {
    "id": "grants.gov:359996",
@@ -29294,7 +30604,15 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:16:57.310Z"
-   }
+   },
+   "fundingInstruments": [
+    "CA",
+    "G"
+   ],
+   "mechanisms": [
+    "Grant",
+    "Cooperative agreement"
+   ]
   },
   {
    "id": "grants.gov:357725",
@@ -29467,7 +30785,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:20:09.629Z"
-   }
+   },
+   "fundingInstruments": [
+    "CA"
+   ],
+   "mechanisms": [
+    "Cooperative agreement"
+   ]
   },
   {
    "id": "grants.gov:362577",
@@ -29497,8 +30821,8 @@
      {
       "id": "lead_eligible",
       "label": "Forge can lead",
-      "status": "fail",
-      "evidence": "SBIR/STTR: a small business must be the applicant. Forge can still join as a partner or subrecipient."
+      "status": "unknown",
+      "evidence": "Eligibility not stated in the listing. Check the full notice; Forge can partner either way."
      },
      {
       "id": "no_cash_match",
@@ -29529,8 +30853,8 @@
     "warnings": [
      "No description in the listing; scoring used the title only."
     ],
-    "leadRole": "partner",
-    "leadReason": "SBIR/STTR: a small business must be the applicant. Forge can still join as a partner or subrecipient."
+    "leadRole": "unclear",
+    "leadReason": "Eligibility not stated in the listing. Check the full notice; Forge can partner either way."
    },
    "evaluation": null,
    "stage": "new",
@@ -29647,7 +30971,14 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:16:59.543Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Forecast",
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:363789",
@@ -29804,7 +31135,15 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:16:57.310Z"
-   }
+   },
+   "fundingInstruments": [
+    "CA",
+    "G"
+   ],
+   "mechanisms": [
+    "Grant",
+    "Cooperative agreement"
+   ]
   },
   {
    "id": "grants.gov:364021",
@@ -29961,7 +31300,15 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:16:57.310Z"
-   }
+   },
+   "fundingInstruments": [
+    "CA",
+    "G"
+   ],
+   "mechanisms": [
+    "Grant",
+    "Cooperative agreement"
+   ]
   },
   {
    "id": "grants.gov:364032",
@@ -30118,7 +31465,15 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:16:57.310Z"
-   }
+   },
+   "fundingInstruments": [
+    "CA",
+    "G"
+   ],
+   "mechanisms": [
+    "Grant",
+    "Cooperative agreement"
+   ]
   },
   {
    "id": "grants.gov:363747",
@@ -30275,7 +31630,15 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:16:57.310Z"
-   }
+   },
+   "fundingInstruments": [
+    "CA",
+    "G"
+   ],
+   "mechanisms": [
+    "Grant",
+    "Cooperative agreement"
+   ]
   },
   {
    "id": "grants.gov:364039",
@@ -30432,7 +31795,15 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:16:57.310Z"
-   }
+   },
+   "fundingInstruments": [
+    "CA",
+    "G"
+   ],
+   "mechanisms": [
+    "Grant",
+    "Cooperative agreement"
+   ]
   },
   {
    "id": "grants.gov:363759",
@@ -30589,7 +31960,15 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:16:57.310Z"
-   }
+   },
+   "fundingInstruments": [
+    "CA",
+    "G"
+   ],
+   "mechanisms": [
+    "Grant",
+    "Cooperative agreement"
+   ]
   },
   {
    "id": "grants.gov:364221",
@@ -30746,7 +32125,15 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:16:57.310Z"
-   }
+   },
+   "fundingInstruments": [
+    "CA",
+    "G"
+   ],
+   "mechanisms": [
+    "Grant",
+    "Cooperative agreement"
+   ]
   },
   {
    "id": "grants.gov:364213",
@@ -30906,7 +32293,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:17:00.652Z"
-   }
+   },
+   "fundingInstruments": [
+    "CA"
+   ],
+   "mechanisms": [
+    "Cooperative agreement"
+   ]
   },
   {
    "id": "grants.gov:343285",
@@ -31015,7 +32408,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:20:09.909Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:363993",
@@ -31174,7 +32573,19 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:16:45.900Z"
-   }
+   },
+   "fundingInstruments": [
+    "CA",
+    "G",
+    "O",
+    "PC"
+   ],
+   "mechanisms": [
+    "Grant",
+    "Cooperative agreement",
+    "Contract",
+    "Other"
+   ]
   },
   {
    "id": "grants.gov:356605",
@@ -31333,7 +32744,20 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:16:04.491Z"
-   }
+   },
+   "fundingInstruments": [
+    "CA",
+    "G",
+    "O",
+    "PC"
+   ],
+   "mechanisms": [
+    "BAA",
+    "Grant",
+    "Cooperative agreement",
+    "Contract",
+    "Other"
+   ]
   },
   {
    "id": "grants.gov:346815",
@@ -31493,7 +32917,15 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:17:02.072Z"
-   }
+   },
+   "fundingInstruments": [
+    "CA",
+    "G"
+   ],
+   "mechanisms": [
+    "Grant",
+    "Cooperative agreement"
+   ]
   },
   {
    "id": "grants.gov:359225",
@@ -31653,7 +33085,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:17:02.547Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:362905",
@@ -31810,7 +33248,20 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:17:02.934Z"
-   }
+   },
+   "fundingInstruments": [
+    "CA",
+    "G",
+    "O",
+    "PC"
+   ],
+   "mechanisms": [
+    "BAA",
+    "Grant",
+    "Cooperative agreement",
+    "Contract",
+    "Other"
+   ]
   },
   {
    "id": "grants.gov:280970",
@@ -31970,7 +33421,14 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:15:47.134Z"
-   }
+   },
+   "fundingInstruments": [
+    "O"
+   ],
+   "mechanisms": [
+    "RFI",
+    "Other"
+   ]
   },
   {
    "id": "grants.gov:359782",
@@ -32129,7 +33587,20 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:17:02.934Z"
-   }
+   },
+   "fundingInstruments": [
+    "CA",
+    "G",
+    "O",
+    "PC"
+   ],
+   "mechanisms": [
+    "BAA",
+    "Grant",
+    "Cooperative agreement",
+    "Contract",
+    "Other"
+   ]
   },
   {
    "id": "grants.gov:347414",
@@ -32288,7 +33759,15 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:17:02.547Z"
-   }
+   },
+   "fundingInstruments": [
+    "CA",
+    "G"
+   ],
+   "mechanisms": [
+    "Grant",
+    "Cooperative agreement"
+   ]
   },
   {
    "id": "grants.gov:364033",
@@ -32448,7 +33927,14 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:16:45.900Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Fellowship",
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:361418",
@@ -32605,7 +34091,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:17:03.664Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:364129",
@@ -32762,7 +34254,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:17:02.934Z"
-   }
+   },
+   "fundingInstruments": [
+    "CA"
+   ],
+   "mechanisms": [
+    "Cooperative agreement"
+   ]
   },
   {
    "id": "grants.gov:364132",
@@ -32923,7 +34421,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:17:04.337Z"
-   }
+   },
+   "fundingInstruments": [
+    "CA"
+   ],
+   "mechanisms": [
+    "Cooperative agreement"
+   ]
   },
   {
    "id": "grants.gov:362681",
@@ -33080,7 +34584,19 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:16:27.994Z"
-   }
+   },
+   "fundingInstruments": [
+    "CA",
+    "G",
+    "O",
+    "PC"
+   ],
+   "mechanisms": [
+    "Grant",
+    "Cooperative agreement",
+    "Contract",
+    "Other"
+   ]
   },
   {
    "id": "grants.gov:363738",
@@ -33237,7 +34753,18 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:17:02.934Z"
-   }
+   },
+   "fundingInstruments": [
+    "CA",
+    "O",
+    "PC"
+   ],
+   "mechanisms": [
+    "BAA",
+    "Cooperative agreement",
+    "Contract",
+    "Other"
+   ]
   },
   {
    "id": "grants.gov:364174",
@@ -33396,7 +34923,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:17:04.936Z"
-   }
+   },
+   "fundingInstruments": [
+    "CA"
+   ],
+   "mechanisms": [
+    "Cooperative agreement"
+   ]
   },
   {
    "id": "grants.gov:351059",
@@ -33557,7 +35090,16 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:16:18.800Z"
-   }
+   },
+   "fundingInstruments": [
+    "CA",
+    "G"
+   ],
+   "mechanisms": [
+    "Forecast",
+    "Grant",
+    "Cooperative agreement"
+   ]
   },
   {
    "id": "grants.gov:358684",
@@ -33696,7 +35238,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:20:10.284Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:349804",
@@ -33855,7 +35403,15 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:17:05.924Z"
-   }
+   },
+   "fundingInstruments": [
+    "CA",
+    "G"
+   ],
+   "mechanisms": [
+    "Grant",
+    "Cooperative agreement"
+   ]
   },
   {
    "id": "grants.gov:355385",
@@ -34014,7 +35570,14 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:15:46.671Z"
-   }
+   },
+   "fundingInstruments": [
+    "CA"
+   ],
+   "mechanisms": [
+    "Forecast",
+    "Cooperative agreement"
+   ]
   },
   {
    "id": "grants.gov:320087",
@@ -34175,7 +35738,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:20:10.762Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:353413",
@@ -34267,7 +35836,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:20:11.224Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:363752",
@@ -34426,7 +36001,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:20:11.727Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:362551",
@@ -34588,7 +36169,15 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:20:12.347Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "SBIR",
+    "STTR",
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:364147",
@@ -34747,7 +36336,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:15:49.662Z"
-   }
+   },
+   "fundingInstruments": [
+    "CA"
+   ],
+   "mechanisms": [
+    "Cooperative agreement"
+   ]
   },
   {
    "id": "grants.gov:359671",
@@ -34946,7 +36541,14 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:17:14.261Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "SBIR",
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:361608",
@@ -35107,7 +36709,14 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:17:14.925Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Forecast",
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:324456",
@@ -35268,7 +36877,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:20:12.890Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:363836",
@@ -35427,7 +37042,14 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:16:25.680Z"
-   }
+   },
+   "fundingInstruments": [
+    "CA"
+   ],
+   "mechanisms": [
+    "Forecast",
+    "Cooperative agreement"
+   ]
   },
   {
    "id": "grants.gov:350831",
@@ -35588,7 +37210,14 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:17:14.925Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Forecast",
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:360634",
@@ -35749,7 +37378,14 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:17:16.557Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Forecast",
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:363049",
@@ -35910,7 +37546,14 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:17:16.879Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Forecast",
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:363614",
@@ -36071,7 +37714,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:20:13.373Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:224533",
@@ -36139,7 +37788,13 @@
    "notes": "",
    "updatedAt": "2026-11-19T22:10:33.436Z",
    "assistanceListings": [],
-   "pastAwards": null
+   "pastAwards": null,
+   "fundingInstruments": [
+    "O"
+   ],
+   "mechanisms": [
+    "Other"
+   ]
   },
   {
    "id": "grants.gov:275109",
@@ -36296,7 +37951,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:20:14.245Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:280932",
@@ -36455,7 +38116,14 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:15:47.134Z"
-   }
+   },
+   "fundingInstruments": [
+    "O"
+   ],
+   "mechanisms": [
+    "RFI",
+    "Other"
+   ]
   },
   {
    "id": "grants.gov:359236",
@@ -36612,7 +38280,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:15:56.382Z"
-   }
+   },
+   "fundingInstruments": [
+    "CA"
+   ],
+   "mechanisms": [
+    "Cooperative agreement"
+   ]
   },
   {
    "id": "grants.gov:352339",
@@ -36780,7 +38454,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:20:14.600Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:358672",
@@ -36939,7 +38619,14 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:17:19.123Z"
-   }
+   },
+   "fundingInstruments": [
+    "CA"
+   ],
+   "mechanisms": [
+    "Forecast",
+    "Cooperative agreement"
+   ]
   },
   {
    "id": "grants.gov:352500",
@@ -37096,7 +38783,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:20:15.118Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:349554",
@@ -37255,7 +38948,19 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:16:27.994Z"
-   }
+   },
+   "fundingInstruments": [
+    "CA",
+    "G",
+    "O",
+    "PC"
+   ],
+   "mechanisms": [
+    "Grant",
+    "Cooperative agreement",
+    "Contract",
+    "Other"
+   ]
   },
   {
    "id": "grants.gov:356370",
@@ -37413,7 +39118,19 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:17:20.410Z"
-   }
+   },
+   "fundingInstruments": [
+    "CA",
+    "G",
+    "O",
+    "PC"
+   ],
+   "mechanisms": [
+    "Grant",
+    "Cooperative agreement",
+    "Contract",
+    "Other"
+   ]
   },
   {
    "id": "grants.gov:357464",
@@ -37570,7 +39287,15 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:16:27.994Z"
-   }
+   },
+   "fundingInstruments": [
+    "CA",
+    "G"
+   ],
+   "mechanisms": [
+    "Grant",
+    "Cooperative agreement"
+   ]
   },
   {
    "id": "grants.gov:349858",
@@ -37729,7 +39454,14 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:17:20.807Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Forecast",
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:332367",
@@ -37890,7 +39622,14 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:16:27.994Z"
-   }
+   },
+   "fundingInstruments": [
+    "O"
+   ],
+   "mechanisms": [
+    "Forecast",
+    "Other"
+   ]
   },
   {
    "id": "grants.gov:356837",
@@ -38051,7 +39790,21 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:15:56.382Z"
-   }
+   },
+   "fundingInstruments": [
+    "CA",
+    "G",
+    "O",
+    "PC"
+   ],
+   "mechanisms": [
+    "RFI",
+    "Forecast",
+    "Grant",
+    "Cooperative agreement",
+    "Contract",
+    "Other"
+   ]
   },
   {
    "id": "grants.gov:348746",
@@ -38210,7 +39963,14 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:17:21.384Z"
-   }
+   },
+   "fundingInstruments": [
+    "CA"
+   ],
+   "mechanisms": [
+    "Forecast",
+    "Cooperative agreement"
+   ]
   },
   {
    "id": "grants.gov:356055",
@@ -38370,7 +40130,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:20:15.631Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:308873",
@@ -38527,7 +40293,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:20:16.122Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:353475",
@@ -38626,7 +40398,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:20:16.544Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:330296",
@@ -38773,7 +40551,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:20:16.976Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:360183",
@@ -38934,7 +40718,15 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:16:04.491Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "BAA",
+    "Forecast",
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:360258",
@@ -39093,7 +40885,21 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:16:27.994Z"
-   }
+   },
+   "fundingInstruments": [
+    "CA",
+    "G",
+    "O",
+    "PC"
+   ],
+   "mechanisms": [
+    "BAA",
+    "CSO",
+    "Grant",
+    "Cooperative agreement",
+    "Contract",
+    "Other"
+   ]
   },
   {
    "id": "grants.gov:360261",
@@ -39250,7 +41056,20 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:16:27.994Z"
-   }
+   },
+   "fundingInstruments": [
+    "CA",
+    "G",
+    "O",
+    "PC"
+   ],
+   "mechanisms": [
+    "BAA",
+    "Grant",
+    "Cooperative agreement",
+    "Contract",
+    "Other"
+   ]
   },
   {
    "id": "grants.gov:360262",
@@ -39409,7 +41228,19 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:16:27.994Z"
-   }
+   },
+   "fundingInstruments": [
+    "CA",
+    "G",
+    "O",
+    "PC"
+   ],
+   "mechanisms": [
+    "Grant",
+    "Cooperative agreement",
+    "Contract",
+    "Other"
+   ]
   },
   {
    "id": "grants.gov:354445",
@@ -39566,7 +41397,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:16:27.994Z"
-   }
+   },
+   "fundingInstruments": [
+    "O"
+   ],
+   "mechanisms": [
+    "Other"
+   ]
   },
   {
    "id": "grants.gov:326841",
@@ -39725,7 +41562,14 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:15:56.382Z"
-   }
+   },
+   "fundingInstruments": [
+    "O"
+   ],
+   "mechanisms": [
+    "BAA",
+    "Other"
+   ]
   },
   {
    "id": "grants.gov:339728",
@@ -39886,7 +41730,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:16:05.049Z"
-   }
+   },
+   "fundingInstruments": [
+    "CA"
+   ],
+   "mechanisms": [
+    "Cooperative agreement"
+   ]
   },
   {
    "id": "grants.gov:343640",
@@ -40043,7 +41893,14 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:16:27.994Z"
-   }
+   },
+   "fundingInstruments": [
+    "PC"
+   ],
+   "mechanisms": [
+    "BAA",
+    "Contract"
+   ]
   },
   {
    "id": "grants.gov:355150",
@@ -40200,7 +42057,20 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:15:56.382Z"
-   }
+   },
+   "fundingInstruments": [
+    "CA",
+    "G",
+    "O",
+    "PC"
+   ],
+   "mechanisms": [
+    "BAA",
+    "Grant",
+    "Cooperative agreement",
+    "Contract",
+    "Other"
+   ]
   },
   {
    "id": "grants.gov:356612",
@@ -40359,7 +42229,16 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:17:24.548Z"
-   }
+   },
+   "fundingInstruments": [
+    "CA",
+    "G"
+   ],
+   "mechanisms": [
+    "BAA",
+    "Grant",
+    "Cooperative agreement"
+   ]
   },
   {
    "id": "grants.gov:278447",
@@ -40506,7 +42385,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:20:17.379Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:361099",
@@ -40663,7 +42548,15 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:16:04.491Z"
-   }
+   },
+   "fundingInstruments": [
+    "CA",
+    "G"
+   ],
+   "mechanisms": [
+    "Grant",
+    "Cooperative agreement"
+   ]
   },
   {
    "id": "grants.gov:302271",
@@ -40820,7 +42713,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:20:17.772Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:361080",
@@ -40979,7 +42878,14 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:16:05.049Z"
-   }
+   },
+   "fundingInstruments": [
+    "CA"
+   ],
+   "mechanisms": [
+    "BAA",
+    "Cooperative agreement"
+   ]
   },
   {
    "id": "grants.gov:254073",
@@ -41138,7 +43044,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:20:18.263Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:350469",
@@ -41297,7 +43209,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:20:18.926Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:345938",
@@ -41458,7 +43376,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:16:03.910Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:349343",
@@ -41615,7 +43539,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:20:19.436Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:354620",
@@ -41691,7 +43621,13 @@
     "searchUrl": "https://www.usaspending.gov/search/?hash=&program_numbers=97.144",
     "awards": [],
     "fetchedAt": "2026-11-20T16:17:27.832Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:348830",
@@ -41851,7 +43787,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:17:28.172Z"
-   }
+   },
+   "fundingInstruments": [
+    "CA"
+   ],
+   "mechanisms": [
+    "Cooperative agreement"
+   ]
   },
   {
    "id": "grants.gov:355499",
@@ -42010,7 +43952,15 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:16:27.994Z"
-   }
+   },
+   "fundingInstruments": [
+    "CA",
+    "G"
+   ],
+   "mechanisms": [
+    "Grant",
+    "Cooperative agreement"
+   ]
   },
   {
    "id": "grants.gov:362325",
@@ -42170,7 +44120,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:17:28.623Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:363549",
@@ -42269,7 +44225,14 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:17:28.936Z"
-   }
+   },
+   "fundingInstruments": [
+    "CA"
+   ],
+   "mechanisms": [
+    "Forecast",
+    "Cooperative agreement"
+   ]
   },
   {
    "id": "grants.gov:361876",
@@ -42428,7 +44391,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:17:29.304Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:363226",
@@ -42587,7 +44556,14 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:17:29.629Z"
-   }
+   },
+   "fundingInstruments": [
+    "CA"
+   ],
+   "mechanisms": [
+    "Forecast",
+    "Cooperative agreement"
+   ]
   },
   {
    "id": "grants.gov:358689",
@@ -42744,7 +44720,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:20:19.877Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:363833",
@@ -42823,7 +44805,13 @@
     "searchUrl": "https://www.usaspending.gov/search/?hash=&program_numbers=10.377",
     "awards": [],
     "fetchedAt": "2026-11-20T16:17:30.291Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:363846",
@@ -42980,7 +44968,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:17:30.611Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:339594",
@@ -43144,7 +45138,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:20:20.290Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:362871",
@@ -43301,7 +45301,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:16:04.491Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:363526",
@@ -43458,7 +45464,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:15:56.382Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:363530",
@@ -43617,7 +45629,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:15:56.382Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:363715",
@@ -43774,7 +45792,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:17:31.827Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:362302",
@@ -43933,7 +45957,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:16:09.075Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:355219",
@@ -44090,7 +46120,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:20:20.847Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:343653",
@@ -44249,7 +46285,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:17:32.595Z"
-   }
+   },
+   "fundingInstruments": [
+    "CA"
+   ],
+   "mechanisms": [
+    "Cooperative agreement"
+   ]
   },
   {
    "id": "grants.gov:362304",
@@ -44406,7 +46448,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:16:09.075Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:362305",
@@ -44565,7 +46613,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:16:09.075Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:363151",
@@ -44641,7 +46695,13 @@
     "searchUrl": "https://www.usaspending.gov/search/?hash=&program_numbers=97.144",
     "awards": [],
     "fetchedAt": "2026-11-20T16:17:27.832Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:349586",
@@ -44798,7 +46858,14 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:16:09.075Z"
-   }
+   },
+   "fundingInstruments": [
+    "PC"
+   ],
+   "mechanisms": [
+    "BAA",
+    "Contract"
+   ]
   },
   {
    "id": "grants.gov:330175",
@@ -44958,7 +47025,20 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:16:27.994Z"
-   }
+   },
+   "fundingInstruments": [
+    "CA",
+    "G",
+    "O",
+    "PC"
+   ],
+   "mechanisms": [
+    "BAA",
+    "Grant",
+    "Cooperative agreement",
+    "Contract",
+    "Other"
+   ]
   },
   {
    "id": "grants.gov:363677",
@@ -45047,7 +47127,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:17:33.471Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:363745",
@@ -45204,7 +47290,16 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:16:27.994Z"
-   }
+   },
+   "fundingInstruments": [
+    "CA",
+    "G"
+   ],
+   "mechanisms": [
+    "BAA",
+    "Grant",
+    "Cooperative agreement"
+   ]
   },
   {
    "id": "grants.gov:342475",
@@ -45365,7 +47460,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:20:21.377Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:344715",
@@ -45522,7 +47623,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:20:21.888Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:351889",
@@ -45686,7 +47793,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:20:22.295Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:327047",
@@ -45845,7 +47958,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:20:22.749Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:340828",
@@ -46003,7 +48122,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:20:23.101Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:363622",
@@ -46164,7 +48289,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:20:23.543Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:314126",
@@ -46253,7 +48384,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:20:23.849Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:361915",
@@ -46343,7 +48480,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:20:24.157Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:358036",
@@ -46512,7 +48655,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:20:24.598Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:360149",
@@ -46671,7 +48820,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:20:25.204Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:363623",
@@ -46830,7 +48985,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:20:25.578Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:361896",
@@ -46989,7 +49150,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:20:25.883Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:361008",
@@ -47131,7 +49298,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:20:26.145Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:363616",
@@ -47292,7 +49465,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:20:26.519Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:358100",
@@ -47451,7 +49630,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:15:47.134Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:357826",
@@ -47600,7 +49785,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:20:26.921Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:348985",
@@ -47767,7 +49958,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:20:27.329Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:355270",
@@ -47930,7 +50127,14 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:20:27.718Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Fellowship",
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:357498",
@@ -48090,7 +50294,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:20:28.065Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:360350",
@@ -48251,7 +50461,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:20:59.076Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:350802",
@@ -48408,7 +50624,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:20:28.954Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:342747",
@@ -48547,7 +50769,14 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:20:29.382Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Fellowship",
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:348058",
@@ -48704,7 +50933,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:20:29.820Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:344634",
@@ -48861,7 +51096,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:20:30.158Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:314743",
@@ -49020,7 +51261,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:20:30.566Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:45810",
@@ -49042,7 +51289,7 @@
    "status": "posted",
    "fetchedAt": "2026-11-19T22:10:33.436Z",
    "screening": {
-    "preScore": 15,
+    "preScore": 18,
     "signals": [
      "Innovation"
     ],
@@ -49050,8 +51297,8 @@
      {
       "id": "lead_eligible",
       "label": "Forge can lead",
-      "status": "fail",
-      "evidence": "SBIR/STTR: a small business must be the applicant. Forge can still join as a partner or subrecipient."
+      "status": "pass",
+      "evidence": "…Unrestricted (i.e., open to any type of entity above), subject to any cl…"
      },
      {
       "id": "no_cash_match",
@@ -49082,8 +51329,8 @@
     "warnings": [
      "Deadline is more than 5 years out; likely placeholder data in the source."
     ],
-    "leadRole": "partner",
-    "leadReason": "SBIR/STTR: a small business must be the applicant. Forge can still join as a partner or subrecipient."
+    "leadRole": "lead",
+    "leadReason": "…Unrestricted (i.e., open to any type of entity above), subject to any cl…"
    },
    "evaluation": null,
    "stage": "new",
@@ -49181,7 +51428,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:20:30.898Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:348164",
@@ -49340,7 +51593,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:20:31.236Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:352455",
@@ -49499,7 +51758,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:20:31.563Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:320098",
@@ -49660,7 +51925,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:20:31.911Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:347331",
@@ -49817,7 +52088,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:20:32.458Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:348260",
@@ -49974,7 +52251,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:20:32.843Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:329432",
@@ -50133,7 +52416,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:20:33.195Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:356659",
@@ -50240,7 +52529,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:20:33.600Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:344001",
@@ -50327,7 +52622,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:20:33.876Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:364165",
@@ -50487,7 +52788,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:16:27.994Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:341086",
@@ -50650,7 +52957,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:20:34.276Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:363684",
@@ -50809,7 +53122,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:20:34.777Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:349724",
@@ -50898,7 +53217,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:20:35.072Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:357893",
@@ -51047,7 +53372,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:20:35.405Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:363845",
@@ -51209,7 +53540,14 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:17:50.182Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Forecast",
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:355100",
@@ -51382,7 +53720,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:20:35.849Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:349280",
@@ -51539,7 +53883,14 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:20:36.134Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Fellowship",
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:364124",
@@ -51696,7 +54047,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:17:51.114Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:348599",
@@ -51863,7 +54220,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:20:36.538Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:363920",
@@ -52022,7 +54385,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:17:52.092Z"
-   }
+   },
+   "fundingInstruments": [
+    "CA"
+   ],
+   "mechanisms": [
+    "Cooperative agreement"
+   ]
   },
   {
    "id": "grants.gov:310029",
@@ -52181,7 +54550,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:17:52.423Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:347026",
@@ -52343,7 +54718,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:20:37.264Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:356943",
@@ -52502,7 +54883,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:20:37.591Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:363612",
@@ -52661,7 +55048,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:20:38.072Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:359499",
@@ -52821,7 +55214,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:20:38.494Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:363621",
@@ -52912,7 +55311,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:20:38.886Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:363617",
@@ -53071,7 +55476,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:20:39.402Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:363618",
@@ -53230,7 +55641,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:20:39.938Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:363620",
@@ -53391,7 +55808,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:20:40.485Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:343875",
@@ -53552,7 +55975,14 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:20:41.013Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Fellowship",
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:364070",
@@ -53712,7 +56142,14 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:15:57.072Z"
-   }
+   },
+   "fundingInstruments": [
+    "O"
+   ],
+   "mechanisms": [
+    "Notice of intent",
+    "Other"
+   ]
   },
   {
    "id": "grants.gov:363233",
@@ -53872,7 +56309,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:20:41.322Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:358403",
@@ -54041,7 +56484,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:20:41.801Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:347679",
@@ -54200,7 +56649,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:20:42.144Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:364019",
@@ -54359,7 +56814,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:17:57.627Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:359325",
@@ -54506,7 +56967,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:20:42.549Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:363906",
@@ -54665,7 +57132,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:16:04.491Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:364244",
@@ -54805,7 +57278,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:17:58.445Z"
-   }
+   },
+   "fundingInstruments": [
+    "CA"
+   ],
+   "mechanisms": [
+    "Cooperative agreement"
+   ]
   },
   {
    "id": "grants.gov:364215",
@@ -54964,7 +57443,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:17:58.797Z"
-   }
+   },
+   "fundingInstruments": [
+    "CA"
+   ],
+   "mechanisms": [
+    "Cooperative agreement"
+   ]
   },
   {
    "id": "grants.gov:364214",
@@ -55121,7 +57606,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:17:58.797Z"
-   }
+   },
+   "fundingInstruments": [
+    "CA"
+   ],
+   "mechanisms": [
+    "Cooperative agreement"
+   ]
   },
   {
    "id": "grants.gov:363899",
@@ -55278,7 +57769,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:16:27.994Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:363905",
@@ -55435,7 +57932,15 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:15:56.382Z"
-   }
+   },
+   "fundingInstruments": [
+    "CA",
+    "G"
+   ],
+   "mechanisms": [
+    "Grant",
+    "Cooperative agreement"
+   ]
   },
   {
    "id": "grants.gov:364243",
@@ -55602,7 +58107,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:20:42.933Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:324369",
@@ -55761,7 +58272,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:20:43.278Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:364026",
@@ -55918,7 +58435,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:15:47.134Z"
-   }
+   },
+   "fundingInstruments": [
+    "CA"
+   ],
+   "mechanisms": [
+    "Cooperative agreement"
+   ]
   },
   {
    "id": "grants.gov:363847",
@@ -56075,7 +58598,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:18:00.231Z"
-   }
+   },
+   "fundingInstruments": [
+    "CA"
+   ],
+   "mechanisms": [
+    "Cooperative agreement"
+   ]
   },
   {
    "id": "grants.gov:364271",
@@ -56232,7 +58761,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:18:00.516Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:363615",
@@ -56391,7 +58926,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:20:43.793Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:364294",
@@ -56551,7 +59092,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:20:43.278Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   },
   {
    "id": "grants.gov:364172",
@@ -56711,7 +59258,13 @@
      }
     ],
     "fetchedAt": "2026-11-20T16:16:27.994Z"
-   }
+   },
+   "fundingInstruments": [
+    "G"
+   ],
+   "mechanisms": [
+    "Grant"
+   ]
   }
  ]
 }

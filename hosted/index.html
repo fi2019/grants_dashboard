@@ -252,6 +252,25 @@ td .meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; color:
 .coach ul, .coach ol { margin: 0; padding-left: 18px; font-size: 14px; line-height: 1.55 }
 .coach .outline li { margin-bottom: 4px }
 .coach blockquote { margin: 4px 0; padding: 8px 12px; border-left: 3px solid var(--info); background: var(--surface-2); font-size: 14px }
+.mech { display: inline-block; font: 600 10px/1.6 var(--mono); letter-spacing: .03em; border-radius: 3px; padding: 0 5px; border: 1px solid var(--line); color: var(--fg); background: var(--surface); white-space: nowrap }
+.mech.sbir, .mech.sttr { background: #efe7fb; color: #5b2d9e; border-color: transparent }
+.mech.baa, .mech.cso, .mech.ot { background: #fdeee0; color: #8a4a0b; border-color: transparent }
+.mech.grant, .mech.coop { background: var(--good-bg); color: var(--good); border-color: transparent }
+.mech.contract { background: var(--info-bg); color: var(--info); border-color: transparent }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .mech.sbir, :root:not([data-theme="light"]) .mech.sttr { background: #2e2244; color: #c9a8f5 } :root:not([data-theme="light"]) .mech.baa, :root:not([data-theme="light"]) .mech.cso, :root:not([data-theme="light"]) .mech.ot { background: #3a2a14; color: #f0b874 } }
+:root[data-theme="dark"] .mech.sbir, :root[data-theme="dark"] .mech.sttr { background: #2e2244; color: #c9a8f5 }
+:root[data-theme="dark"] .mech.baa, :root[data-theme="dark"] .mech.cso, :root[data-theme="dark"] .mech.ot { background: #3a2a14; color: #f0b874 }
+.mechs { display: inline-flex; flex-wrap: wrap; gap: 3px }
+.srcgroup h2 { font-size: 15px; margin: 4px 0 8px; color: var(--muted); font-weight: 600 }
+.api { font-size: 11px; border-radius: 999px; padding: 1px 8px; white-space: nowrap; border: 1px solid var(--line); color: var(--muted) }
+.api.yes { background: var(--good-bg); color: var(--good); border-color: transparent }
+.api.partial { background: var(--warn-bg); color: var(--warn); border-color: transparent }
+.srcstats { display: flex; flex-wrap: wrap; gap: 8px 18px; font-size: 13px; color: var(--muted) }
+.srcstats b { color: var(--fg); font-family: var(--mono) }
+details.addform > summary { cursor: pointer; font-weight: 600; font-size: 16px; list-style: none }
+details.addform > summary::-webkit-details-marker { display: none }
+details.addform > summary::before { content: "+ "; color: var(--link) }
+details.addform[open] > summary::before { content: "− " }
 .nav-badge { display: inline-block; min-width: 18px; margin-left: 5px; padding: 0 5px; border-radius: 9px; background: var(--accent); color: #fff; font: 600 11px/18px var(--mono); text-align: center }
 </style>
 
@@ -286,7 +305,7 @@ td .meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; color:
   const leadLabel = () => leadDays() === 14 ? "2 weeks" : leadDays() % 7 === 0 ? `${leadDays() / 7} weeks` : `${leadDays()} days`;
   let db = null, user = null, me = null, canWrite = false, storeState = "connecting";
   const names = {}, avatars = {};
-  const ui = { q: "", min: "", agency: "", stage: "", cat: "", role: "", partner: false, clean: false, closed: false, stars: "", starBasis: "mine", unrated: true };
+  const ui = { q: "", min: "", agency: "", stage: "", cat: "", role: "", mech: "", partner: false, clean: false, closed: false, stars: "", starBasis: "mine", unrated: true };
   try { Object.assign(ui, JSON.parse(localStorage.getItem("fg-filters") || "{}")); } catch {}
   const editing = { source: null, partner: null, category: null, profile: false };
   const hf = { kind: "", who: "" };   // history filters   // id being edited, or "new"
@@ -355,6 +374,12 @@ td .meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; color:
   const roleOf = (o) => o.evaluation?.forgeRole || o.leadRole || "unclear";
   const roleWhy = (o) => o.evaluation?.roleRationale || o.leadReason || "";
   const roleHtml = (o) => { const r = roleOf(o); return `<span class="role ${r}" title="${esc(roleWhy(o))}">${ROLE_TEXT[r]}</span>`; };
+  // Funding vehicle labels (SBIR, BAA, Grant…) computed by the scanner from the listing.
+  const MECH_ORDER = ["SBIR", "STTR", "BAA", "CSO", "OT", "Prize / challenge", "Fellowship", "RFI", "Notice of intent", "Forecast", "Grant", "Cooperative agreement", "Contract", "Other"];
+  const MECH_CLASS = { SBIR: "sbir", STTR: "sttr", BAA: "baa", CSO: "cso", OT: "ot", Grant: "grant", "Cooperative agreement": "coop", Contract: "contract" };
+  const MECH_SHORT = { "Cooperative agreement": "Coop. agreement", "Prize / challenge": "Prize", "Notice of intent": "NOI" };
+  const mechsOf = (o) => o.mechanisms || [];
+  const mechHtml = (o) => mechsOf(o).length ? `<span class="mechs">${mechsOf(o).map((m) => `<span class="mech ${MECH_CLASS[m] || ""}" title="${esc(m)}">${esc(MECH_SHORT[m] || m)}</span>`).join("")}</span>` : "";
   const realCriteria = (o) => o.criteria.filter((c) => c.id !== "lead_eligible");
   const dots = (o) => `<span class="dots">${realCriteria(o).map((c) => `<span class="dot ${c.status}" title="${esc(c.label)}: ${c.status === "unknown" ? "not stated" : c.status}"></span>`).join("")}</span>`;
   const oppLink = (o) => `<a href="#opp-${o.id}" class="ttl">${esc(o.title)}</a>`;
@@ -382,7 +407,7 @@ td .meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; color:
   function table(items, empty) {
     if (!items.length) return `<p class="panel empty">${empty}</p>`;
     return `<div class="tablewrap"><table><thead><tr><th>Fit</th><th>Rating</th><th>Opportunity</th><th>Deadline</th><th>Award ceiling</th><th>Criteria</th><th>Stage</th></tr></thead><tbody>${
-      items.map((o) => `<tr><td>${scoreHtml(o)}</td><td>${starsHtml(o)}</td><td style="min-width:260px">${oppLink(o)}<div class="meta"><span class="tag">grants.gov</span>${roleHtml(o)}<span>${esc(o.agency)}</span>${o.number ? `<span class="mono">${esc(o.number)}</span>` : ""}</div>${tagsHtml(o)}</td><td>${deadlineCell(o)}</td><td class="num">${money(o.awardCeiling)}</td><td>${dots(o)}</td><td>${pill(stageOf(o))}</td></tr>`).join("")
+      items.map((o) => `<tr><td>${scoreHtml(o)}</td><td>${starsHtml(o)}</td><td style="min-width:260px">${oppLink(o)}<div class="meta"><span class="tag">grants.gov</span>${mechHtml(o)}${roleHtml(o)}<span>${esc(o.agency)}</span>${o.number ? `<span class="mono">${esc(o.number)}</span>` : ""}</div>${tagsHtml(o)}</td><td>${deadlineCell(o)}</td><td class="num">${money(o.awardCeiling)}</td><td>${dots(o)}</td><td>${pill(stageOf(o))}</td></tr>`).join("")
     }</tbody></table></div>`;
   }
   const dueList = (items, dateOf, empty, showInternal) => items.length
@@ -457,6 +482,7 @@ td .meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; color:
       if (catKw && !hits(o, catKw).length) return false;
       if (ui.partner && !partnersFor(o).length) return false;
       if (ui.clean && realCriteria(o).some((c) => c.status === "fail")) return false;
+      if (ui.mech && !mechsOf(o).includes(ui.mech)) return false;
       if (ui.role && !(roleOf(o) === ui.role || (roleOf(o) === "either" && (ui.role === "lead" || ui.role === "partner")))) return false;
       if (ui.stars) {
         const r = ui.starBasis === "team" ? (teamAvg(o)?.avg || 0) : myRating(o);
@@ -467,7 +493,7 @@ td .meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; color:
     };
   }
   const filtered = () => OPPS.filter(matcher(false)).sort(byFit);
-  const anyFilter = () => Boolean(ui.q || ui.min || ui.agency || ui.cat || ui.role || ui.stars || ui.partner || ui.clean);
+  const anyFilter = () => Boolean(ui.q || ui.min || ui.agency || ui.cat || ui.role || ui.mech || ui.stars || ui.partner || ui.clean);
 
   function filtersHtml(board) {
     const opt = (v, l, cur) => `<option value="${esc(v)}" ${String(cur) === String(v) ? "selected" : ""}>${esc(l)}</option>`;
@@ -480,6 +506,7 @@ td .meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; color:
         <select id="f-stars" aria-label="Minimum stars">${opt("", "Any rating", ui.stars)}${[1, 2, 3, 4].map((n) => opt(n, `${n}+ stars`, ui.stars)).join("")}${opt(5, "5 stars", ui.stars)}</select>
         <select id="f-basis" aria-label="Whose rating">${opt("mine", "My rating", ui.starBasis)}${opt("team", "Team average", ui.starBasis)}</select>
         <label title="Show opportunities nobody has rated yet (or you haven't, for My rating)"><input type="checkbox" id="f-unrated" ${ui.unrated ? "checked" : ""}> Include unrated</label>
+        <select id="f-mech" aria-label="Opportunity type">${opt("", "Any type", ui.mech)}${MECH_ORDER.map((m) => opt(m, m, ui.mech)).join("")}</select>
         <select id="f-role" aria-label="Forge's role">${opt("", "Lead or partner", ui.role)}${opt("lead", "Forge can lead", ui.role)}${opt("partner", "Partner role", ui.role)}${opt("unclear", "Lead: check notice", ui.role)}</select>
         <label><input type="checkbox" id="f-partner" ${ui.partner ? "checked" : ""}> Partner match</label>
         <label><input type="checkbox" id="f-clean" ${ui.clean ? "checked" : ""}> No failed criteria</label>
@@ -492,7 +519,7 @@ td .meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; color:
     return `
       <div class="head"><h1>Opportunities</h1><span class="sub"><span class="num">${items.length}</span> shown · * keyword pre-score, not yet evaluated by Claude</span></div>
       ${filtersHtml(false)}
-      <div class="legend"><span>Role: <span class="role lead">Forge can lead</span> <span class="role partner">Partner role</span> <span class="role unclear">Lead: check notice</span></span><span>Criteria: no cash match · indirect costs · operating expenses · open solicitation</span>
+      <div class="legend"><span>Type: <span class="mech sbir">SBIR</span> <span class="mech baa">BAA</span> <span class="mech grant">Grant</span> <span class="mech contract">Contract</span></span><span>Role: <span class="role lead">Forge can lead</span> <span class="role partner">Partner role</span> <span class="role unclear">Lead: check notice</span></span><span>Criteria: no cash match · indirect costs · operating expenses · open solicitation</span>
         <span><i class="dot pass"></i>yes</span><span><i class="dot fail"></i>no</span><span><i class="dot unknown"></i>not stated</span>
         <span>Days left: <b class="dl urgent">under 30</b> <b class="dl soon">under 90</b> <b class="dl ok">90+</b></span></div>
       <div id="results">${table(items.slice(0, 300), "No opportunities match these filters.")}</div>`;
@@ -512,7 +539,7 @@ td .meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; color:
       <div><a href="#opportunities">← Opportunities</a></div>
       <div class="detail">
         <div style="display:grid;gap:16px;min-width:0">
-          <div><div class="meta" style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;color:var(--muted);font-size:13px"><span class="tag">grants.gov</span>${esc(o.agency)} ${o.number ? `<span class="mono">${esc(o.number)}</span>` : ""} ${pill(st)} ${roleHtml(o)}</div>
+          <div><div class="meta" style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;color:var(--muted);font-size:13px"><span class="tag">grants.gov</span>${esc(o.agency)} ${o.number ? `<span class="mono">${esc(o.number)}</span>` : ""} ${pill(st)} ${roleHtml(o)} ${mechHtml(o)}</div>
             <h1 style="font-size:24px;margin-top:6px">${esc(o.title)}</h1>
             ${o.url ? `<a href="${esc(o.url)}" target="_blank" rel="noopener">View the official listing on Grants.gov ↗</a>` : ""}</div>
           <div class="panel facts">
@@ -585,7 +612,7 @@ td .meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; color:
         const d = S.decisions[o.id] || {};
         return `<div class="card" ${canMove ? `draggable="true"` : ""} data-card="${o.id}">
           <span style="display:flex;justify-content:space-between;gap:8px"><a class="ttl" href="#opp-${o.id}">${esc(o.title)}</a>${scoreHtml(o)}</span>
-          <span class="note">${esc(o.agency)}</span><span>${roleHtml(o)}</span>${deadlineCell(o)}${d.owner ? `<span class="note">Owner: ${esc(d.owner)}</span>` : ""}
+          <span class="note">${esc(o.agency)}</span><span style="display:flex;flex-wrap:wrap;gap:4px">${mechHtml(o)}${roleHtml(o)}</span>${deadlineCell(o)}${d.owner ? `<span class="note">Owner: ${esc(d.owner)}</span>` : ""}
           ${canMove ? `<select class="move" data-move="${o.id}" aria-label="Move ${esc(o.title)} to another stage">${STAGES.map((st) => `<option value="${st}" ${st === c ? "selected" : ""}>${st === c ? "Move to…" : LABEL[st]}</option>`).join("")}</select>` : ""}
         </div>`;
       }).join("") : `<p class="empty" style="font-size:13px">${canMove ? "Drop a card here." : "Nothing here."}</p>`}</div>`;
@@ -648,7 +675,7 @@ td .meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; color:
         <div class="tiles"><div><b>${ev.length}</b><span>Evaluated (open)</span></div><div><b>${rec.length}</b><span>Recommended</span></div><div><b>${pos.length}</b><span>Possible</span></div></div></div>
       <h2 class="sec-title">Recommended opportunities</h2>
       ${rec.length ? rec.map((o) => { const e = o.evaluation, internal = internalOf(o); return `<article class="panel rec">
-        <div><span class="tag" style="background:var(--accent)">grants.gov</span> ${roleHtml(o)}<h3 style="font-size:18px;margin-top:6px">${ext(o)}</h3><div class="note">${esc(o.agency)}${o.number ? ` · ${esc(o.number)}` : ""}</div>${tagsHtml(o)}</div>
+        <div><span class="tag" style="background:var(--accent)">grants.gov</span> ${mechHtml(o)} ${roleHtml(o)}<h3 style="font-size:18px;margin-top:6px">${ext(o)}</h3><div class="note">${esc(o.agency)}${o.number ? ` · ${esc(o.number)}` : ""}</div>${tagsHtml(o)}</div>
         <div class="bar">${scoreHtml(o, true)}<div><div class="note">SUBMISSION</div>${dlHtml(o.closeDate)}</div><div><div class="note">FORGE INTERNAL</div><span class="mono" style="font-size:12px">${fmtDate(internal)}</span></div><div><div class="note">AWARD</div><span class="num">${range(o.awardFloor, o.awardCeiling)}</span></div><div><div class="note">STAGE</div>${pill(stageOf(o))}</div></div>
         ${blk("Why it fits", esc(e.whyItFits))}${blk("Proposed project", esc(e.proposedProject))}
         <div class="grid3">${blk("Target clients", esc(e.targetClients))}${blk("Recommended partners", e.recommendedPartners.length ? `<ol style="margin:0;padding-left:18px">${e.recommendedPartners.map((p) => `<li>${esc(p)}</li>`).join("")}</ol>` : "")}${blk("Why Forge qualifies", esc(e.whyForgeQualifies))}</div>
@@ -675,30 +702,68 @@ td .meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; color:
   const formActions = (kind, isNew) => `<div class="actions"><button class="btn" data-save="${kind}" ${ro()}>${isNew ? "Add" : "Save changes"}</button>${isNew ? "" : `<button class="btn-ghost" data-cancel="${kind}">Cancel</button>`}<span class="toast" id="${kind}-toast">${esc(flash[kind + "-toast"] || "")}</span></div>`;
 
   // ---------- sources ----------
+  // Catalog fields come from the Federal Funding Sources Catalog (Nov 20, 2026); the team can add and edit.
+  const SOURCE_CATEGORIES = ["Government-wide portal", "Civilian agency", "DoD R&D agency", "DoD innovation", "DoD lab", "Intelligence Community", "SBIR / STTR", "OT consortium", "PIA (Partnership Intermediary)", "Prize / Challenge", "Forecast / market intel", "Contract vehicle (IDIQ)", "Investment / loans", "Industry engagement", "Small business program", "Directory", "Other"];
+  const SOURCE_STATUS = ["Connected", "Needs connector", "Manual check", "Paused"];
+  const sf = { q: "", cat: "", api: "", status: "" };
+  const statusClass = (st) => st === "Connected" ? "on" : st === "Paused" ? "off" : "todo";
   function viewSources() {
     const e = editing.source && editing.source !== "new" ? S.sources[editing.source] || {} : {};
     const isNew = !editing.source || editing.source === "new";
-    const rows = sorted(S.sources);
-    const builtIn = `<div class="item"><div class="top"><h3>Grants.gov</h3><span class="status on">Connected</span></div>
-      <div class="kv"><span>Type <b>API</b></span><span>Website <a href="https://www.grants.gov" target="_blank" rel="noopener">grants.gov ↗</a></span><span>API <b class="mono">api.grants.gov/v1/api/search2</b></span><span>Credential <b>none needed</b></span></div>
-      <p class="help">Built into the scanner. Searches the Forge keywords plus every open listing at the priority agencies.</p></div>`;
-    return `<div class="head"><div><h1>Sources</h1><p class="sub" style="margin:4px 0 0">Websites and databases the scanner should check. A new source is checked once its connector is built; its status shows here.</p></div></div>
-      <section class="panel"><h2>${isNew ? "Add a source" : "Edit source"}</h2>
-        <div class="form" id="source-form">
+    const all = sorted(S.sources);
+    const q = sf.q.trim().toLowerCase();
+    const rows = all.filter((x) => (!sf.cat || (x.category || "Other") === sf.cat) && (!sf.api || (x.api || "No") === sf.api) && (!sf.status || (x.status || "Needs connector") === sf.status)
+      && (!q || [x.name, x.mechanisms, x.focusAreas, x.parentAgency, x.notes, x.category].some((f) => String(f || "").toLowerCase().includes(q))));
+    const count = (fn) => all.filter(fn).length;
+    const opt = (v, l, cur) => `<option value="${esc(v)}" ${cur === v ? "selected" : ""}>${esc(l)}</option>`;
+    const notes = S.settings.catalog?.reviewNotes || [];
+    // Within a category: connected first, then those with an API, then by name.
+    const rank = (x) => (x.status === "Connected" ? 0 : 3) + ({ Yes: 0, Partial: 1 }[x.api] ?? 2);
+    const groups = SOURCE_CATEGORIES.map((c) => [c, rows.filter((x) => (x.category || "Other") === c).sort((a, b) => rank(a) - rank(b) || a.name.localeCompare(b.name))]).filter(([, xs]) => xs.length);
+    const item = (x) => `<div class="item"><div class="top"><h3>${safeUrl(x.url) ? `<a href="${esc(x.url)}" target="_blank" rel="noopener">${esc(x.name)} ↗</a>` : esc(x.name)}</h3>
+        <span style="display:flex;gap:6px;align-items:center">${x.api ? `<span class="api ${String(x.api).toLowerCase()}" title="API available">API: ${esc(x.api)}</span>` : ""}<span class="status ${statusClass(x.status)}">${esc(x.status || "Needs connector")}</span></span></div>
+      <div class="kv">${x.parentAgency ? `<span>Agency <b>${esc(x.parentAgency)}</b></span>` : ""}${x.mechanisms ? `<span>Mechanisms <b>${esc(x.mechanisms)}</b></span>` : ""}</div>
+      ${x.apiDetails || x.apiUrl ? `<div class="kv"><span>Data access <b>${esc(x.apiDetails || x.apiUrl)}</b></span>${x.credential ? `<span>Key name <b class="mono">${esc(x.credential)}</b></span>` : ""}</div>` : ""}
+      ${x.focusAreas || x.unsolicited || x.cadence || x.notes || x.reference ? `<details><summary class="note">Focus areas, white-paper path, update cadence and notes</summary><div class="kv" style="display:grid;gap:4px;margin-top:6px">
+        ${x.focusAreas ? `<span>Current focus <b>${esc(x.focusAreas)}</b></span>` : ""}
+        ${x.unsolicited ? `<span>Unsolicited / white-paper path <b>${esc(x.unsolicited)}</b></span>` : ""}
+        ${x.cadence ? `<span>Update cadence <b>${esc(x.cadence)}</b></span>` : ""}
+        ${x.notes ? `<span>Notes <b>${esc(x.notes)}</b></span>` : ""}
+        ${x.verification ? `<span>Verification <b>${esc(x.verification)}</b></span>` : ""}
+        ${safeUrl(x.reference) ? `<span>Reference <a href="${esc(x.reference)}" target="_blank" rel="noopener">${esc(x.reference.replace(/^https?:\/\//, "").slice(0, 80))} ↗</a></span>` : ""}
+      </div></details>` : ""}
+      <div class="btns">${editBtn("source", x.id)}${removeBtn("source", x.id)}</div></div>`;
+    return `<div class="head"><div><h1>Sources</h1><p class="sub" style="margin:4px 0 0">Where Forge looks for funding: portals, agencies, DoD and IC innovation offices, consortia and intermediaries. Connected sources feed the scanner; the rest need a connector or a manual check.</p></div></div>
+      <div class="srcstats"><span><b>${all.length}</b> sources</span><span><b>${count((x) => x.status === "Connected")}</b> connected</span><span><b>${count((x) => x.api === "Yes")}</b> with an API</span><span><b>${count((x) => x.api === "Partial")}</b> partial API</span><span><b>${count((x) => (x.status || "") === "Manual check")}</b> manual check</span>${S.settings.catalog?.compiled ? `<span>Catalog compiled ${esc(S.settings.catalog.compiled)}</span>` : ""}</div>
+      <div class="panel filters" id="sfilters">
+        <input id="sf-q" placeholder="Search name, mechanism, focus area…" value="${esc(sf.q)}" aria-label="Search sources">
+        <select id="sf-cat" aria-label="Category">${opt("", "All categories", sf.cat)}${SOURCE_CATEGORIES.map((c) => opt(c, c, sf.cat)).join("")}</select>
+        <select id="sf-api" aria-label="API">${opt("", "Any API", sf.api)}${opt("Yes", "API: Yes", sf.api)}${opt("Partial", "API: Partial", sf.api)}${opt("No", "API: No", sf.api)}</select>
+        <select id="sf-status" aria-label="Status">${opt("", "Any status", sf.status)}${SOURCE_STATUS.map((x) => opt(x, x, sf.status)).join("")}</select>
+        <span class="note" id="sf-count">${rows.length} shown</span>
+      </div>
+      <details class="panel addform" ${isNew ? "" : "open"}><summary>${isNew ? "Add a source" : "Edit source"}</summary>
+        <div class="form" id="source-form" style="margin-top:10px">
           ${field("s-name", "Name", e.name, 'placeholder="ConnectWerx" maxlength="120"')}
-          ${selectField("s-type", "Type", SOURCE_TYPES, e.type || "Website")}
-          ${field("s-url", "Website URL", e.url, 'type="url" placeholder="https://"', "")}
+          ${selectField("s-category", "Category", SOURCE_CATEGORIES, e.category || "Other")}
+          ${selectField("s-api-avail", "API available?", ["Yes", "Partial", "No"], e.api || "No")}
+          ${selectField("s-status", "Status", SOURCE_STATUS, e.status || "Needs connector")}
+          ${field("s-url", "Website (where to find)", e.url, 'type="url" placeholder="https://"')}
           ${field("s-api", "API or feed URL (optional)", e.apiUrl, 'type="url" placeholder="https://"')}
           ${field("s-cred", "API key name (optional)", e.credential, 'placeholder="CONNECTWERX_API_KEY" maxlength="64" autocomplete="off" spellcheck="false"')}
-          ${selectField("s-status", "Status", ["Needs connector", "Connected", "Paused"], e.status || "Needs connector")}
+          ${field("s-agency", "Parent agency", e.parentAgency, 'maxlength="120"')}
+          ${areaField("s-mech", "Funding mechanisms", e.mechanisms, "")}
+          ${areaField("s-apidetails", "API / data access details", e.apiDetails, "")}
+          ${areaField("s-focus", "Current focus areas / interests", e.focusAreas, "")}
+          ${areaField("s-unsol", "Unsolicited / white-paper path", e.unsolicited, "")}
+          ${field("s-cadence", "Update cadence", e.cadence, 'maxlength="200"', "wide")}
           ${areaField("s-notes", "Notes", e.notes, "")}
           <p class="help" style="grid-column:1/-1"><b>Don't paste API keys here.</b> Everyone who can open this page can read what's saved on it. Enter a name for the key; the key itself is stored in the scanner's environment settings under that name.</p>
           ${formActions("source", isNew)}
-        </div></section>
-      <section class="items">${builtIn}${rows.map((s) => `<div class="item"><div class="top"><h3>${esc(s.name)}</h3><span class="status ${s.status === "Connected" ? "on" : s.status === "Paused" ? "off" : "todo"}">${esc(s.status || "Needs connector")}</span></div>
-        <div class="kv"><span>Type <b>${esc(s.type)}</b></span>${safeUrl(s.url) ? `<span>Website <a href="${esc(s.url)}" target="_blank" rel="noopener">${esc(s.url.replace(/^https?:\/\//, ""))} ↗</a></span>` : ""}${s.apiUrl ? `<span>API <b class="mono">${esc(s.apiUrl.replace(/^https?:\/\//, ""))}</b></span>` : ""}${s.credential ? `<span>Key name <b class="mono">${esc(s.credential)}</b></span>` : ""}</div>
-        ${s.notes ? `<p class="help">${esc(s.notes)}</p>` : ""}
-        <div class="btns">${editBtn("source", s.id)}${removeBtn("source", s.id)}</div></div>`).join("")}</section>`;
+        </div></details>
+      ${notes.length ? `<details class="panel"><summary style="cursor:pointer;font-weight:600">Catalog review notes (${notes.length})</summary><div class="items" style="margin-top:8px">${notes.map((n) => `<div class="item"><div class="top"><h3>${esc(n.topic)}</h3></div>
+          <div class="kv" style="display:grid;gap:4px"><span>Notes said <b>${esc(n.said || "")}</b></span><span>Found <b>${esc(n.found || "")}</b></span><span>Action <b>${esc(n.action || "")}</b></span>${safeUrl(n.source) ? `<span><a href="${esc(n.source)}" target="_blank" rel="noopener">Source ↗</a></span>` : ""}</div></div>`).join("")}</div></details>` : ""}
+      <div id="src-list">${groups.length ? groups.map(([c, xs]) => `<section class="srcgroup"><h2>${esc(c)} · ${xs.length}</h2><div class="items">${xs.map(item).join("")}</div></section>`).join("") : `<p class="panel empty">No sources match these filters.</p>`}</div>`;
   }
 
   // ---------- partners ----------
@@ -1233,7 +1298,7 @@ Reply with only a JSON object:
     app.innerHTML = r.startsWith("opp-") ? viewDetail(r.slice(4)) : (VIEWS[r] || viewDashboard)();
   }
   const saveFilters = () => { try { localStorage.setItem("fg-filters", JSON.stringify(ui)); } catch {} };
-  const CLEAR = { q: "", min: "", agency: "", stage: "", cat: "", role: "", partner: false, clean: false, closed: false, stars: "", starBasis: ui.starBasis || "mine", unrated: true };
+  const CLEAR = { q: "", min: "", agency: "", stage: "", cat: "", role: "", mech: "", partner: false, clean: false, closed: false, stars: "", starBasis: ui.starBasis || "mine", unrated: true };
   const go = (hash, patch) => { Object.assign(ui, patch || {}); saveFilters(); if (location.hash === hash) render(); else location.hash = hash; };
   // Re-render on shared-data changes without clobbering a field someone is typing in.
   let dirty = false;
@@ -1244,7 +1309,7 @@ Reply with only a JSON object:
     const f = document.activeElement;
     if (dirty) return route().startsWith("opp-") ? refreshRatings() : undefined;
     if (route() === "pipeline" && f && f.closest && f.closest("#filters, #board")) return refreshBoard();
-    if (f && f.closest && f.closest("#decision, #filters, #hfilters, .form, #kw-form, .picker, .sugg")) return;
+    if (f && f.closest && f.closest("#decision, #filters, #hfilters, #sfilters, .form, #kw-form, .picker, .sugg")) return;
     // Someone rating in the list or on a detail page: redraw only the ratings so nothing else jumps or resets.
     if (f && f.closest && f.closest("#results, #my-stars")) return refreshRatings();
     render();
@@ -1277,7 +1342,7 @@ Reply with only a JSON object:
   }
   const LABELS = {
     decision: { stage: "Stage", reviewDate: "Forge internal deadline", owner: "Owner", notes: "Notes" },
-    source: { name: "Name", type: "Type", url: "Website", apiUrl: "API URL", credential: "Key name", status: "Status", notes: "Notes" },
+    source: { name: "Name", category: "Category", api: "API available", status: "Status", url: "Website", apiUrl: "API URL", apiDetails: "Data access", credential: "Key name", parentAgency: "Parent agency", mechanisms: "Funding mechanisms", focusAreas: "Focus areas", unsolicited: "White-paper path", cadence: "Update cadence", notes: "Notes" },
     partner: { name: "Name", type: "Type", url: "Link", contact: "Contact", summary: "Focus summary", focus: "Focus areas", notes: "Notes" },
     category: { name: "Name", keywords: "Keywords", members: "Team members" },
     profile: { summary: "Summary", capabilities: "Capabilities", partners: "Core partners", goodFit: "Good fit", poorFit: "Poor fit", decisionCriteria: "Decision criteria", internalReviewLeadDays: "Internal deadline lead days", searchKeywords: "Built-in keywords" },
@@ -1320,7 +1385,11 @@ Reply with only a JSON object:
       if (apiUrl && !safeUrl(apiUrl)) return toast(t, "The API URL should start with https://");
       if (credential && !/^[A-Za-z][A-Za-z0-9_]{1,63}$/.test(credential)) return toast(t, "Use a short name like CONNECTWERX_API_KEY (letters, numbers, underscores), not the key itself.");
       if (credential && credential.length > 24 && /\d/.test(credential) && /[a-z]/.test(credential) && /[A-Z]/.test(credential)) return toast(t, "That looks like an actual key. Enter a name for it instead, like CONNECTWERX_API_KEY.");
-      coll = "sources"; body = { name, type: val("s-type"), url, apiUrl, credential: credential.toUpperCase(), status: val("s-status"), notes: val("s-notes").slice(0, 2000) };
+      const prevSrc = editing.source && editing.source !== "new" ? S.sources[editing.source] || {} : {};
+      coll = "sources"; body = { ...prevSrc, name, category: val("s-category"), api: val("s-api-avail"), url, apiUrl, credential: credential.toUpperCase(), status: val("s-status"),
+        parentAgency: val("s-agency"), mechanisms: val("s-mech").slice(0, 1000), apiDetails: val("s-apidetails").slice(0, 1000), focusAreas: val("s-focus").slice(0, 2000),
+        unsolicited: val("s-unsol").slice(0, 2000), cadence: val("s-cadence").slice(0, 200), notes: val("s-notes").slice(0, 2000) };
+      delete body.id; delete body.type; delete body.updatedAt; delete body.updatedBy;
     } else if (kind === "partner") {
       const name = val("p-name"), url = val("p-url");
       if (!name) return toast(t, "Give the partner a name.");
@@ -1556,9 +1625,16 @@ Reply with only a JSON object:
       list.hidden = false;
       return;
     }
+    if (e.target.closest?.("#sfilters")) {
+      sf[{ "sf-q": "q", "sf-cat": "cat", "sf-api": "api", "sf-status": "status" }[e.target.id]] = e.target.value;
+      clearTimeout(typing);
+      typing = setTimeout(() => { const html = viewSources(); const tmp = document.createElement("div"); tmp.innerHTML = html;
+        document.getElementById("src-list").replaceWith(tmp.querySelector("#src-list")); document.getElementById("sf-count").textContent = tmp.querySelector("#sf-count").textContent; }, 120);
+      return;
+    }
     if (e.target.id === "h-kind" || e.target.id === "h-who") { hf[e.target.id === "h-kind" ? "kind" : "who"] = e.target.value; return render(); }
     if (!e.target.closest("#filters")) return;
-    const map = { "f-q": "q", "f-min": "min", "f-agency": "agency", "f-stage": "stage", "f-cat": "cat", "f-role": "role", "f-stars": "stars", "f-basis": "starBasis" };
+    const map = { "f-q": "q", "f-min": "min", "f-agency": "agency", "f-stage": "stage", "f-cat": "cat", "f-role": "role", "f-mech": "mech", "f-stars": "stars", "f-basis": "starBasis" };
     if (map[e.target.id]) ui[map[e.target.id]] = e.target.value;
     if (e.target.id === "f-clean") ui.clean = e.target.checked;
     if (e.target.id === "f-closed") ui.closed = e.target.checked;

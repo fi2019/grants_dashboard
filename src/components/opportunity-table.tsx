@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { formatMoney } from "@/lib/dates";
 import type { Opportunity } from "@/lib/types";
-import { DeadlineChip, RoleBadge, ScoreBadge, SourceTag, StageBadge } from "./badges";
+import { DeadlineChip, MechanismBadges, RoleBadge, ScoreBadge, SourceTag, StageBadge } from "./badges";
 
 export function OpportunityTable({ items, empty = "Nothing here yet." }: { items: Opportunity[]; empty?: string }) {
   if (!items.length) return <p className="rounded-lg bg-white p-6 text-sm text-slate-500">{empty}</p>;
@@ -28,6 +28,7 @@ export function OpportunityTable({ items, empty = "Nothing here yet." }: { items
                 </Link>
                 <div className="mt-0.5 flex flex-wrap items-center gap-2 text-xs text-slate-500">
                   <SourceTag source={o.source} />
+                  <MechanismBadges o={o} />
                   <RoleBadge o={o} />
                   <span>{o.agency}</span>
                   {o.number && <span>· {o.number}</span>}

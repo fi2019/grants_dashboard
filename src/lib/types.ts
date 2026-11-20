@@ -111,6 +111,10 @@ export interface Opportunity {
   agencyCode: string | null;
   description: string | null;
   eligibilityText: string | null;
+  /** Grants.gov funding-instrument codes: G grant, CA cooperative agreement, PC procurement contract, O other. */
+  fundingInstruments?: string[];
+  /** Funding vehicle labels, e.g. ["SBIR", "Grant"]. See screening/mechanism.ts. */
+  mechanisms?: string[];
   /** Assistance Listing (CFDA) numbers, e.g. ["47.076"]. */
   assistanceListings?: string[];
   pastAwards?: PastAwards | null;

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { DeadlineChip, RoleBadge, ScoreBadge, SourceTag, StageBadge } from "@/components/badges";
+import { DeadlineChip, MechanismBadges, RoleBadge, ScoreBadge, SourceTag, StageBadge } from "@/components/badges";
 import { DecisionPanel } from "@/components/decision-panel";
 import { formatDate, formatMoney, formatRange } from "@/lib/dates";
 import { getOpportunity } from "@/lib/store";
@@ -26,7 +26,7 @@ export default async function OpportunityPage({ params }: { params: Promise<{ id
         <div>
           <Link href="/opportunities" className="text-sm text-navy-700 hover:underline">← Opportunities</Link>
           <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-slate-500">
-            <SourceTag source={o.source} /> <span>{o.agency}</span> {o.number && <span>· {o.number}</span>} <StageBadge stage={o.stage} /> <RoleBadge o={o} />
+            <SourceTag source={o.source} /> <span>{o.agency}</span> {o.number && <span>· {o.number}</span>} <StageBadge stage={o.stage} /> <RoleBadge o={o} /> <MechanismBadges o={o} />
           </div>
           <h1 className="mt-1 text-2xl font-semibold text-navy-900">{o.title}</h1>
           {o.sourceUrl && (

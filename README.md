@@ -12,7 +12,7 @@ It shows the latest data snapshot. Team-editable lists live in the page's shared
 
 - **Categories**: keyword groups with assigned team members. Matching opportunities are tagged and appear under "Your categories" on each member's dashboard.
 - **Partners**: labs, universities, researchers and program areas, with a link and focus areas. Opportunities that mention a partner's focus areas are flagged as possible joint submissions.
-- **Sources**: websites and databases to check, with an optional API URL and the *name* of the API key. Keys are never stored on the page; they go in the scanner's environment under that name.
+- **Sources**: the 77-source Federal Funding Sources Catalog (`docs/Federal_Funding_Sources_Catalog.xlsx`, also as `config/sources-catalog.json`) plus team additions: category, API availability, funding mechanisms, focus areas, white-paper path and status. Websites and databases to check, with an optional API URL and the *name* of the API key. Keys are never stored on the page; they go in the scanner's environment under that name.
 - **Search keywords**: team additions on the Forge profile tab, on top of `config/forge-profile.json`. Go/No-go decisions, owners, notes and review dates entered there are shared by everyone the page is shared with. It cannot run scans. To refresh it, run `npm run scan`, then `python3 hosted/build-data.py`, then republish `hosted/index.html` with `hosted/opportunities.json` and `hosted/meta.json` to the same URL.
 
 ## Claude Project connector (MCP)

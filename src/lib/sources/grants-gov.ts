@@ -103,6 +103,7 @@ interface Synopsis {
   costSharing?: string | boolean;
   awardFloor?: string;
   awardCeiling?: string;
+  fundingInstruments?: { id: string; description?: string }[];
   estimatedFunding?: string;
   numberOfAwards?: string;
   responseDateStr?: string;
@@ -118,7 +119,9 @@ export async function fetchDetails(id: string): Promise<Partial<Opportunity>> {
     : "";
   const cost = String(s.costSharing ?? "").toLowerCase();
   const listings = (data.cfdas ?? []).map((c) => c.cfdaNumber).filter((x): x is string => Boolean(x));
+  const instruments = Array.isArray(s.fundingInstruments) ? s.fundingInstruments.map((f) => f.id).filter(Boolean) : [];
   return {
+    ...(instruments.length ? { fundingInstruments: instruments } : {}),
     ...(listings.length ? { assistanceListings: [...new Set(listings)] } : {}),
     description: stripHtml(s.synopsisDesc),
     eligibilityText: [applicantTypes, stripHtml(s.applicantEligibilityDesc)].filter(Boolean).join("\n\n") || null,

@@ -36,11 +36,11 @@ const OFF_TOPIC: { label: string; weight: number; pattern: RegExp }[] = [
  * lead: these opportunities stay in play with Forge as a partner, subrecipient
  * or subcontractor to an eligible lead (a university, lab or small business).
  */
-const LEAD_RESTRICTIONS: { reason: string; pattern: RegExp }[] = [
+const LEAD_RESTRICTIONS: { reason: string; pattern: RegExp; titleOnly?: boolean }[] = [
   { reason: "Only institutions of higher education may apply", pattern: /(only|exclusively|restricted to)[^.]{0,60}institutions of higher education/i },
   { reason: "Requires a tenured or tenure-track PI", pattern: /tenure[- ]track|tenured faculty/i },
   { reason: "Nonprofits are not eligible to apply directly", pattern: /nonprofits? (are|is) not eligible|for[- ]profit (entities )?only/i },
-  { reason: "SBIR/STTR: a small business must be the applicant", pattern: /\bSBIR\b|\bSTTR\b|small business innovation research/i },
+  { reason: "SBIR/STTR: a small business must be the applicant", pattern: /\bSBIR\b|\bSTTR\b|small business innovation research|small business technology transfer/i, titleOnly: true },
   { reason: "Restricted to HBCUs / tribal institutions", pattern: /only[^.]{0,40}(HBCU|historically black|tribal colleges)/i },
 ];
 
@@ -66,7 +66,7 @@ export function evaluateCriteria(o: ScreenInput): CriterionResult[] {
 
   const nonprofitOk =
     /nonprofits?( organizations)?|501\s*\(c\)\s*\(3\)|unrestricted/i;
-  const leadBlocked = LEAD_RESTRICTIONS.find((b) => b.pattern.test(text));
+  const leadBlocked = LEAD_RESTRICTIONS.find((b) => b.pattern.test(b.titleOnly ? o.title : text));
   const label = "Forge can lead";
   const lead: CriterionResult = leadBlocked
     ? { id: "lead_eligible", label, status: "fail", evidence: `${leadBlocked.reason}. Forge can still join as a partner or subrecipient.` }

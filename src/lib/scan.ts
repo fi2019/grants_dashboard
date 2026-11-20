@@ -1,6 +1,7 @@
 import { evaluateWithClaude, isClaudeConfigured } from "./evaluation/claude";
 import { profile } from "./profile";
 import { screen } from "./screening/criteria";
+import { classifyMechanisms } from "./screening/mechanism";
 import { fetchPastAwards } from "./sources/past-awards";
 import { CONNECTORS, connectorFor } from "./sources";
 import { listOpportunities, saveScanLog, upsertOpportunities, type ScanLog } from "./store";
@@ -56,6 +57,7 @@ export async function runScan(opts: ScanOptions = {}): Promise<ScanLog> {
       }
     }
     o.screening = screen(o);
+    o.mechanisms = classifyMechanisms(o);
   }
 
   // Past awards under the same program, cached per program so shared listings are fetched once.

@@ -69,6 +69,24 @@ export function RoleBadge({ o }: { o: Opportunity }) {
   return <span title={tip} className={`rounded px-1.5 py-0.5 text-[11px] font-medium ${ROLE[role].cls}`}>{ROLE[role].text}</span>;
 }
 
+const MECH_STYLE: Record<string, string> = {
+  SBIR: "bg-purple-100 text-purple-800", STTR: "bg-purple-100 text-purple-800",
+  BAA: "bg-orange-100 text-orange-800", CSO: "bg-orange-100 text-orange-800", OT: "bg-orange-100 text-orange-800",
+  Grant: "bg-emerald-50 text-emerald-800", "Cooperative agreement": "bg-emerald-50 text-emerald-800", Contract: "bg-sky-50 text-sky-800",
+};
+
+/** Funding vehicle labels: SBIR, STTR, BAA, Grant, Cooperative agreement, Contract, OT, CSO, Prize, Forecast… */
+export function MechanismBadges({ o }: { o: Opportunity }) {
+  if (!o.mechanisms?.length) return null;
+  return (
+    <>
+      {o.mechanisms.map((m) => (
+        <span key={m} className={`rounded px-1.5 py-0.5 font-mono text-[10px] font-semibold ${MECH_STYLE[m] ?? "bg-slate-100 text-slate-700"}`}>{m}</span>
+      ))}
+    </>
+  );
+}
+
 export function SourceTag({ source }: { source: string }) {
   return <span className="rounded bg-navy-800 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-white">{source}</span>;
 }

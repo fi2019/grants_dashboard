@@ -2,11 +2,12 @@ import { OpportunityTable } from "@/components/opportunity-table";
 import { fitScore, isOpen, sortByFit } from "@/lib/dashboard";
 import { agencyForCode, profile } from "@/lib/profile";
 import { listOpportunities } from "@/lib/store";
+import { MECHANISMS } from "@/lib/screening/mechanism";
 import { STAGES, STAGE_LABELS, type Stage } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
-type Search = { q?: string; min?: string; stage?: string; agency?: string; show?: string; criteria?: string; role?: string };
+type Search = { q?: string; min?: string; stage?: string; agency?: string; show?: string; criteria?: string; role?: string; type?: string };
 
 export default async function OpportunitiesPage({ searchParams }: { searchParams: Promise<Search> }) {
   const sp = await searchParams;
@@ -21,6 +22,7 @@ export default async function OpportunitiesPage({ searchParams }: { searchParams
       if (min && (fitScore(o) ?? 0) < min) return false;
       if (sp.agency && agencyForCode(o.agencyCode)?.id !== sp.agency) return false;
       if (sp.criteria === "clean" && o.screening?.criteria.some((c) => c.status === "fail" && c.id !== "lead_eligible")) return false;
+      if (sp.type && !o.mechanisms?.includes(sp.type)) return false;
       if (sp.role && (o.evaluation?.forgeRole ?? o.screening?.leadRole) !== sp.role && !(sp.role === "lead" && o.evaluation?.forgeRole === "either")) return false;
       if (q && ![o.title, o.agency, o.number, o.description].some((f) => f?.toLowerCase().includes(q))) return false;
       return true;
@@ -46,6 +48,10 @@ export default async function OpportunitiesPage({ searchParams }: { searchParams
         <select name="stage" defaultValue={sp.stage ?? ""} className={select}>
           <option value="">Open stages</option>
           {STAGES.map((s: Stage) => <option key={s} value={s}>{STAGE_LABELS[s]}</option>)}
+        </select>
+        <select name="type" defaultValue={sp.type ?? ""} className={select}>
+          <option value="">Any type</option>
+          {MECHANISMS.map((m) => <option key={m} value={m}>{m}</option>)}
         </select>
         <select name="role" defaultValue={sp.role ?? ""} className={select}>
           <option value="">Lead or partner</option>
