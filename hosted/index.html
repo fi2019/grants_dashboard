@@ -456,6 +456,18 @@ details.addform[open] > summary::before { content: "− " }
 .health[data-tip]:hover::after, .health[data-tip]:focus::after {
   content: attr(data-tip); position: absolute; right: 0; top: calc(100% + 6px); z-index: 20; width: min(340px, 80vw); white-space: normal;
   background: var(--fg); color: var(--bg); font-size: 12px; line-height: 1.45; padding: 8px 10px; border-radius: 6px; box-shadow: 0 4px 14px rgba(0,0,0,.18) }
+/* Funding sponsor freshness: yellow after 1 week without a pull or update, red after 3 weeks. */
+:root { --stale-bg: #fff3b8; --stale-line: #d9b21f; --stale-ink: #6b5200 }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --stale-bg: #3a3310; --stale-line: #b8961c; --stale-ink: #f2d66b } }
+:root[data-theme="dark"] { --stale-bg: #3a3310; --stale-line: #b8961c; --stale-ink: #f2d66b }
+.item.stale1 { background: var(--stale-bg); border-color: var(--stale-line) }
+.item.stale3 { background: var(--bad-bg); border-color: var(--bad) }
+.fresh { font: 12px var(--mono); color: var(--muted) }
+.item.stale1 .fresh { color: var(--stale-ink); font-weight: 600 }
+.item.stale3 .fresh { color: var(--bad); font-weight: 600 }
+.swatch { display: inline-block; width: 12px; height: 12px; border-radius: 3px; vertical-align: -1px; margin-right: 4px; border: 1px solid var(--line) }
+.swatch.stale1 { background: var(--stale-bg); border-color: var(--stale-line) }
+.swatch.stale3 { background: var(--bad-bg); border-color: var(--bad) }
 .nav-badge { display: inline-block; min-width: 18px; margin-left: 5px; padding: 0 5px; border-radius: 9px; background: var(--accent); color: var(--on-accent); font: 600 11px/18px var(--mono); text-align: center }
 </style>
 
@@ -952,6 +964,26 @@ details.addform[open] > summary::before { content: "− " }
     if (h.problem) return `<span class="health warn" tabindex="0" role="note" aria-label="Warning: ${esc(h.problem)}" data-tip="${esc(`${h.problem} Checked ${when}.`)}">Check</span>`;
     return `<span class="health ok" tabindex="0" data-tip="${esc(`Reachable${(h.checks || []).length ? `: ${h.checks.map((c) => `${c.what} answered (HTTP ${c.code})`).join("; ")}` : ""}. Checked ${when}.`)}">OK</span>`;
   }
+  // Freshness: the most recent of the daily check (pulled) and the record's last edit (updated).
+  const STALE_WARN_DAYS = 7, STALE_BAD_DAYS = 21;
+  function lastPull(x) {
+    const h = healthOf(x);
+    return [[h?.checkedAt, "pulled"], [x.updatedAt, "updated"]]
+      .map(([t, kind]) => ({ t: Date.parse(t || ""), kind })).filter((c) => !Number.isNaN(c.t))
+      .sort((a, b) => b.t - a.t)[0] || null;
+  }
+  function staleClass(x) {
+    const l = lastPull(x); if (!l) return "stale3";
+    const age = Date.now() - l.t;
+    return age > STALE_BAD_DAYS * DAY ? "stale3" : age > STALE_WARN_DAYS * DAY ? "stale1" : "";
+  }
+  function pullHtml(x) {
+    const l = lastPull(x);
+    if (!l) return `<span class="fresh">Never pulled or updated</span>`;
+    const days = Math.floor((Date.now() - l.t) / DAY);
+    const tip = l.kind === "pulled" ? "Last checked by the daily scan" : "Last time this record was added or edited";
+    return `<span class="fresh" title="${tip}">Last ${l.kind} ${fmtCT(l.t)}${days >= 1 ? ` · ${days} day${days === 1 ? "" : "s"} ago` : ""}</span>`;
+  }
   // ---------- proposal requirements per funding sponsor ----------
   // Each sponsor can hold generic requirement outlines for each stage it uses.
   const REQ_STAGES = ["Initial submission", "White paper", "Full proposal"];
@@ -1015,8 +1047,9 @@ details.addform[open] > summary::before { content: "− " }
     // Within a category: connected first, then those with an API, then by name.
     const rank = (x) => (x.status === "Connected" ? 0 : 3) + ({ Yes: 0, Partial: 1 }[x.api] ?? 2);
     const groups = SOURCE_CATEGORIES.map((c) => [c, rows.filter((x) => (x.category || "Other") === c).sort((a, b) => rank(a) - rank(b) || a.name.localeCompare(b.name))]).filter(([, xs]) => xs.length);
-    const item = (x) => `<div class="item"><div class="top"><h3>${safeUrl(x.url) ? `<a href="${esc(x.url)}" target="_blank" rel="noopener">${esc(x.name)} ↗</a>` : esc(x.name)}</h3>
+    const item = (x) => `<div class="item ${staleClass(x)}"><div class="top"><h3>${safeUrl(x.url) ? `<a href="${esc(x.url)}" target="_blank" rel="noopener">${esc(x.name)} ↗</a>` : esc(x.name)}</h3>
         <span style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:flex-end">${healthHtml(x)}${x.api ? `<span class="api ${String(x.api).toLowerCase()}" title="API available">API: ${esc(x.api)}</span>` : ""}<span class="status ${statusClass(x.status)}">${esc(x.status || "Needs connector")}</span></span></div>
+      <div>${pullHtml(x)}</div>
       <div class="kv">${x.parentAgency ? `<span>Agency <b>${esc(x.parentAgency)}</b></span>` : ""}${x.mechanisms ? `<span>Mechanisms <b>${esc(x.mechanisms)}</b></span>` : ""}</div>
       ${x.apiDetails || x.apiUrl ? `<div class="kv"><span>Data access <b>${esc(x.apiDetails || x.apiUrl)}</b></span>${x.credential ? `<span>Key name <b class="mono">${esc(x.credential)}</b></span>` : ""}</div>` : ""}
       ${x.focusAreas || x.unsolicited || x.cadence || x.notes || x.reference ? `<details><summary class="note">Focus areas, white-paper path, update cadence and notes</summary><div class="kv" style="display:grid;gap:4px;margin-top:6px">
@@ -1030,7 +1063,7 @@ details.addform[open] > summary::before { content: "− " }
       ${reqsHtml(x)}
       <div class="btns">${editBtn("source", x.id)}${removeBtn("source", x.id)}</div></div>`;
     return `<div class="head"><div><h1>Funding sponsors</h1><p class="sub" style="margin:4px 0 0">Who funds the work and where Forge looks: portals, agencies, DoD and IC innovation offices, consortia and intermediaries. Connected sponsors feed the scanner; the rest need a connector or a manual check.</p></div></div>
-      <div class="srcstats"><span><b>${all.length}</b> funding sponsors</span><span><b>${count((x) => x.status === "Connected")}</b> connected</span><span><b>${count((x) => x.api === "Yes")}</b> with an API</span><span><b>${count((x) => x.api === "Partial")}</b> partial API</span><span><b>${count((x) => (x.status || "") === "Manual check")}</b> manual check</span><span><b>${count((x) => (x.requirements || []).length)}</b> with proposal requirements</span><span style="color:var(--bad)"><b style="color:inherit">${count(hasProblem)}</b> with a problem</span>${S.settings.sourceHealth?.checkedAt ? `<span>Checked ${new Date(S.settings.sourceHealth.checkedAt).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit", timeZone: "America/Chicago" })} CT · hover a Problem for the reason</span>` : ""}${S.settings.catalog?.compiled ? `<span>Catalog compiled ${esc(S.settings.catalog.compiled)}</span>` : ""}</div>
+      <div class="srcstats"><span><b>${all.length}</b> funding sponsors</span><span><b>${count((x) => x.status === "Connected")}</b> connected</span><span><b>${count((x) => x.api === "Yes")}</b> with an API</span><span><b>${count((x) => x.api === "Partial")}</b> partial API</span><span><b>${count((x) => (x.status || "") === "Manual check")}</b> manual check</span><span><b>${count((x) => (x.requirements || []).length)}</b> with proposal requirements</span><span style="color:var(--bad)"><b style="color:inherit">${count(hasProblem)}</b> with a problem</span>${S.settings.sourceHealth?.checkedAt ? `<span>Checked ${new Date(S.settings.sourceHealth.checkedAt).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit", timeZone: "America/Chicago" })} CT · hover a Problem for the reason</span>` : ""}${S.settings.catalog?.compiled ? `<span>Catalog compiled ${esc(S.settings.catalog.compiled)}</span>` : ""}<span><i class="swatch stale1"></i><b style="color:inherit;font-family:inherit">${count((x) => staleClass(x) === "stale1")}</b> not pulled or updated in over 1 week</span><span><i class="swatch stale3"></i><b style="color:inherit;font-family:inherit">${count((x) => staleClass(x) === "stale3")}</b> over 3 weeks</span></div>
       <div class="panel filters" id="sfilters">
         <input id="sf-q" placeholder="Search name, mechanism, focus area…" value="${esc(sf.q)}" aria-label="Search funding sponsors">
         <select id="sf-cat" aria-label="Category">${opt("", "All categories", sf.cat)}${SOURCE_CATEGORIES.map((c) => opt(c, c, sf.cat)).join("")}</select>
@@ -2352,6 +2385,7 @@ ${JSON.stringify({ partners: inp.partners, fundingSponsors: inp.sources, opportu
         <li><b>Connected</b> sponsors are scanned automatically: Grants.gov and the DHS acquisition forecast today. Others are listed so the team knows where to look and how to engage (mechanisms, white-paper paths, update cadence).</li>
         <li><b>Proposal requirements.</b> Each sponsor can hold the generic outline it asks for at each stage: <span class="stage init">Initial submission</span> <span class="stage wp">White paper</span> <span class="stage full">Full proposal</span>. Paste the numbered sections with <b>+ Add requirements</b>; use <b>Copy outline</b> to start a draft. Teaming uses them when it suggests topics and shows them on each topic card for that sponsor.</li>
         <li>The <b>health</b> badge on each sponsor shows whether its site could be reached in the last daily check. Hover a <i>Problem</i> badge to see why.</li>
+        <li>Each sponsor shows when it was <b>last pulled</b> (checked by the daily scan) or <b>last updated</b> (record added or edited), whichever is more recent. The card turns <b>yellow</b> after 1 week without either, and <b>red</b> after 3 weeks.</li>
         <li><b>API keys never go on this page.</b> Enter only the key's name (like <code>SAM_API_KEY</code>); the key itself is stored in the scanner's settings.</li>
       </ul>`],
     ["timing", "When things happen", `
