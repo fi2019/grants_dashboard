@@ -215,6 +215,14 @@ td .meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; color:
 .tlist li .note { text-align: right; flex-shrink: 1; max-width: 45% }
 .tlist label { display: flex; gap: 6px; align-items: baseline }
 .tx { padding: 0 8px; font-size: 15px; line-height: 1.4 }
+.cfgs { display: grid; gap: 10px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); margin-top: 10px }
+.cfg { display: grid; gap: 4px; align-content: start; border: 1px solid var(--line); border-left: 4px solid var(--line); border-radius: 8px; padding: 10px 12px; background: var(--surface-2) }
+.cfg.on { border-left-color: var(--accent); background: var(--surface) }
+.cfgtop { display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap }
+.cfgtag { font-size: 11px; font-weight: 600; border-radius: 999px; padding: 0 8px; background: var(--warn-bg); color: var(--warn) }
+.cfg .btns { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px }
+.cfg .btns button { padding: 3px 10px; font-size: 13px }
+#cfg-name { width: min(360px, 60vw) }
 .concept { gap: 12px; background: var(--surface-2) }
 .cgroup { display: grid; gap: 14px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 480px), 1fr)); align-items: start }
 .cbox { display: grid; gap: 10px; align-content: start; background: var(--surface); border: 1px solid var(--line); border-top: 4px solid var(--n-source); border-radius: 10px; padding: 14px 16px; box-shadow: 0 1px 3px rgba(4, 28, 44, .07); min-width: 0 }
@@ -440,7 +448,7 @@ details.addform[open] > summary::before { content: "− " }
 
   let OPPS = [], META = { profile: { federalAgencies: [], searchKeywords: [], capabilities: [], partners: [], goodFit: [], poorFit: [] } };
   // Shared, team-editable state (db collections).
-  const S = { decisions: {}, sources: {}, partners: {}, categories: {}, keywords: {}, profile: {}, history: {}, ratings: {}, partnerDocs: {}, research: {}, settings: {}, coaching: {}, teaming: {}, concepts: {}, proposals: {}, people: {} };
+  const S = { decisions: {}, sources: {}, partners: {}, categories: {}, keywords: {}, profile: {}, history: {}, ratings: {}, partnerDocs: {}, research: {}, settings: {}, coaching: {}, teaming: {}, concepts: {}, proposals: {}, people: {}, teamingSaved: {} };
   // Effective Forge profile: the repo's profile file, overridden by the team's edits (profile/main).
   const P = () => ({ ...META.profile, ...(S.profile.main || {}) });
   const leadDays = () => Math.min(90, Math.max(1, Number(P().internalReviewLeadDays) || 14));
@@ -1763,8 +1771,11 @@ Reply with only a JSON object:
     const set = b.items.map(itemOf).filter(Boolean);
     const nP = set.filter((x) => x.kind === "partner").length, nF = set.filter((x) => x.kind !== "partner").length;
     const ready = b.topics.length && nP && nF;
-    const concepts = sorted(S.concepts, "createdAt").reverse();
+    if (TM.cfilter && TM.cfilter !== "@none" && !S.teamingSaved[TM.cfilter]) TM.cfilter = "";
+    const concepts = sorted(S.concepts, "createdAt").reverse().filter((c) => !TM.cfilter || (TM.cfilter === "@none" ? !c.savedId : c.savedId === TM.cfilter));
+    const allConcepts = Object.keys(S.concepts).length;
     return `<div class="head"><div><h1>Teaming</h1><p class="sub" style="margin:4px 0 0">Pick focus areas, partners and funding sponsors, see how they connect, and have Claude suggest topics to propose to each sponsor.</p></div></div>
+      ${savedHtml()}
       <section class="panel"><h2>1. Focus areas</h2>
         <div class="chips" style="margin:8px 0">${b.topics.map((t) => `<span class="x tchip">${esc(t)}<button type="button" data-untopic="${esc(t)}" aria-label="Remove ${esc(t)}" ${ro()}>×</button></span>`).join("") || `<span class="help">No focus areas yet. Add one below or pick a suggestion.</span>`}</div>
         <form id="topic-form" class="search" style="max-width:520px"><input id="topic-in" list="topic-list" placeholder="Type a focus area, e.g. cyber, grid" aria-label="Add a focus area" maxlength="60" ${ro()}><button class="btn" ${ro()}>Add</button></form>
@@ -1791,6 +1802,7 @@ Reply with only a JSON object:
         </div>
       </section>
       <section><h2 style="margin-bottom:10px">Topic ideas ${concepts.length ? `<span class="note">${concepts.length} ${concepts.length === 1 ? "set" : "sets"}</span>` : ""}</h2>
+        ${Object.keys(S.teamingSaved).length ? `<div class="filters" style="margin-bottom:10px"><label>Show <select id="t-cfilter"><option value="">All topic ideas (${allConcepts})</option>${sorted(S.teamingSaved, "name").map((c) => `<option value="${esc(c.id)}" ${TM.cfilter === c.id ? "selected" : ""}>From "${esc(c.name)}"</option>`).join("")}<option value="@none" ${TM.cfilter === "@none" ? "selected" : ""}>Not from a saved configuration</option></select></label></div>` : ""}
         <div class="items">${concepts.map(conceptHtml).join("") || `<p class="panel empty">No topic ideas yet. Make your picks above and choose Suggest topics to propose.</p>`}</div></section>`;
   }
 
@@ -1896,7 +1908,70 @@ Reply with only a JSON object:
       mechanisms: x.mechanisms, interestAreas: String(x.focusAreas || "").slice(0, 1800), unsolicitedPath: String(x.unsolicited || "").slice(0, 700), notes: String(x.notes || "").slice(0, 500) }));
     return { topics: b.topics, partners, opportunities, sources, set };
   }
-  async function suggestConcepts() {
+  // ---------- saved Teaming configurations ----------
+  // A saved configuration keeps focus areas, picks and graph settings so the team can come back and refresh topic ideas.
+  try { const t = JSON.parse(localStorage.getItem("fg-teaming") || "{}"); TM.active = t.active || null; TM.cfilter = t.cfilter || ""; } catch {}
+  const saveTm = () => { try { localStorage.setItem("fg-teaming", JSON.stringify({ active: TM.active, cfilter: TM.cfilter })); } catch {} };
+  const sameSet = (a, b) => JSON.stringify([...(a || [])].sort()) === JSON.stringify([...(b || [])].sort());
+  const cfgDirty = (c) => { const b = tBoard(); return !sameSet(b.topics, c.topics) || !sameSet(b.items, c.items); };
+  const cfgSummary = (c) => { const it = c.items || [], n = (pre) => it.filter((k) => k.startsWith(pre)).length;
+    return [`${(c.topics || []).length} focus ${(c.topics || []).length === 1 ? "area" : "areas"}`, `${n("p:")} ${n("p:") === 1 ? "partner" : "partners"}`, `${n("s:")} ${n("s:") === 1 ? "sponsor" : "sponsors"}`, n("o:") ? `${n("o:")} ${n("o:") === 1 ? "opportunity" : "opportunities"}` : ""].filter(Boolean).join(" · "); };
+  function savedHtml() {
+    const list = sorted(S.teamingSaved, "name"), act = TM.active && S.teamingSaved[TM.active] ? { id: TM.active, ...S.teamingSaved[TM.active] } : null;
+    const card = (c) => { const on = c.id === act?.id, ideas = Object.values(S.concepts).filter((x) => x.savedId === c.id).length, key = "cfg:" + c.id;
+      return `<div class="cfg${on ? " on" : ""}"><div class="cfgtop"><b>${esc(c.name)}</b>${on ? `<span class="cfgtag">${cfgDirty(c) ? "Loaded · changed" : "Loaded"}</span>` : ""}</div>
+        <span class="note">${esc(cfgSummary(c))}</span>
+        <span class="note">${ideas ? `${ideas} ${ideas === 1 ? "set" : "sets"} of topic ideas · ` : ""}${c.lastRunAt ? `last refreshed ${fmtDate(c.lastRunAt)}` : "not run yet"}</span>
+        <div class="btns">${on ? "" : `<button class="btn-ghost" data-cfgload="${esc(c.id)}" ${ro()}>Load</button>`}
+          <button class="btn" data-cfgrun="${esc(c.id)}" ${ro()} ${TM.busy ? "disabled" : ""} title="Load this configuration and have Claude draft fresh topic ideas from the current partner, sponsor and opportunity data">↻ Refresh topic ideas</button>
+          ${on && cfgDirty(c) ? `<button class="btn-ghost" data-cfgupdate="${esc(c.id)}" ${ro()}>Save changes to it</button>` : ""}
+          ${armed.has(key) ? `<button class="btn-danger" data-cfgdel="${esc(c.id)}">Confirm remove</button><button class="btn-ghost" data-disarm="${esc(key)}">Cancel</button>` : `<button class="btn-ghost" data-arm="${esc(key)}" ${ro()}>Remove</button>`}</div></div>`; };
+    const b = tBoard(), canSave = b.topics.length || b.items.length;
+    return `<section class="panel"><div class="tbar"><h2 style="margin:0">Saved configurations</h2>
+        <form id="cfg-form" class="search"><input id="cfg-name" placeholder="Name the current setup, e.g. Grid cyber · IARPA + DARPA" maxlength="80" aria-label="Configuration name" ${ro()} ${canSave ? "" : "disabled"}><button class="btn" ${ro()} ${canSave ? "" : "disabled"}>Save current setup</button></form></div>
+      ${list.length ? `<div class="cfgs">${list.map(card).join("")}</div>` : `<p class="help">Save the focus areas, partners and funding sponsors below as a named setup, then come back any time to load it or refresh its topic ideas.</p>`}
+      <span class="job" id="cfg-status">${esc(TM.cfgStatus || "")}</span></section>`;
+  }
+  async function saveConfig(name) {
+    name = String(name || "").trim().slice(0, 80); if (!name || !db || !canWrite) return;
+    const b = tBoard();
+    try {
+      const ref = db.collection("teamingSaved").doc();
+      await ref.set(await stamp({ name, topics: b.topics, items: b.items, types: { ...TM.types }, perTopic: TM.perTopic, createdAt: new Date().toISOString() }));
+      TM.active = ref.id; saveTm(); TM.cfgStatus = `Saved "${name}".`;
+      logChange({ kind: "teaming", action: "saved a configuration:", targetName: name, changes: [{ field: "config", label: "Contents", to: cfgSummary(b) }] });
+      render();
+    } catch (err) { TM.cfgStatus = errMsg(err); render(); }
+  }
+  async function loadConfig(id, quiet) {
+    const c = S.teamingSaved[id]; if (!c) return;
+    TM.active = id; TM.cfilter = id; saveTm();
+    if (c.types) Object.assign(TM.types, c.types); if (c.perTopic) TM.perTopic = c.perTopic;
+    TM.focus = null; TM.cfgStatus = quiet ? "" : `Loaded "${c.name}".`;
+    if (cfgDirty(c)) await saveBoard({ topics: [...(c.topics || [])], items: [...(c.items || [])] }, quiet ? null : { action: "loaded the configuration", targetName: c.name, changes: [] });
+    else render();
+  }
+  async function updateConfig(id) {
+    const c = S.teamingSaved[id]; if (!c || !db || !canWrite) return;
+    const b = tBoard();
+    try {
+      await db.doc("teamingSaved/" + id).set(await stamp({ ...c, topics: b.topics, items: b.items, types: { ...TM.types }, perTopic: TM.perTopic }));
+      TM.cfgStatus = `Saved changes to "${c.name}".`;
+      logChange({ kind: "teaming", action: "updated the configuration", targetName: c.name, changes: [{ field: "config", label: "Contents", from: cfgSummary(c), to: cfgSummary(b) }] });
+    } catch (err) { TM.cfgStatus = errMsg(err); render(); }
+  }
+  async function refreshConfig(id) {
+    const c = S.teamingSaved[id]; if (!c || TM.busy) return;
+    await loadConfig(id, true);
+    await suggestConcepts(id);
+  }
+  async function removeConfig(id) {
+    const c = S.teamingSaved[id]; armed.delete("cfg:" + id);
+    try { await db.doc("teamingSaved/" + id).delete(); if (TM.active === id) { TM.active = null; saveTm(); } logChange({ kind: "teaming", action: "removed the configuration", targetName: c?.name || id, changes: [] }); }
+    catch (err) { TM.cfgStatus = errMsg(err); render(); }
+  }
+  async function suggestConcepts(savedId) {
+    if (typeof savedId !== "string") savedId = TM.active && S.teamingSaved[TM.active] && !cfgDirty(S.teamingSaved[TM.active]) ? TM.active : null;
     const setStatus = (m, err) => { TM.status = m; TM.err = Boolean(err); const el = document.getElementById("t-status"); if (el) { el.textContent = m; el.className = "job" + (err ? " err" : ""); } };
     const inp = conceptPayload();
     if (!inp.topics.length || !inp.partners.length || !(inp.opportunities.length + inp.sources.length)) return setStatus("Pick at least one focus area, one partner and one funding sponsor or opportunity.", true);
@@ -1952,9 +2027,10 @@ ${JSON.stringify({ partners: inp.partners, fundingSponsors: inp.sources, opportu
         approach: (c.approach || []).map(String).slice(0, 6), outcomes: (c.outcomes || []).map(String).slice(0, 5), gaps: (c.gaps || []).map(String).slice(0, 6), topics: (c.topics || []).map(String).slice(0, 6),
       })).map((c) => ({ ...c, sponsorKey: c.sponsorKey || c.fundingFit[0]?.key || null })).filter((c) => c.title && c.problemStatement && c.sponsorKey && c.partnerRoles.length);
       if (!clean.length) throw Object.assign(new Error("Claude's suggestions didn't tie back to the picked sponsors and partners. Try again, or add focus areas and research to the partners."), { soft: true });
-      const doc = await stamp({ createdAt: new Date().toISOString(), topics: inp.topics, inputs: inp.set.map((x) => ({ key: x.key, name: short(x.label, 160) })), concepts: clean });
+      const doc = await stamp({ createdAt: new Date().toISOString(), ...(savedId ? { savedId, savedName: S.teamingSaved[savedId]?.name || "" } : {}), topics: inp.topics, inputs: inp.set.map((x) => ({ key: x.key, name: short(x.label, 160) })), concepts: clean });
       const ref = db.collection("concepts").doc(); await ref.set(doc);
       for (let i = 0; i < clean.length; i++) await queuePeople(ref.id, i, doc, true);
+      if (savedId && S.teamingSaved[savedId]) { try { await db.doc("teamingSaved/" + savedId).update({ lastRunAt: doc.createdAt }); } catch {} TM.cfilter = savedId; saveTm(); }
       runResearchNow();
       logChange({ kind: "teaming", action: "drafted topic ideas for", targetName: inp.set.filter((x) => x.kind !== "partner").map((x) => x.label).join(", "), changes: [{ field: "concepts", label: "Topics", to: clean.map((c) => c.title) }] });
       TM.busy = false; setStatus(`Claude suggested ${clean.length} ${clean.length === 1 ? "topic" : "topics"}. They're saved below for the whole team.`); render();
@@ -1972,7 +2048,7 @@ ${JSON.stringify({ partners: inp.partners, fundingSponsors: inp.sources, opportu
       return safeUrl(it.ref.url) ? `<a href="${esc(it.ref.url)}" target="_blank" rel="noopener">${esc(it.label)} ↗</a>` : esc(it.label); };
     const who = c.updatedBy ? names[c.updatedBy] || "a teammate" : "the team";
     const key = "concept:" + c.id;
-    return `<article class="item concept"><div class="top"><span class="note">${(c.concepts || []).length} ${(c.concepts || []).length === 1 ? "topic" : "topics"} · ${esc((c.topics || []).join(", "))} · drafted by Claude for ${esc(who)}, ${fmtDate(c.createdAt)}</span>
+    return `<article class="item concept"><div class="top"><span class="note">${(c.concepts || []).length} ${(c.concepts || []).length === 1 ? "topic" : "topics"} ${c.savedId ? ` · from <b>${esc(S.teamingSaved[c.savedId]?.name || c.savedName || "a saved configuration")}</b>` : ""} · ${esc((c.topics || []).join(", "))} · drafted by Claude for ${esc(who)}, ${fmtDate(c.createdAt)}</span>
         <span class="btns">${armed.has(key) ? `<button class="btn-danger" data-delconcept="${esc(c.id)}">Confirm remove</button><button class="btn-ghost" data-disarm="${esc(key)}">Cancel</button>` : `<button class="btn-ghost" data-arm="${esc(key)}" ${ro()}>Remove</button>`}</span></div>
       ${(() => { const groups = new Map(); for (const x of c.concepts || []) { const k = x.sponsorKey || x.fundingFit?.[0]?.key || "?"; if (!groups.has(k)) groups.set(k, []); groups.get(k).push(x); }
         return [...groups].map(([k, xs]) => `<div class="sponsorh"><span class="tdot ${k.startsWith("o:") ? "opportunity" : "source"}"></span>For ${linkOf(k)} <span class="note">${xs.length} ${xs.length === 1 ? "topic" : "topics"}</span></div><div class="cgroup">${xs.map((x) => `<div class="cbox${S.proposals[proposalId(c.id, c.concepts.indexOf(x))] ? " fwd" : ""}" id="topic-${esc(c.id)}-${c.concepts.indexOf(x)}"><div class="top"><h3>${esc(x.title)}</h3><span class="role ${x.forgeRole === "lead" ? "lead" : "partner"}">Forge ${x.forgeRole === "lead" ? "leads" : "partners"}</span></div>
@@ -2119,7 +2195,7 @@ ${JSON.stringify({ partners: inp.partners, fundingSponsors: inp.sources, opportu
     const f = document.activeElement;
     if (dirty) return route().startsWith("opp-") ? refreshRatings() : undefined;
     if (route() === "pipeline" && f && f.closest && f.closest("#filters, #board")) return refreshBoard();
-    if (f && f.closest && f.closest("#decision, #filters, #hfilters, #sfilters, .form, #kw-form, .picker, .sugg, #topic-form, #pfilters, #tp-q, #ts-q, #quickadd")) return;
+    if (f && f.closest && f.closest("#decision, #filters, #hfilters, #sfilters, .form, #kw-form, .picker, .sugg, #topic-form, #pfilters, #tp-q, #ts-q, #quickadd, #cfg-form")) return;
     // Someone rating in the list or on a detail page: redraw only the ratings so nothing else jumps or resets.
     if (f && f.closest && f.closest("#results, #my-stars")) return refreshRatings();
     render();
@@ -2352,6 +2428,10 @@ ${JSON.stringify({ partners: inp.partners, fundingSponsors: inp.sources, opportu
     if (ds.untopic) return removeTopic(ds.untopic);
     if (ds.tpick && t.tagName === "BUTTON") return togglePick(ds.tpick);
     if (t.id === "t-suggest") return suggestConcepts();
+    if (ds.cfgload) return loadConfig(ds.cfgload);
+    if (ds.cfgrun) return refreshConfig(ds.cfgrun);
+    if (ds.cfgupdate) return updateConfig(ds.cfgupdate);
+    if (ds.cfgdel) return removeConfig(ds.cfgdel);
     if (t.id === "t-clear") return saveBoard({ items: [] }, { action: "cleared the picks on", targetName: "the teaming board", changes: [] });
     if (ds.delconcept) return removeConcept(ds.delconcept);
     if (ds.propose) return proposeTopic(ds.propose, Number(ds.idx));
@@ -2417,6 +2497,7 @@ ${JSON.stringify({ partners: inp.partners, fundingSponsors: inp.sources, opportu
     e.preventDefault();
     if (e.target.id === "qform") go("#opportunities", { ...CLEAR, q: val("dash-q") });
     if (e.target.id === "kw-form") addKeywords();
+    if (e.target.id === "cfg-form") { const v = val("cfg-name"); if (v) saveConfig(v); return; }
     if (e.target.id === "topic-form") { const v = val("topic-in"); document.getElementById("topic-in").value = ""; addTopic(v); }
   });
   app.addEventListener("change", (e) => {
@@ -2424,6 +2505,7 @@ ${JSON.stringify({ partners: inp.partners, fundingSponsors: inp.sources, opportu
     if (e.target.dataset?.tpick) return togglePick(e.target.dataset.tpick);
     if (e.target.dataset?.pull) { TM.pull[e.target.dataset.pull] = e.target.checked; return render(); }
     if (e.target.dataset?.ttype) { TM.types[e.target.dataset.ttype] = e.target.checked; return render(); }
+    if (e.target.id === "t-cfilter") { TM.cfilter = e.target.value; saveTm(); return render(); }
     if (e.target.id === "t-per") { TM.perTopic = Number(e.target.value) || 6; return render(); }
     if (e.target.id === "p-files") { const files = [...e.target.files]; e.target.value = ""; if (files.length) addFormFiles(files); return; }
     if (e.target.id === "p-url") { const u = e.target.value.trim(); if (safeUrl(u) && u !== pform.lastUrl) draftPartner(false); return; }
