@@ -1,6 +1,6 @@
 <title>Forge Grants Dashboard</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<meta name="forge:published" content="2026-11-20T21:59:03Z">
+<meta name="forge:published" content="2026-11-20T22:04:38Z">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
@@ -253,7 +253,8 @@ pre.outline { white-space: pre-wrap; font: 13px/1.55 var(--font); margin: 8px 0 
 .catgroup:first-child { margin-top: 0 }
 .cattable td, .cattable th { white-space: nowrap }
 .cattable tr.on td { background: var(--info-bg) }
-.dcat label, .tcat label { display: inline-flex; gap: 8px; align-items: center; font-size: 13px; color: var(--muted) }
+.dcat label, .tcat label { display: inline-flex; flex-wrap: wrap; gap: 8px; align-items: center; font-size: 13px; color: var(--muted); max-width: 100%; min-width: 0 }
+.dcat select, .tcat select { max-width: 100%; min-width: 0 }
 .tcat { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; margin: 10px 0 0 }
 .tcat .btn-ghost { padding: 3px 10px; font-size: 13px }
 .orggrid { display: grid; gap: 8px 24px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr)); margin: 12px 0 0 }
@@ -261,6 +262,8 @@ pre.outline { white-space: pre-wrap; font: 13px/1.55 var(--font); margin: 8px 0 
 .orggrid dt { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted) }
 .orggrid dd { margin: 0; display: flex; gap: 10px; align-items: baseline; justify-content: space-between; font-size: 15px; overflow-wrap: anywhere }
 .orggrid .copy { background: none; border: 1px solid var(--line); color: var(--link); padding: 1px 8px; font-size: 12px; flex-shrink: 0 }
+.ownerbox { display: grid; gap: 6px }
+.ownerbox .lbl { font-size: 12px; color: var(--muted) }
 .cfgs { display: grid; gap: 10px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); margin-top: 10px }
 .cfg { display: grid; gap: 4px; align-content: start; border: 1px solid var(--line); border-left: 4px solid var(--line); border-radius: 8px; padding: 10px 12px; background: var(--surface-2) }
 .cfg.on { border-left-color: var(--accent); background: var(--surface) }
@@ -448,13 +451,13 @@ details.addform[open] > summary::before { content: "− " }
 .tag.teaming { background: var(--n-partner) }
 .cact { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; border-top: 1px dashed var(--line); padding-top: 8px }
 .cact .stars button { font-size: 19px }
-.people { display: grid; gap: 6px; font-size: 13px; border: 1px solid var(--line); border-left: 3px solid var(--n-partner); border-radius: 6px; padding: 8px 12px; background: var(--surface-2) }
-.people ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px }
-.people li { display: grid; gap: 1px }
-.people .who { display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: baseline }
-.people .who b { font-size: 14px }
-.people .why { color: var(--muted) }
-.people .btn-ghost { padding: 1px 8px; font-size: 12px }
+.tpeople { display: grid; gap: 6px; font-size: 13px; border: 1px solid var(--line); border-left: 3px solid var(--n-partner); border-radius: 6px; padding: 8px 12px; background: var(--surface-2) }
+.tpeople ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px }
+.tpeople li { display: grid; gap: 1px }
+.tpeople .who { display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: baseline }
+.tpeople .who b { font-size: 14px }
+.tpeople .why { color: var(--muted) }
+.tpeople .btn-ghost { padding: 1px 8px; font-size: 12px }
 .moved { display: inline-flex; gap: 6px; align-items: center; font-size: 13px; font-weight: 600; color: var(--good); background: var(--good-bg); border-radius: 999px; padding: 2px 10px }
 .health { position: relative; display: inline-flex; align-items: center; gap: 5px; font-size: 11px; border-radius: 999px; padding: 1px 8px 1px 6px; white-space: nowrap; cursor: default; border: 1px solid var(--line); color: var(--muted) }
 .health::before { content: ""; width: 8px; height: 8px; border-radius: 50% ; background: var(--idle) }
@@ -513,7 +516,7 @@ details.addform[open] > summary::before { content: "− " }
   const leadLabel = () => leadDays() === 14 ? "2 weeks" : leadDays() % 7 === 0 ? `${leadDays() / 7} weeks` : `${leadDays()} days`;
   let db = null, user = null, me = null, canWrite = false, storeState = "connecting";
   const names = {}, avatars = {};
-  const ui = { q: "", min: "", agency: "", stage: "", cat: "", role: "", mech: "", partner: false, clean: false, closed: false, stars: "", starBasis: "mine", unrated: true, sort: "fit", psort: "deadline", dcat: "", dcsort: "open" };
+  const ui = { q: "", min: "", agency: "", stage: "", cat: "", role: "", mech: "", owner: "", partner: false, clean: false, closed: false, stars: "", starBasis: "mine", unrated: true, sort: "fit", psort: "deadline", dcat: "", dcsort: "open" };
   try { Object.assign(ui, JSON.parse(localStorage.getItem("fg-filters") || "{}")); } catch {}
   const editing = { source: null, partner: null, category: null, profile: false };
   const hf = { kind: "", who: "" };   // history filters   // id being edited, or "new"
@@ -757,6 +760,7 @@ details.addform[open] > summary::before { content: "− " }
       if (ui.partner && !partnersFor(o).length) return false;
       if (ui.clean && realCriteria(o).some((c) => c.status === "fail")) return false;
       if (ui.mech && !mechsOf(o).includes(ui.mech)) return false;
+      if (ui.owner) { const ow = ownersOf(o); if (ui.owner === "@me" ? !ow.includes(me) : ui.owner === "@none" ? ow.length > 0 : !ow.includes(ui.owner)) return false; }
       if (ui.role && !(roleOf(o) === ui.role || (roleOf(o) === "either" && (ui.role === "lead" || ui.role === "partner")))) return false;
       if (ui.stars) {
         const r = ui.starBasis === "team" ? (teamAvg(o)?.avg || 0) : myRating(o);
@@ -785,7 +789,7 @@ details.addform[open] > summary::before { content: "− " }
     for (const o of list) { const k = catsFor(o)[0]?.name || "No category"; if (!groups.has(k)) groups.set(k, []); groups.get(k).push(o); }
     return [...groups].map(([name, xs]) => `<h2 class="catgroup">${esc(name)} <span class="note">${xs.length}</span></h2>${table(xs, "")}`).join("");
   }
-  const anyFilter = () => Boolean(ui.q || ui.min || ui.agency || ui.cat || ui.role || ui.mech || ui.stars || ui.partner || ui.clean);
+  const anyFilter = () => Boolean(ui.owner || ui.q || ui.min || ui.agency || ui.cat || ui.role || ui.mech || ui.stars || ui.partner || ui.clean);
 
   function filtersHtml(board) {
     const opt = (v, l, cur) => `<option value="${esc(v)}" ${String(cur) === String(v) ? "selected" : ""}>${esc(l)}</option>`;
@@ -799,6 +803,8 @@ details.addform[open] > summary::before { content: "− " }
         <select id="f-basis" aria-label="Whose rating">${opt("mine", "My rating", ui.starBasis)}${opt("team", "Team average", ui.starBasis)}</select>
         <label title="Show opportunities nobody has rated yet (or you haven't, for My rating)"><input type="checkbox" id="f-unrated" ${ui.unrated ? "checked" : ""}> Include unrated</label>
         <select id="f-mech" aria-label="Opportunity type">${opt("", "Any type", ui.mech)}${MECH_ORDER.map((m) => opt(m, m, ui.mech)).join("")}</select>
+        <select id="f-owner" aria-label="Owner">${(() => { const ids = [...new Set(Object.values(S.decisions).flatMap((d) => d.owners || []))].sort((a, b) => (names[a] || "").localeCompare(names[b] || ""));
+          return opt("", "Any owner", ui.owner) + (me ? opt("@me", "Assigned to me", ui.owner) : "") + opt("@none", "Unassigned", ui.owner) + ids.map((id) => opt(id, names[id] || (id === me ? "You" : "Team member"), ui.owner)).join(""); })()}</select>
         <select id="f-role" aria-label="Forge's role">${opt("", "Lead or partner", ui.role)}${opt("lead", "Forge can lead", ui.role)}${opt("partner", "Partner role", ui.role)}${opt("unclear", "Lead: check notice", ui.role)}</select>
         <label><input type="checkbox" id="f-partner" ${ui.partner ? "checked" : ""}> Partner match</label>
         <label><input type="checkbox" id="f-clean" ${ui.clean ? "checked" : ""}> No failed criteria</label>
@@ -880,13 +886,31 @@ details.addform[open] > summary::before { content: "− " }
           <label for="d-stage">Stage<select id="d-stage" ${ro()}>${STAGES.map((s) => `<option value="${s}" ${s === st ? "selected" : ""}>${LABEL[s]}</option>`).join("")}</select></label>
           <label for="d-review">Forge internal deadline<input type="date" id="d-review" value="${internal ? internal.slice(0, 10) : ""}" ${ro()}></label>
           <p class="help" style="margin-top:-4px">Defaults to ${leadLabel()} before submission. Change it only if this one needs more lead time.</p>
-          <label for="d-owner">Owner<input id="d-owner" value="${esc(d.owner || "")}" placeholder="Who is leading this?" ${ro()}></label>
+          ${ownerPickerHtml(o, d)}
           <label for="d-notes">Notes<textarea id="d-notes" rows="6" placeholder="Partner conversations, reasons for the decision…" ${ro()}>${esc(d.notes || "")}</textarea></label>
           <button class="btn" id="d-save" ${ro()}>Save decision</button>
           <div class="toast" id="d-toast">${d.updatedAt ? `Last updated ${fmtDate(d.updatedAt)}${who ? ` by ${esc(who)}` : ""}` : storeState === "ready" ? (canWrite ? "" : "View only") : "Shared decisions unavailable here"}</div>
         </aside>
       </div>`;
   }
+
+  // ---------- owners (team members from the account directory) ----------
+  const ownersOf = (o) => S.decisions[o.id]?.owners || [];
+  const dOwners = { id: null, list: [] };   // owners being edited on the open decision panel
+  const ownerChip = (id) => `<span class="person">${avatars[id] ? `<img src="${esc(avatars[id])}" alt="">` : ""}${esc(names[id] || (id === me ? "You" : "Team member"))}${canWrite ? `<button type="button" data-ounpick="${esc(id)}" aria-label="Remove ${esc(names[id] || "owner")}">×</button>` : ""}</span>`;
+  function ownerPickerHtml(o, d) {
+    if (dOwners.id !== o.id) { dOwners.id = o.id; dOwners.list = [...(d.owners || [])]; }
+    const legacy = d.owner && !(d.owners || []).length ? `<span class="help">Previously entered as text: <b>${esc(d.owner)}</b>. Pick the person below to link it to their account.</span>` : "";
+    return `<div class="ownerbox"><span class="lbl">Owners</span>
+      <div class="people" id="d-owners">${dOwners.list.map(ownerChip).join("") || `<span class="help">No owner yet.</span>`}</div>
+      ${legacy}
+      ${user?.search ? `<div class="picker"><input id="d-osearch" placeholder="Search the team by name…" autocomplete="off" aria-label="Add an owner" ${ro()}><ul id="d-oresults" hidden></ul></div>
+        ${me && !dOwners.list.includes(me) ? `<button type="button" class="btn-ghost" data-opick="${esc(me)}" style="justify-self:start;padding:2px 10px;font-size:12px" ${ro()}>+ Assign to me</button>` : ""}`
+        : `<span class="help">Team search isn't available in this view.</span>`}
+    </div>`;
+  }
+  function refreshOwners() { const box = document.getElementById("d-owners"); if (box) box.innerHTML = dOwners.list.map(ownerChip).join("") || `<span class="help">No owner yet.</span>`; dirty = true; }
+  const ownerNames = (ids) => (ids || []).map((id) => names[id] || (id === me ? "You" : "a teammate"));
 
   // ---------- pipeline / federal / report (unchanged logic, new deadline display) ----------
   const BOARD_COLS = ["screening", "internal_review", "go", "drafting", "submitted", "awarded", "not_awarded"];
@@ -905,7 +929,7 @@ details.addform[open] > summary::before { content: "− " }
         const d = S.decisions[o.id] || {};
         return `<div class="card" ${canMove ? `draggable="true"` : ""} data-card="${o.id}">
           <span style="display:flex;justify-content:space-between;gap:8px"><a class="ttl" href="#opp-${o.id}">${esc(o.title)}</a>${scoreHtml(o)}</span>
-          <span class="note">${esc(o.agency)}</span><span style="display:flex;flex-wrap:wrap;gap:4px">${o.source === "teaming" ? srcTag(o) : ""}${mechHtml(o)}${roleHtml(o)}</span>${catsFor(o).length ? `<span class="cats" style="margin-top:0">${catsFor(o).slice(0, 3).map((x) => `<span class="cat">${esc(x.name)}</span>`).join("")}</span>` : ""}${deadlineCell(o)}${d.owner ? `<span class="note">Owner: ${esc(d.owner)}</span>` : ""}
+          <span class="note">${esc(o.agency)}</span><span style="display:flex;flex-wrap:wrap;gap:4px">${o.source === "teaming" ? srcTag(o) : ""}${mechHtml(o)}${roleHtml(o)}</span>${catsFor(o).length ? `<span class="cats" style="margin-top:0">${catsFor(o).slice(0, 3).map((x) => `<span class="cat">${esc(x.name)}</span>`).join("")}</span>` : ""}${deadlineCell(o)}${(d.owners || []).length ? `<span class="note">Owner${d.owners.length > 1 ? "s" : ""}: ${esc(ownerNames(d.owners).join(", "))}</span>` : d.owner ? `<span class="note">Owner: ${esc(d.owner)}</span>` : ""}
           ${canMove ? `<select class="move" data-move="${o.id}" aria-label="Move ${esc(o.title)} to another stage">${STAGES.map((st) => `<option value="${st}" ${st === c ? "selected" : ""}>${st === c ? "Move to…" : LABEL[st]}</option>`).join("")}</select>` : ""}
         </div>`;
       }).join("") : `<p class="empty" style="font-size:13px">${canMove ? "Drop a card here." : "Nothing here."}</p>`}</div>`;
@@ -2302,7 +2326,7 @@ ${JSON.stringify({ partners: inp.partners, fundingSponsors: inp.sources, opportu
       : req.status === "failed" ? `<span class="note">Couldn't finish: ${esc(req.error || "no reliable profiles found")}</span> <button class="btn-ghost" data-findpeople="${esc(c.id)}" data-idx="${i}" ${ro()}>Try again</button>`
       : !res.length ? `<span class="note">${esc(req.result?.notes || "No good matches found on the partners' sites.")}</span> <button class="btn-ghost" data-findpeople="${esc(c.id)}" data-idx="${i}" ${ro()}>Search again</button>`
       : `${req.result?.notes ? `<span class="note">${esc(req.result.notes)}</span>` : ""}<span><button class="btn-ghost" data-findpeople="${esc(c.id)}" data-idx="${i}" ${ro()}>Search again</button></span>`;
-    return `<div class="people">${head}${rosterHtml || resHtml ? `<ul>${rosterHtml}${resHtml}</ul>` : ""}${status}</div>`;
+    return `<div class="tpeople">${head}${rosterHtml || resHtml ? `<ul>${rosterHtml}${resHtml}</ul>` : ""}${status}</div>`;
   }
   async function addPerson(pid, n) {
     const req = S.people[pid], p = req?.result?.people?.[n]; if (!p || !db || !canWrite) return;
@@ -2490,7 +2514,7 @@ ${JSON.stringify({ partners: inp.partners, fundingSponsors: inp.sources, opportu
     if (r === "teaming") mountTeamGraph(); else tSim?.stop();
   }
   const saveFilters = () => { try { localStorage.setItem("fg-filters", JSON.stringify(ui)); } catch {} };
-  const CLEAR = { q: "", min: "", agency: "", stage: "", cat: "", role: "", mech: "", partner: false, clean: false, closed: false, stars: "", starBasis: ui.starBasis || "mine", unrated: true };
+  const CLEAR = { q: "", min: "", agency: "", stage: "", cat: "", role: "", mech: "", owner: "", partner: false, clean: false, closed: false, stars: "", starBasis: ui.starBasis || "mine", unrated: true };
   const go = (hash, patch) => { Object.assign(ui, patch || {}); saveFilters(); if (location.hash === hash) render(); else location.hash = hash; };
   // Re-render on shared-data changes without clobbering a field someone is typing in.
   let dirty = false;
@@ -2506,7 +2530,7 @@ ${JSON.stringify({ partners: inp.partners, fundingSponsors: inp.sources, opportu
     if (f && f.closest && f.closest("#results, #my-stars")) return refreshRatings();
     render();
   }
-  addEventListener("hashchange", () => { armed.clear(); dirty = false; editing.profile = false; for (const k in flash) delete flash[k]; render(); scrollTo(0, 0); });
+  addEventListener("hashchange", () => { armed.clear(); dirty = false; dOwners.id = null; editing.profile = false; for (const k in flash) delete flash[k]; render(); scrollTo(0, 0); });
 
   // ---------- writes ----------
   const flash = {};   // toast id -> message, so a re-render from a live update keeps it
@@ -2533,7 +2557,7 @@ ${JSON.stringify({ partners: inp.partners, fundingSponsors: inp.sources, opportu
     } catch { /* the change itself was saved; a missed log entry should not block the user */ }
   }
   const LABELS = {
-    decision: { stage: "Stage", reviewDate: "Forge internal deadline", owner: "Owner", notes: "Notes" },
+    decision: { stage: "Stage", reviewDate: "Forge internal deadline", owners: "Owners", notes: "Notes" },
     source: { name: "Name", category: "Category", api: "API available", status: "Status", url: "Website", apiUrl: "API URL", apiDetails: "Data access", credential: "Key name", parentAgency: "Parent agency", mechanisms: "Funding mechanisms", focusAreas: "Focus areas", unsolicited: "White-paper path", cadence: "Update cadence", notes: "Notes" },
     partner: { name: "Name", type: "Type", parentId: "Part of", url: "Link", links: "More links", contact: "Contact", summary: "Focus summary", focus: "Focus areas", notes: "Notes" },
     category: { name: "Name", keywords: "Keywords", members: "Team members" },
@@ -2548,15 +2572,17 @@ ${JSON.stringify({ partners: inp.partners, fundingSponsors: inp.sources, opportu
     const review = val("d-review");
     const def = defaultInternal(o);
     const body = await stamp({
-      stage: val("d-stage"), owner: val("d-owner").slice(0, 120), notes: (document.getElementById("d-notes").value || "").slice(0, 20000),
+      ...(S.decisions[o.id]?.owner && !(dOwners.id === o.id && dOwners.list.length) ? { owner: S.decisions[o.id].owner } : {}),
+      stage: val("d-stage"), owners: dOwners.id === o.id ? [...dOwners.list] : (S.decisions[o.id]?.owners || []), notes: (document.getElementById("d-notes").value || "").slice(0, 20000),
       // Only store a date when it differs from the 2-week default, so the default keeps tracking the deadline.
       reviewDate: review && (!def || review !== def.slice(0, 10)) ? new Date(review + "T12:00:00Z").toISOString() : null,
     });
     box.querySelectorAll("button").forEach((b) => (b.disabled = true));
     toast("d-toast", "Saving…");
     const prevRaw = S.decisions[o.id];
-    const before = { stage: stageOf(o), owner: prevRaw?.owner || "", notes: prevRaw?.notes || "", reviewDate: (internalOf(o) || "").slice(0, 10) || null };
-    const after = { stage: body.stage, owner: body.owner, notes: body.notes, reviewDate: (body.reviewDate || defaultInternal(o) || "").slice(0, 10) || null };
+    if (body.owners.length) body.owner = ownerNames(body.owners).join(", ");   // readable copy for reports
+    const before = { stage: stageOf(o), owners: ownerNames(prevRaw?.owners), notes: prevRaw?.notes || "", reviewDate: (internalOf(o) || "").slice(0, 10) || null };
+    const after = { stage: body.stage, owners: ownerNames(body.owners), notes: body.notes, reviewDate: (body.reviewDate || defaultInternal(o) || "").slice(0, 10) || null };
     const changes = diff(before, after, LABELS.decision).map((c) => c.field === "stage" ? { ...c, from: LABEL[c.from] || c.from, to: LABEL[c.to] || c.to } : c);
     try {
       await db.doc("decisions/" + o.id).set(body); dirty = false; toast("d-toast", changes.length ? "Saved" : "No changes to save");
@@ -2773,6 +2799,8 @@ ${JSON.stringify({ partners: inp.partners, fundingSponsors: inp.sources, opportu
     if (ds.deldoc) return removeDoc(ds.deldoc);
     if (ds.decide) { document.getElementById("d-stage").value = ds.decide; return saveDecision(); }
     if (t.id === "d-save") return saveDecision();
+    if (ds.opick) { if (!dOwners.list.includes(ds.opick)) dOwners.list.push(ds.opick); const s2 = document.getElementById("d-osearch"); if (s2) s2.value = ""; const l = document.getElementById("d-oresults"); if (l) l.hidden = true; refreshOwners(); return; }
+    if (ds.ounpick) { dOwners.list = dOwners.list.filter((x) => x !== ds.ounpick); return refreshOwners(); }
     if (ds.save) return saveItem(ds.save);
     if (ds.cancel || ds.cancelprofile) dirty = false;
     if (ds.cancel) { delete draftMembers[editing[ds.cancel]]; editing[ds.cancel] = null; if (ds.cancel === "partner") resetPartnerForm(); return render(); }
@@ -2862,6 +2890,14 @@ ${JSON.stringify({ partners: inp.partners, fundingSponsors: inp.sources, opportu
     if (e.target.id === "p-focus") { pform.edited.focus = true; pform.focus = e.target.value; }
   });
   app.addEventListener("input", async (e) => {
+    if (e.target.id === "d-osearch") {
+      const list = document.getElementById("d-oresults");
+      const found = await user.search(e.target.value);
+      found.forEach((p) => { names[p.id] = p.name; avatars[p.id] = p.avatarUrl; });
+      list.innerHTML = found.filter((p) => !dOwners.list.includes(p.id)).slice(0, 8).map((p) => `<li><button type="button" data-opick="${esc(p.id)}"><img src="${esc(p.avatarUrl)}" alt="">${esc(p.name)}${p.guest ? ' <span class="note">guest</span>' : ""}</button></li>`).join("") || `<li class="help" style="padding:6px">No matches.</li>`;
+      list.hidden = false;
+      return;
+    }
     if (e.target.id === "c-search") {
       const list = document.getElementById("c-results");
       const found = await user.search(e.target.value);
@@ -2893,7 +2929,7 @@ ${JSON.stringify({ partners: inp.partners, fundingSponsors: inp.sources, opportu
     }
     if (e.target.id === "h-kind" || e.target.id === "h-who") { hf[e.target.id === "h-kind" ? "kind" : "who"] = e.target.value; return render(); }
     if (!e.target.closest("#filters")) return;
-    const map = { "f-q": "q", "f-min": "min", "f-agency": "agency", "f-stage": "stage", "f-cat": "cat", "f-role": "role", "f-mech": "mech", "f-stars": "stars", "f-basis": "starBasis", "f-sort": "sort", "f-psort": "psort" };
+    const map = { "f-q": "q", "f-min": "min", "f-agency": "agency", "f-stage": "stage", "f-cat": "cat", "f-role": "role", "f-mech": "mech", "f-stars": "stars", "f-basis": "starBasis", "f-sort": "sort", "f-psort": "psort", "f-owner": "owner" };
     if (map[e.target.id]) ui[map[e.target.id]] = e.target.value;
     if (e.target.id === "f-clean") ui.clean = e.target.checked;
     if (e.target.id === "f-closed") ui.closed = e.target.checked;
@@ -2906,13 +2942,13 @@ ${JSON.stringify({ partners: inp.partners, fundingSponsors: inp.sources, opportu
       const items = filtered(); document.getElementById("results").innerHTML = resultsHtml(items); document.querySelector(".head .sub .num").textContent = items.length;
     }, 120);
   });
-  app.addEventListener("focusin", async (e) => { if (e.target.id === "c-search" && user?.search) { const found = await user.search(""); found.forEach((p) => { names[p.id] = p.name; avatars[p.id] = p.avatarUrl; }); } });
+  app.addEventListener("focusin", async (e) => { if (e.target.id === "d-osearch" && user?.search) { e.target.dispatchEvent(new Event("input", { bubbles: true })); return; } if (e.target.id === "c-search" && user?.search) { const found = await user.search(""); found.forEach((p) => { names[p.id] = p.name; avatars[p.id] = p.avatarUrl; }); } });
 
   // ---------- people ----------
   async function resolveNames() {
     if (!user?.profiles) return;
     const ids = new Set();
-    Object.values(S.decisions).forEach((d) => d.updatedBy && ids.add(d.updatedBy));
+    Object.values(S.decisions).forEach((d) => { if (d.updatedBy) ids.add(d.updatedBy); (d.owners || []).forEach((x) => ids.add(x)); });
     Object.values(S.history).forEach((h) => h.by && ids.add(h.by));
     Object.keys(S.ratings).forEach((uid) => ids.add(uid));
     if (S.profile.main?.updatedBy) ids.add(S.profile.main.updatedBy);
