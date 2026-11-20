@@ -770,7 +770,7 @@ td .meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; color:
     ? `<div class="chg"><b>${esc(c.label)}</b>: ${[...(c.added || []).map((x) => `<ins>+ ${esc(x)}</ins>`), ...(c.removed || []).map((x) => `<del>${esc(x)}</del>`)].join(" · ") || "reordered"}</div>`
     : `<div class="chg"><b>${esc(c.label)}</b>: ${c.from !== undefined ? `<del>${esc(show(c.from))}</del> → ` : ""}<ins>${esc(show(c.to))}</ins></div>`;
   function entryHtml(h, withTarget = true) {
-    const who = h.by ? names[h.by] || "A teammate" : "Someone";
+    const who = h.by ? names[h.by] || "A teammate" : h.source === "claude" ? "Claude" : "Someone";
     const target = !withTarget ? "" : h.kind === "decision" || h.kind === "rating" ? `<a href="#opp-${esc(h.targetId)}">${esc(h.targetName)}</a>` : `<b>${esc(h.targetName || "")}</b>`;
     return `<li><div style="display:flex;flex-wrap:wrap;gap:6px 10px;align-items:baseline"><span class="kind">${KIND_LABEL[h.kind] || esc(h.kind)}</span><span>${esc(who)} ${esc(h.action)} ${target}</span><span class="when">${new Date(h.at).toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" })}</span></div>
       ${(h.changes || []).map(changeHtml).join("")}</li>`;
