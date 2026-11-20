@@ -215,6 +215,21 @@ td .meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; color:
 .tlist li .note { text-align: right; flex-shrink: 1; max-width: 45% }
 .tlist label { display: flex; gap: 6px; align-items: baseline }
 .tx { padding: 0 8px; font-size: 15px; line-height: 1.4 }
+.helpwrap { display: grid; gap: 16px; grid-template-columns: 220px minmax(0, 1fr); align-items: start }
+@media (max-width: 860px) { .helpwrap { grid-template-columns: minmax(0, 1fr) } .helptoc { position: static !important } }
+.helptoc { position: sticky; top: 12px; display: grid; gap: 2px }
+.helptoc b { font: 600 13px var(--display); margin-bottom: 4px }
+.helptoc button { background: none; border: 0; text-align: left; color: var(--link); padding: 4px 6px; border-radius: 4px; font-size: 14px }
+.helptoc button:hover { background: var(--surface-2) }
+.helpdoc { display: grid; gap: 16px; min-width: 0 }
+.helpdoc section { scroll-margin-top: 12px }
+.hprose { max-width: 80ch; display: grid; gap: 10px; font-size: 15px }
+.hprose ul, .hprose ol { margin: 0; padding-left: 22px; display: grid; gap: 6px }
+.hdl { margin: 0; display: grid; gap: 10px }
+.hdl dt { font-weight: 600 }
+.hdl dd { margin: 2px 0 0 0; color: var(--fg) }
+.htable { width: 100%; font-size: 14px }
+.htable td { vertical-align: top }
 .cfgs { display: grid; gap: 10px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); margin-top: 10px }
 .cfg { display: grid; gap: 4px; align-content: start; border: 1px solid var(--line); border-left: 4px solid var(--line); border-radius: 8px; padding: 10px 12px; background: var(--surface-2) }
 .cfg.on { border-left-color: var(--accent); background: var(--surface) }
@@ -430,7 +445,7 @@ details.addform[open] > summary::before { content: "− " }
     <nav class="tabs" id="tabs">
       <a href="#dashboard">Dashboard</a><a href="#opportunities">Opportunities</a><a href="#pipeline">Pipeline</a>
       <a href="#federal">Federal funding</a><a href="#report">Report</a><a href="#categories">Categories</a>
-      <a href="#partners">Partners</a><a href="#teaming">Teaming</a><a href="#sources">Funding sponsors</a><a href="#profile">Forge profile</a><a href="#history">History</a>
+      <a href="#partners">Partners</a><a href="#teaming">Teaming</a><a href="#sources">Funding sponsors</a><a href="#profile">Forge profile</a><a href="#history">History</a><a href="#help">Help</a>
     </nav>
   </div>
 </header>
@@ -2170,7 +2185,104 @@ ${JSON.stringify({ partners: inp.partners, fundingSponsors: inp.sources, opportu
     catch (err) { TM.status = errMsg(err); TM.err = true; render(); }
   }
 
-  const VIEWS = { teaming: viewTeaming, opportunities: viewOpportunities, pipeline: viewPipeline, federal: viewFederal, report: viewReport, profile: viewProfile, history: viewHistory, sources: viewSources, partners: viewPartners, categories: viewCategories };
+  // ---------- help ----------
+  const HELP = [
+    ["start", "Start here", `
+      <p>Forge Grants finds federal funding that fits Forge Institute, helps the team decide what to pursue, and helps shape proposals with partners. Everything you change here (decisions, ratings, partners, categories, notes) is shared with everyone on the team and recorded in <a href="#history">History</a>.</p>
+      <p><b>What happens automatically</b></p>
+      <ul>
+        <li><b>Every weekday around 6:30 AM CT</b> the system scans Grants.gov and the DHS acquisition forecast for new opportunities, updates existing ones, has Claude score the most promising new ones, checks every funding sponsor's website, and publishes the results here.</li>
+        <li><b>Every hour on weekdays, 7 AM–7 PM CT</b>, a background Claude worker does the web work this page can't: researching partners online, finding faculty and staff for topic ideas, preparing proposal coaching, and starting refreshes people asked for.</li>
+      </ul>
+      <p><b>A good first week</b></p>
+      <ol>
+        <li>Join the <a href="#categories">categories</a> you care about, so matching opportunities show under <i>Your categories</i> on the dashboard.</li>
+        <li>Skim <a href="#opportunities">Opportunities</a> and rate the ones you'd pursue (1–5 stars).</li>
+        <li>Check that your key <a href="#partners">partners</a> are listed, with their centers, departments and people underneath.</li>
+        <li>Try a <a href="#teaming">Teaming</a> setup for a sponsor you know well and see what topic ideas come back.</li>
+      </ol>`],
+    ["daily", "A typical day", `
+      <ol>
+        <li><b>Dashboard:</b> look at <i>Your categories</i>, Forge internal deadlines (next 14 days) and submission deadlines (next 30 days).</li>
+        <li><b>Opportunities:</b> filter to what's new or high match, open anything interesting, read the fit explanation and criteria, then rate it.</li>
+        <li><b>Decide:</b> on an opportunity's page use <i>Go</i> / <i>No-go</i>, or set the stage, owner, internal deadline and notes.</li>
+        <li><b>Pipeline:</b> drag cards between stages as work moves forward.</li>
+        <li><b>Teaming:</b> when a sponsor matters but no listing is open yet, build topic ideas with partners and move the good ones forward.</li>
+      </ol>
+      <p>Need something newer than this morning's scan? Use <b>↻ Refresh</b> on the dashboard (once every 5 hours).</p>`],
+    ["read", "Reading an opportunity", `
+      <dl class="hdl">
+        <dt>Fit score</dt><dd><span class="score s6">6/10</span> is Claude's judgment of fit with Forge (6+ counts as a high match). A score with a star, <span class="score s4 pre">4/10*</span>, is only a keyword pre-score that hasn't been reviewed by Claude yet. New listings that Claude scores 6 or higher move to <i>Screening</i> on their own.</dd>
+        <dt>Stars</dt><dd>Your own 1–5 rating, with the team average under it. Click your current rating again to clear it. Filters can use <i>My rating</i> or <i>Team average</i>. A team average of 3 or more triggers proposal coaching.</dd>
+        <dt>Deadline colors</dt><dd><span class="dl urgent">red</span> under 30 days, <span class="dl soon">orange</span> under 90 days, <span class="dl ok">green</span> 90 days or more. A ⚠ date is probably a placeholder in the source data, so check the listing.</dd>
+        <dt>Forge internal deadline</dt><dd>Defaults to 2 weeks before the submission deadline (change the default on <a href="#profile">Forge profile</a>, or set a different date on one opportunity).</dd>
+        <dt>Type</dt><dd>The funding vehicle: <span class="mech sbir">SBIR</span> <span class="mech sttr">STTR</span> <span class="mech baa">BAA</span> <span class="mech grant">Grant</span> <span class="mech contract">Contract</span> and others, worked out from the listing.</dd>
+        <dt>Role</dt><dd><span class="role lead">Forge can lead</span> Forge can apply as the lead. <span class="role partner">Partner role</span> the listing limits who leads (for example SBIR or university-only), so Forge would join an eligible lead. <span class="role unclear">Lead: check notice</span> the listing doesn't say.</dd>
+        <dt>Criteria dots</dt><dd>Four automated checks on the listing text: no cash match, indirect costs allowed, operating expenses allowed, open solicitation. Green yes, red no, gray not stated. Always confirm against the full notice.</dd>
+        <dt>Tags</dt><dd>Blue tags are your categories; green "With …" tags are partners whose focus areas the listing mentions. <span class="tag teaming">Team concept</span> marks a topic idea the team chose to pursue.</dd>
+        <dt>Past awards and coaching</dt><dd>Each listing links to past winners (from NSF Award Search or USAspending) so you can see what was funded. Proposal coaching studies those winners once the team rates the opportunity 3+ stars.</dd>
+      </dl>`],
+    ["tabs", "What each tab is for", `
+      <dl class="hdl">
+        <dt><a href="#dashboard">Dashboard</a></dt><dd>Counts, potential revenue (sum of award ceilings), your categories, upcoming deadlines, top recommendations and the Refresh button.</dd>
+        <dt><a href="#opportunities">Opportunities</a></dt><dd>Every open listing, with search and filters for fit, agency, category, stage, rating, type, role and partner matches.</dd>
+        <dt><a href="#pipeline">Pipeline</a></dt><dd>A board from Screening to Awarded. Drag cards or use each card's Move menu; every move is recorded.</dd>
+        <dt><a href="#federal">Federal funding</a></dt><dd>Open opportunities grouped by Forge's priority agencies.</dd>
+        <dt><a href="#report">Report</a></dt><dd>A report-style summary of the opportunities Claude has scored: recommended, possible and not recommended.</dd>
+        <dt><a href="#categories">Categories</a></dt><dd>Groups of keywords with team members. Opportunities matching a category are tagged and appear on its members' dashboards.</dd>
+        <dt><a href="#partners">Partners</a></dt><dd>Labs, universities, agencies and companies Forge works with, with centers, departments, labs and people nested under them. Each has focus areas, documents, web research and a rating. Click a name for its detail page.</dd>
+        <dt><a href="#teaming">Teaming</a></dt><dd>Combine focus areas, partners and funding sponsors, see how they connect, and have Claude suggest topics to propose.</dd>
+        <dt><a href="#sources">Funding sponsors</a></dt><dd>The agencies, portals, innovation offices and consortia Forge watches, with how to reach each one and a daily health check.</dd>
+        <dt><a href="#profile">Forge profile</a></dt><dd>Who Forge is, its capabilities, good and poor fits, decision criteria and search keywords. Claude uses this to judge fit.</dd>
+        <dt><a href="#history">History</a></dt><dd>Every change: who, when, and what it was before and after.</dd>
+      </dl>`],
+    ["partners", "Partners: parents, children and research", `
+      <ul>
+        <li><b>Parents and children.</b> Add the organization first (for example University of Arkansas), then use <b>+ Add under</b> to add its centers, departments, labs and people. Main partners have a blue edge; children sit inside a teal bracket with "Part of …". The <b>Tree</b> view shows the whole hierarchy.</li>
+        <li><b>Focus areas drive matching.</b> Any open opportunity that mentions a partner's focus area is flagged as a possible joint submission. Keep them specific, worded the way funding announcements word things ("OT cybersecurity", "grid modernization").</li>
+        <li><b>Three ways to fill them in:</b> type them; upload capability statements or decks (PDF, Word, PowerPoint) and tick Claude's suggestions; or use <b>Research online</b> and Claude opens their pages, searches the web and drafts a cited summary within the hour.</li>
+        <li><b>Detail page.</b> Click a partner's name for its summary, focus areas, matching opportunities, research, documents and everything under it. The website is the separate "Website ↗" link.</li>
+      </ul>`],
+    ["teaming", "Teaming: from partners to proposal topics", `
+      <ol>
+        <li><b>Focus areas.</b> Add a few (cyber, grid, workforce…) or click suggestions; the numbers show how many partners, open opportunities and sponsors each one connects.</li>
+        <li><b>Partners and funding sponsors.</b> Tick the specific partners (a university or a center or person under it) and sponsors (IARPA, DARPA, AFRL…) you want to build for.</li>
+        <li><b>Network.</b> See how they connect. Drag dots, zoom, and click one for details.</li>
+        <li><b>Suggest topics to propose.</b> Claude writes 2–3 topic ideas per sponsor: problem statement, how to propose (white paper, BAA, SBIR, OT…), why the sponsor wants it, who does what, approach, outcomes and what to check first. It then looks up faculty and staff at your partners who fit each one, with links to their profile pages.</li>
+        <li><b>Rate and move forward.</b> Rate each topic, and use <b>Move forward</b> to add it to Opportunities and the Pipeline at <i>Go</i> as a Team concept.</li>
+        <li><b>Save the setup.</b> Name it under <i>Saved configurations</i>, then come back any time to <b>Load</b> it or <b>↻ Refresh topic ideas</b> with the latest data.</li>
+      </ol>`],
+    ["sponsors", "Funding sponsors and data sources", `
+      <ul>
+        <li><b>Connected</b> sponsors are scanned automatically: Grants.gov and the DHS acquisition forecast today. Others are listed so the team knows where to look and how to engage (mechanisms, white-paper paths, update cadence).</li>
+        <li>The <b>health</b> badge on each sponsor shows whether its site could be reached in the last daily check. Hover a <i>Problem</i> badge to see why.</li>
+        <li><b>API keys never go on this page.</b> Enter only the key's name (like <code>SAM_API_KEY</code>); the key itself is stored in the scanner's settings.</li>
+      </ul>`],
+    ["timing", "When things happen", `
+      <table class="htable"><thead><tr><th>What</th><th>When</th></tr></thead><tbody>
+        <tr><td>Daily scan, Claude scoring, sponsor health check</td><td>Weekdays about 6:30 AM CT</td></tr>
+        <tr><td>Refresh button on the dashboard</td><td>On demand, once every 5 hours. Starts right away for the page owner; otherwise within the hour on weekdays, 7 AM–7 PM CT</td></tr>
+        <tr><td>Partner web research, people for topic ideas, proposal coaching</td><td>Hourly on weekdays, 7 AM–7 PM CT (usually ready within the hour)</td></tr>
+        <tr><td>Document analysis, partner drafts, topic ideas</td><td>Right away, in your browser</td></tr>
+      </tbody></table>`],
+    ["faq", "Questions", `
+      <dl class="hdl">
+        <dt>Is anything here private?</dt><dd>No. Everything saved is visible to everyone who can open this page, and every change is in History. The only things kept just for you are your filter choices and which Teaming setup you last loaded (stored in your browser).</dd>
+        <dt>Can I trust Claude's scores and suggestions?</dt><dd>Treat them as a well-read first draft. Claude is told to use only what the listing, partner records and sources say, and to list open questions under "check before committing", but always confirm eligibility, deadlines and requirements in the official notice.</dd>
+        <dt>Why don't I see an opportunity I expected?</dt><dd>Check the filters (Reset clears them), the stage filter (closed and No-go items are hidden by default), and whether it's newer than the last scan. Then try Refresh.</dd>
+        <dt>Why can't I edit anything?</dt><dd>You have view-only access. Ask the page owner for Contributor access.</dd>
+        <dt>Something looks wrong. How do I undo it?</dt><dd>Open <a href="#history">History</a> to see exactly what changed and the previous value, then change it back.</dd>
+        <dt>Can I use this data in a Claude Project?</dt><dd>Yes. The repository includes an MCP connector (see the README) that lets Claude search opportunities, past awards and the Forge profile.</dd>
+      </dl>`],
+  ];
+  function viewHelp() {
+    return `<div class="head"><div><h1>Help</h1><p class="sub" style="margin:4px 0 0">How Forge Grants works, for new and returning users.</p></div></div>
+      <div class="helpwrap">
+        <nav class="panel helptoc" aria-label="Help topics"><b>Topics</b>${HELP.map(([id, t]) => `<button type="button" data-helpto="${id}">${esc(t)}</button>`).join("")}</nav>
+        <div class="helpdoc">${HELP.map(([id, t, body]) => `<section class="panel" id="help-${id}"><h2>${esc(t)}</h2><div class="prose hprose">${body}</div></section>`).join("")}</div>
+      </div>`;
+  }
+  const VIEWS = { help: viewHelp, teaming: viewTeaming, opportunities: viewOpportunities, pipeline: viewPipeline, federal: viewFederal, report: viewReport, profile: viewProfile, history: viewHistory, sources: viewSources, partners: viewPartners, categories: viewCategories };
   function render() {
     const r = route();
     const tab = r.startsWith("opp-") ? "opportunities" : r.startsWith("partner-") ? "partners" : VIEWS[r] ? r : "dashboard";
@@ -2424,6 +2536,7 @@ ${JSON.stringify({ partners: inp.partners, fundingSponsors: inp.sources, opportu
       return go("#opportunities", { ...CLEAR, min: ds.min || "", stage: ds.stage || "", agency: ds.agency || "", cat: ds.mycats ? "@mine" : ds.cat || "" });
     }
     if (t.id === "refresh-btn") return requestRefresh();
+    if (ds.helpto) return document.getElementById("help-" + ds.helpto)?.scrollIntoView({ block: "start", behavior: "smooth" });
     if (ds.addtopic) return addTopic(ds.addtopic);
     if (ds.untopic) return removeTopic(ds.untopic);
     if (ds.tpick && t.tagName === "BUTTON") return togglePick(ds.tpick);
