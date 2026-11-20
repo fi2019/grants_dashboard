@@ -9,7 +9,8 @@
     "start": "next start",
     "lint": "tsc --noEmit",
     "test": "vitest run",
-    "scan": "tsx --env-file-if-exists=.env.local scripts/scan.mts"
+    "scan": "tsx --env-file-if-exists=.env.local scripts/scan.mts",
+    "rescreen": "tsx scripts/rescreen.mts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "1.5.0",

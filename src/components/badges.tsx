@@ -50,6 +50,25 @@ export function StageBadge({ stage }: { stage: Stage }) {
   return <span className={`rounded px-2 py-0.5 text-xs font-medium ${STAGE_COLOR[stage]}`}>{STAGE_LABELS[stage]}</span>;
 }
 
+const ROLE = {
+  lead: { text: "Forge can lead", cls: "bg-emerald-100 text-emerald-800" },
+  partner: { text: "Partner role", cls: "bg-indigo-100 text-indigo-800" },
+  either: { text: "Lead or partner", cls: "bg-emerald-100 text-emerald-800" },
+  unclear: { text: "Lead: check notice", cls: "bg-slate-100 text-slate-600" },
+} as const;
+
+/** Forge's role: Claude's read when evaluated, otherwise the listing's eligibility rules. */
+export function roleOf(o: Opportunity): keyof typeof ROLE | null {
+  return o.evaluation?.forgeRole ?? o.screening?.leadRole ?? null;
+}
+
+export function RoleBadge({ o }: { o: Opportunity }) {
+  const role = roleOf(o);
+  if (!role) return null;
+  const tip = o.evaluation?.roleRationale ?? o.screening?.leadReason ?? "";
+  return <span title={tip} className={`rounded px-1.5 py-0.5 text-[11px] font-medium ${ROLE[role].cls}`}>{ROLE[role].text}</span>;
+}
+
 export function SourceTag({ source }: { source: string }) {
   return <span className="rounded bg-navy-800 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-white">{source}</span>;
 }

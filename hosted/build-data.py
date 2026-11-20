@@ -22,7 +22,8 @@ for o in db["opportunities"]:
         postedDate=o["postedDate"], closeDate=o["closeDate"], status=o["status"], fetchedAt=o["fetchedAt"],
         preScore=sc.get("preScore"), signals=sc.get("signals", []),
         criteria=[{k: c[k] for k in ("id", "label", "status", "evidence")} for c in sc.get("criteria", [])],
-        blockers=sc.get("blockers", []), warnings=sc.get("warnings", []), evaluation=o["evaluation"], defaultStage=o["stage"]))
+        blockers=sc.get("blockers", []), warnings=sc.get("warnings", []),
+        leadRole=sc.get("leadRole", "unclear"), leadReason=sc.get("leadReason", ""), evaluation=o["evaluation"], defaultStage=o["stage"]))
 with open(os.path.join(out, "opportunities.json"), "w") as f:
     f.write("[\n" + ",\n".join(json.dumps(r, ensure_ascii=False, separators=(",", ":")) for r in rows) + "\n]\n")
 scan = db.get("lastScan") or {}

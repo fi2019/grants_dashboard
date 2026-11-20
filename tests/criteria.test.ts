@@ -16,12 +16,12 @@ describe("decision criteria", () => {
     expect(byId(r, "no_cash_match").status).toBe("fail");
   });
 
-  it("passes 501(c)(3) eligibility when nonprofits are listed", () => {
+  it("marks Forge as able to lead when nonprofits are listed", () => {
     const r = evaluateCriteria({ ...base, eligibilityText: "Nonprofits having a 501(c)(3) status with the IRS" });
     expect(byId(r, "lead_eligible").status).toBe("pass");
   });
 
-  it("fails lead eligibility when only IHEs may apply", () => {
+  it("marks a partner role (not a rejection) when only IHEs may apply", () => {
     const r = evaluateCriteria({ ...base, eligibilityText: "Proposals may only be submitted by accredited institutions of higher education." });
     expect(byId(r, "lead_eligible").status).toBe("fail");
   });
@@ -52,9 +52,10 @@ describe("screen", () => {
     expect(fit.signals).toContain("Utilities");
   });
 
-  it("records blockers for tenure-track PI requirements", () => {
+  it("treats a tenure-track PI rule as a partner role, not a blocker", () => {
     const s = screen({ ...base, title: "X", eligibilityText: "The PI must hold a tenure-track faculty position." });
-    expect(s.blockers).toContain("Requires a tenured or tenure-track PI");
+    expect(s.blockers).toEqual([]);
+    expect(s.leadRole).toBe("partner");
   });
 });
 
@@ -74,9 +75,22 @@ describe("dates", () => {
 });
 
 describe("blockers", () => {
-  it("blocks SBIR/STTR (nonprofits cannot be the small business concern)", () => {
-    expect(screen({ ...base, title: "Small Business Innovation Research / Small Business Technology Transfer Phase I" }).blockers)
-      .toContain("SBIR/STTR: small business concerns only");
+  it("SBIR/STTR: Forge can't lead but can partner with the small business", () => {
+    const s = screen({ ...base, title: "Small Business Innovation Research / Small Business Technology Transfer Phase I" });
+    expect(s.blockers).toEqual([]);
+    expect(s.leadRole).toBe("partner");
+  });
+
+  it("does not lower the pre-score just because Forge can't lead", () => {
+    const desc = "Workforce training for rural electric cooperatives on cybersecurity.";
+    const lead = screen({ ...base, title: "T", description: desc, eligibilityText: "Nonprofits" });
+    const partner = screen({ ...base, title: "T", description: desc, eligibilityText: "Proposals may only be submitted by accredited institutions of higher education." });
+    expect(partner.leadRole).toBe("partner");
+    expect(lead.preScore - partner.preScore).toBeLessThanOrEqual(3);
+  });
+
+  it("still rules out invitation-only programs", () => {
+    expect(screen({ ...base, title: "X", description: "Applications by invitation only." }).blockers).toContain("Invitation only");
   });
 });
 

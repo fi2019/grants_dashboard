@@ -15,6 +15,8 @@ const EvaluationSchema = z.object({
   recommendedPartners: z.array(z.string()).describe("Specific partners, each with a short reason."),
   whyForgeQualifies: z.string().describe("Eligibility reasoning tied to the notice's eligibility text. Flag anything to confirm."),
   risks: z.array(z.string()).describe("Eligibility gaps, cost share, deadline, or capacity risks."),
+  forgeRole: z.enum(["lead", "partner", "either"]).describe("lead: Forge can be the lead applicant. partner: Forge can only join an eligible lead as partner/subrecipient/subcontractor. either: both are open."),
+  roleRationale: z.string().describe("One or two sentences on why, citing the eligibility text, and who would lead if Forge partners."),
 });
 
 const SYSTEM = `You are the grant strategist for Forge Institute. You decide which federal funding opportunities Forge should pursue and sketch how Forge would pursue them.
@@ -22,10 +24,11 @@ const SYSTEM = `You are the grant strategist for Forge Institute. You decide whi
 ${profileAsPrompt()}
 
 How to score (1-10):
-- 9-10: Forge can lead as a 501(c)(3), the topic is core (energy-sector cyber, utilities, workforce, lab/university-to-industry bridging), and the structure rewards an intermediary or program manager.
-- 6-8: Forge can lead or co-lead with a university or lab partner. Topic fit is real but not central.
-- 4-5: Forge would most likely be a subrecipient or supporting partner, or the topic fit is thin.
-- 1-3: Forge is ineligible, or the work is basic research, a fellowship, or outside Forge's domains.
+Forge does NOT have to be the lead applicant. Score the fit of the work itself, whether Forge would lead or join a university, lab or company as a partner or subrecipient, and report the role separately in forgeRole.
+- 9-10: The topic is core (energy-sector cyber, utilities, workforce, lab/university-to-industry bridging) and the program rewards what Forge does: program management, convening, intermediary or technical-assistance roles.
+- 6-8: Real topic fit and a clear, funded role for Forge as lead or partner.
+- 4-5: Thin topic fit, or Forge's role would be small.
+- 1-3: Outside Forge's domains (basic science, individual fellowships), or Forge has no possible role (e.g. invitation only).
 
 Rules:
 - Ground eligibility claims in the eligibility text you are given. If it is missing, say what needs to be confirmed. Do not assume.

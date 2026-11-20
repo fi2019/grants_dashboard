@@ -29,6 +29,7 @@
   ],
   "goodFit": [
     "Forge can lead or prime as a 501(c)(3) and subcontract technical work to a lab or university",
+    "Forge joins a university-, lab- or company-led proposal as a partner or subrecipient (program management, convening, utility engagement, ET-ISAC intelligence)",
     "Cybersecurity, AI, data analytics, machine learning, or other IT, where Forge connects industry to academia or labs",
     "Critical infrastructure protection for small, rural, and municipal electric utilities",
     "Energy-sector training and workforce development",
@@ -37,7 +38,7 @@
   ],
   "poorFit": [
     "Basic or investigator-driven research that needs a tenure-track PI",
-    "Programs only institutions of higher education, individuals, or for-profit businesses can apply to",
+    "Fellowships and awards to individual researchers",
     "Construction, hardware procurement, facilities, or commodity contracts",
     "K-12-only or graduate-education-only programs with no energy, cyber, or workforce angle",
     "Invitation-only foundation programs"
@@ -46,7 +47,7 @@
     "noCashMatchPreferred": true,
     "indirectCostsRequired": true,
     "operatingExpensesPreferred": true,
-    "mustBeEligibleAsLeadApplicant": true,
+    "mustBeEligibleAsLeadApplicant": false,
     "openSolicitationOnly": true
   },
   "searchKeywords": [

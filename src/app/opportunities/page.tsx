@@ -6,7 +6,7 @@ import { STAGES, STAGE_LABELS, type Stage } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
-type Search = { q?: string; min?: string; stage?: string; agency?: string; show?: string; criteria?: string };
+type Search = { q?: string; min?: string; stage?: string; agency?: string; show?: string; criteria?: string; role?: string };
 
 export default async function OpportunitiesPage({ searchParams }: { searchParams: Promise<Search> }) {
   const sp = await searchParams;
@@ -20,7 +20,8 @@ export default async function OpportunitiesPage({ searchParams }: { searchParams
       if (sp.stage && o.stage !== sp.stage) return false;
       if (min && (fitScore(o) ?? 0) < min) return false;
       if (sp.agency && agencyForCode(o.agencyCode)?.id !== sp.agency) return false;
-      if (sp.criteria === "clean" && o.screening?.criteria.some((c) => c.status === "fail")) return false;
+      if (sp.criteria === "clean" && o.screening?.criteria.some((c) => c.status === "fail" && c.id !== "lead_eligible")) return false;
+      if (sp.role && (o.evaluation?.forgeRole ?? o.screening?.leadRole) !== sp.role && !(sp.role === "lead" && o.evaluation?.forgeRole === "either")) return false;
       if (q && ![o.title, o.agency, o.number, o.description].some((f) => f?.toLowerCase().includes(q))) return false;
       return true;
     }),
@@ -46,6 +47,12 @@ export default async function OpportunitiesPage({ searchParams }: { searchParams
           <option value="">Open stages</option>
           {STAGES.map((s: Stage) => <option key={s} value={s}>{STAGE_LABELS[s]}</option>)}
         </select>
+        <select name="role" defaultValue={sp.role ?? ""} className={select}>
+          <option value="">Lead or partner</option>
+          <option value="lead">Forge can lead</option>
+          <option value="partner">Partner role only</option>
+          <option value="unclear">Lead: check notice</option>
+        </select>
         <label className="flex items-center gap-1 text-sm text-slate-600">
           <input type="checkbox" name="criteria" value="clean" defaultChecked={sp.criteria === "clean"} /> No failed criteria
         </label>
@@ -56,7 +63,7 @@ export default async function OpportunitiesPage({ searchParams }: { searchParams
         <span className="ml-auto text-xs text-slate-500">{items.length} shown · * = keyword pre-score, not yet evaluated by Claude</span>
       </form>
       <div className="flex gap-4 text-xs text-slate-500">
-        <span>Criteria dots: 501(c)(3) lead · no cash match · indirect costs · operating expenses · open solicitation</span>
+        <span>Criteria dots: no cash match · indirect costs · operating expenses · open solicitation. The role badge shows whether Forge can lead or would partner.</span>
         <span><span className="inline-block h-2 w-2 rounded-full bg-emerald-500" /> pass <span className="inline-block h-2 w-2 rounded-full bg-red-500" /> fail <span className="inline-block h-2 w-2 rounded-full bg-slate-300" /> not stated</span>
       </div>
       <OpportunityTable items={items} empty="No opportunities match these filters." />

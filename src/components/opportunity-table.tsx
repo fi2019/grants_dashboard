@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { formatMoney } from "@/lib/dates";
 import type { Opportunity } from "@/lib/types";
-import { DeadlineChip, ScoreBadge, SourceTag, StageBadge } from "./badges";
+import { DeadlineChip, RoleBadge, ScoreBadge, SourceTag, StageBadge } from "./badges";
 
 export function OpportunityTable({ items, empty = "Nothing here yet." }: { items: Opportunity[]; empty?: string }) {
   if (!items.length) return <p className="rounded-lg bg-white p-6 text-sm text-slate-500">{empty}</p>;
@@ -28,6 +28,7 @@ export function OpportunityTable({ items, empty = "Nothing here yet." }: { items
                 </Link>
                 <div className="mt-0.5 flex flex-wrap items-center gap-2 text-xs text-slate-500">
                   <SourceTag source={o.source} />
+                  <RoleBadge o={o} />
                   <span>{o.agency}</span>
                   {o.number && <span>· {o.number}</span>}
                 </div>
@@ -50,7 +51,7 @@ export function CriteriaDots({ o }: { o: Opportunity }) {
   if (!o.screening) return null;
   return (
     <div className="flex gap-1">
-      {o.screening.criteria.map((c) => (
+      {o.screening.criteria.filter((c) => c.id !== "lead_eligible").map((c) => (
         <span key={c.id} title={`${c.label}: ${c.status}`} className={`h-2.5 w-2.5 rounded-full ${DOT[c.status]}`} />
       ))}
     </div>

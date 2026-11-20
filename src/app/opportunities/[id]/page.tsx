@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { DeadlineChip, ScoreBadge, SourceTag, StageBadge } from "@/components/badges";
+import { DeadlineChip, RoleBadge, ScoreBadge, SourceTag, StageBadge } from "@/components/badges";
 import { DecisionPanel } from "@/components/decision-panel";
 import { formatDate, formatMoney, formatRange } from "@/lib/dates";
 import { getOpportunity } from "@/lib/store";
@@ -26,7 +26,7 @@ export default async function OpportunityPage({ params }: { params: Promise<{ id
         <div>
           <Link href="/opportunities" className="text-sm text-navy-700 hover:underline">← Opportunities</Link>
           <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-slate-500">
-            <SourceTag source={o.source} /> <span>{o.agency}</span> {o.number && <span>· {o.number}</span>} <StageBadge stage={o.stage} />
+            <SourceTag source={o.source} /> <span>{o.agency}</span> {o.number && <span>· {o.number}</span>} <StageBadge stage={o.stage} /> <RoleBadge o={o} />
           </div>
           <h1 className="mt-1 text-2xl font-semibold text-navy-900">{o.title}</h1>
           {o.sourceUrl && (
@@ -52,7 +52,7 @@ export default async function OpportunityPage({ params }: { params: Promise<{ id
         {o.screening && (
           <Section title="Forge decision criteria">
             {o.screening.blockers.length > 0 && (
-              <p className="mb-2 text-sm font-medium text-red-700">Blocker: {o.screening.blockers.join("; ")}</p>
+              <p className="mb-2 text-sm font-medium text-red-700">Rules Forge out: {o.screening.blockers.join("; ")}</p>
             )}
             <div className="grid gap-2 md:grid-cols-2">
               {o.screening.criteria.map((c) => (
@@ -80,6 +80,9 @@ export default async function OpportunityPage({ params }: { params: Promise<{ id
               </Section>
               <Section title="Why Forge qualifies">{ev.whyForgeQualifies}</Section>
             </div>
+            {(ev.forgeRole || ev.roleRationale) && (
+              <Section title="Forge's role">{ev.roleRationale}</Section>
+            )}
             {ev.risks.length > 0 && (
               <Section title="Risks and open questions">
                 <ul className="list-disc space-y-1 pl-4">{ev.risks.map((r) => <li key={r}>{r}</li>)}</ul>

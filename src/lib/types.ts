@@ -46,8 +46,14 @@ export interface Screening {
   /** Signals from the Forge profile that matched, e.g. "OT/ICS". */
   signals: string[];
   criteria: CriterionResult[];
-  /** Hard blockers: if any are present the opportunity should not go to Claude. */
+  /** Hard blockers that rule Forge out in any role (e.g. invitation only). */
   blockers: string[];
+  /**
+   * Whether Forge can be the lead applicant. Forge does not have to lead:
+   * "partner" means Forge joins an eligible lead as partner or subrecipient.
+   */
+  leadRole: "lead" | "partner" | "unclear";
+  leadReason: string;
   /** Data quality warnings, e.g. an implausible deadline. */
   warnings: string[];
 }
@@ -63,6 +69,9 @@ export interface Evaluation {
   recommendedPartners: string[];
   whyForgeQualifies: string;
   risks: string[];
+  /** Claude's read of Forge's role: lead applicant, partner/subrecipient, or either. */
+  forgeRole?: "lead" | "partner" | "either";
+  roleRationale?: string;
   model: string;
   evaluatedAt: string;
 }

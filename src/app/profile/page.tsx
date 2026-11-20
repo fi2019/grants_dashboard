@@ -24,7 +24,7 @@ export default function ProfilePage() {
         <div className={card}>
           <h2 className="mb-2 font-semibold text-navy-900">Decision criteria</h2>
           {list([
-            "501(c)(3) can be the lead applicant",
+            "Forge leads or partners; each opportunity shows which",
             "No cash match",
             "Indirect costs allowed",
             "Funds operating expenses",

@@ -31,13 +31,22 @@ const OFF_TOPIC: { label: string; weight: number; pattern: RegExp }[] = [
   { label: "Individual fellowship", weight: 15, pattern: /postdoctoral|fellowship|dissertation|early[- ]career faculty|CAREER\b/i },
 ];
 
-const BLOCKERS: { reason: string; pattern: RegExp }[] = [
+/**
+ * Rules that stop Forge from being the LEAD applicant. Forge does not have to
+ * lead: these opportunities stay in play with Forge as a partner, subrecipient
+ * or subcontractor to an eligible lead (a university, lab or small business).
+ */
+const LEAD_RESTRICTIONS: { reason: string; pattern: RegExp }[] = [
   { reason: "Only institutions of higher education may apply", pattern: /(only|exclusively|restricted to)[^.]{0,60}institutions of higher education/i },
   { reason: "Requires a tenured or tenure-track PI", pattern: /tenure[- ]track|tenured faculty/i },
-  { reason: "Nonprofits are not eligible", pattern: /nonprofits? (are|is) not eligible|for[- ]profit (entities )?only/i },
-  { reason: "Invitation only", pattern: /by invitation only|invitation[- ]only|invited applicants only/i },
-  { reason: "SBIR/STTR: small business concerns only", pattern: /\bSBIR\b|\bSTTR\b|small business innovation research/i },
+  { reason: "Nonprofits are not eligible to apply directly", pattern: /nonprofits? (are|is) not eligible|for[- ]profit (entities )?only/i },
+  { reason: "SBIR/STTR: a small business must be the applicant", pattern: /\bSBIR\b|\bSTTR\b|small business innovation research/i },
   { reason: "Restricted to HBCUs / tribal institutions", pattern: /only[^.]{0,40}(HBCU|historically black|tribal colleges)/i },
+];
+
+/** Rules that rule out Forge in any role. */
+const BLOCKERS: { reason: string; pattern: RegExp }[] = [
+  { reason: "Invitation only", pattern: /by invitation only|invitation[- ]only|invited applicants only/i },
 ];
 
 function textOf(o: ScreenInput): string {
@@ -57,12 +66,13 @@ export function evaluateCriteria(o: ScreenInput): CriterionResult[] {
 
   const nonprofitOk =
     /nonprofits?( organizations)?|501\s*\(c\)\s*\(3\)|unrestricted/i;
-  const leadBlocked = BLOCKERS.find((b) => b.pattern.test(text));
+  const leadBlocked = LEAD_RESTRICTIONS.find((b) => b.pattern.test(text));
+  const label = "Forge can lead";
   const lead: CriterionResult = leadBlocked
-    ? { id: "lead_eligible", label: "501(c)(3) lead applicant", status: "fail", evidence: leadBlocked.reason }
+    ? { id: "lead_eligible", label, status: "fail", evidence: `${leadBlocked.reason}. Forge can still join as a partner or subrecipient.` }
     : nonprofitOk.test(elig)
-      ? { id: "lead_eligible", label: "501(c)(3) lead applicant", status: "pass", evidence: firstMatch(elig, nonprofitOk) ?? "Nonprofits listed as eligible" }
-      : { id: "lead_eligible", label: "501(c)(3) lead applicant", status: "unknown", evidence: "Eligibility not stated in the listing. Check the full notice." };
+      ? { id: "lead_eligible", label, status: "pass", evidence: firstMatch(elig, nonprofitOk) ?? "Nonprofits listed as eligible" }
+      : { id: "lead_eligible", label, status: "unknown", evidence: "Eligibility not stated in the listing. Check the full notice; Forge can partner either way." };
 
   const matchRequired = /cost[- ]shar(e|ing) (is )?required|matching funds (are )?required|non-federal match of|\d+% (cash )?match/i;
   const noMatch = /no (cash )?match|cost[- ]sharing is not required|no cost[- ]share|matching funds (are )?not required/i;
@@ -108,10 +118,13 @@ export function screen(o: ScreenInput): Screening {
   for (const s of offTopic) score -= s.weight;
   for (const c of criteria) {
     if (c.status === "pass") score += 3;
-    if (c.status === "fail") score -= c.id === "lead_eligible" ? 40 : 10;
+    // Not being able to lead is not a penalty: Forge can partner.
+    if (c.status === "fail" && c.id !== "lead_eligible") score -= 10;
   }
 
   const blockers = BLOCKERS.filter((b) => b.pattern.test(text)).map((b) => b.reason);
+  const leadCrit = criteria[0];
+  const leadRole: Screening["leadRole"] = leadCrit.status === "pass" ? "lead" : leadCrit.status === "fail" ? "partner" : "unclear";
   const warnings: string[] = [];
   if (isImplausibleDeadline(o.closeDate)) warnings.push("Deadline is more than 5 years out; likely placeholder data in the source.");
   if (!o.description) warnings.push("No description in the listing; scoring used the title only.");
@@ -122,5 +135,7 @@ export function screen(o: ScreenInput): Screening {
     criteria,
     blockers,
     warnings,
+    leadRole,
+    leadReason: leadCrit.evidence,
   };
 }
