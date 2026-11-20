@@ -1,6 +1,6 @@
 <title>Forge Grants Dashboard</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<meta name="forge:published" content="2026-11-20T21:34:19Z">
+<meta name="forge:published" content="2026-11-20T21:59:03Z">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
@@ -249,6 +249,13 @@ td .meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; color:
 pre.outline { white-space: pre-wrap; font: 13px/1.55 var(--font); margin: 8px 0 0; background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 8px 12px; max-height: 360px; overflow: auto }
 .reqform { display: grid; gap: 8px; border: 1px solid var(--line); border-left: 3px solid var(--info); border-radius: 6px; padding: 10px; background: var(--surface-2) }
 .reqform textarea { font: 13px/1.5 var(--font) }
+.catgroup { font: 600 15px var(--display); margin: 14px 0 6px; display: flex; gap: 8px; align-items: baseline }
+.catgroup:first-child { margin-top: 0 }
+.cattable td, .cattable th { white-space: nowrap }
+.cattable tr.on td { background: var(--info-bg) }
+.dcat label, .tcat label { display: inline-flex; gap: 8px; align-items: center; font-size: 13px; color: var(--muted) }
+.tcat { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; margin: 10px 0 0 }
+.tcat .btn-ghost { padding: 3px 10px; font-size: 13px }
 .orggrid { display: grid; gap: 8px 24px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr)); margin: 12px 0 0 }
 .orggrid > div { display: grid; gap: 2px; border-top: 1px solid var(--line); padding-top: 8px; min-width: 0 }
 .orggrid dt { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted) }
@@ -506,7 +513,7 @@ details.addform[open] > summary::before { content: "− " }
   const leadLabel = () => leadDays() === 14 ? "2 weeks" : leadDays() % 7 === 0 ? `${leadDays() / 7} weeks` : `${leadDays()} days`;
   let db = null, user = null, me = null, canWrite = false, storeState = "connecting";
   const names = {}, avatars = {};
-  const ui = { q: "", min: "", agency: "", stage: "", cat: "", role: "", mech: "", partner: false, clean: false, closed: false, stars: "", starBasis: "mine", unrated: true };
+  const ui = { q: "", min: "", agency: "", stage: "", cat: "", role: "", mech: "", partner: false, clean: false, closed: false, stars: "", starBasis: "mine", unrated: true, sort: "fit", psort: "deadline", dcat: "", dcsort: "open" };
   try { Object.assign(ui, JSON.parse(localStorage.getItem("fg-filters") || "{}")); } catch {}
   const editing = { source: null, partner: null, category: null, profile: false };
   const hf = { kind: "", who: "" };   // history filters   // id being edited, or "new"
@@ -672,13 +679,28 @@ details.addform[open] > summary::before { content: "− " }
   }
 
   // ---------- dashboard ----------
+  function byCategoryPanel() {
+    const open = OPPS.filter(isOpen), cats = sorted(S.categories);
+    if (!cats.length) return "";
+    const rows = cats.map((c) => { const xs = open.filter((o) => hits(o, c.keywords).length), next = xs.filter((o) => (daysUntil(o.closeDate) ?? -1) >= 0).sort(byDeadline)[0];
+      return { c, n: xs.length, high: xs.filter(isHigh).length, rated: xs.filter((o) => (teamAvg(o)?.avg || 0) >= 3).length, next, members: (c.members || []).length, mine: me && (c.members || []).includes(me) }; });
+    const sorters = { open: (a, b) => b.n - a.n, high: (a, b) => b.high - a.high || b.n - a.n, deadline: (a, b) => (a.next ? Date.parse(a.next.closeDate) : Infinity) - (b.next ? Date.parse(b.next.closeDate) : Infinity), name: (a, b) => a.c.name.localeCompare(b.c.name) };
+    rows.sort(sorters[ui.dcsort] || sorters.open);
+    return `<section class="panel"><div class="tbar"><h2 style="margin:0">By category</h2>
+        <select id="d-csort" aria-label="Sort categories"><option value="open" ${ui.dcsort === "open" ? "selected" : ""}>Sort: most open</option><option value="high" ${ui.dcsort === "high" ? "selected" : ""}>Sort: most high match</option><option value="deadline" ${ui.dcsort === "deadline" ? "selected" : ""}>Sort: soonest deadline</option><option value="name" ${ui.dcsort === "name" ? "selected" : ""}>Sort: A–Z</option></select></div>
+      <div class="tablewrap" style="border:0"><table class="cattable"><thead><tr><th>Category</th><th>Open</th><th>High match</th><th>Rated 3+</th><th>Next deadline</th><th>Members</th></tr></thead><tbody>
+        ${rows.map((r) => `<tr class="${ui.dcat === r.c.id ? "on" : ""}"><td><a href="#dashboard" data-dcat="${esc(r.c.id)}">${esc(r.c.name)}</a>${r.mine ? ` <span class="cat">yours</span>` : ""}</td><td class="num"><a href="#opportunities" data-cat="${esc(r.c.id)}">${r.n}</a></td><td class="num">${r.high}</td><td class="num">${r.rated}</td><td>${r.next ? `${dlHtml(r.next.closeDate)}<div class="note" style="max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(r.next.title)}</div>` : `<span class="note">—</span>`}</td><td class="num">${r.members}</td></tr>`).join("")}
+      </tbody></table></div><p class="help" style="margin-top:6px">Click a category name to focus the dashboard on it, or its count to open the matching opportunities.</p></section>`;
+  }
   function viewDashboard() {
-    const open = OPPS.filter(isOpen);
+    if (ui.dcat && ui.dcat !== "@mine" && !S.categories[ui.dcat] && storeState === "ready") ui.dcat = "";
+    const inDash = (o) => inCat(o, ui.dcat);
+    const open = OPPS.filter(isOpen).filter(inDash);
     const within = (iso, n) => { const d = daysUntil(iso); return d !== null && d >= 0 && d <= n; };
     const internal = open.filter((o) => ["screening","internal_review","go","drafting"].includes(stageOf(o)) && within(internalOf(o), 14)).sort((a, b) => Date.parse(internalOf(a)) - Date.parse(internalOf(b)));
     const deadlines = open.filter((o) => within(o.closeDate, 30) && (isHigh(o) || ["internal_review","go","drafting"].includes(stageOf(o)))).sort((a, b) => Date.parse(a.closeDate) - Date.parse(b.closeDate));
     const high = open.filter(isHigh).sort(byFit);
-    const counts = Object.fromEntries(STAGES.map((s) => [s, 0])); OPPS.forEach((o) => counts[stageOf(o)]++);
+    const counts = Object.fromEntries(STAGES.map((s) => [s, 0])); OPPS.filter(inDash).forEach((o) => counts[stageOf(o)]++);
     const mine = myCats();
     const mineOpps = open.filter((o) => mine.some((c) => hits(o, c.keywords).length)).sort(byFit);
     const myPanel = !me ? "" : `<div class="panel"><h2>Your categories</h2>${
@@ -688,26 +710,28 @@ details.addform[open] > summary::before { content: "− " }
       <div class="head"><div><h1>Grant dashboard</h1>${storeBanner()}</div>
         <div style="display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap"><form class="search" id="qform"><input id="dash-q" placeholder="Search opportunities…" aria-label="Search opportunities"><button class="btn">Search</button></form>${refreshHtml()}</div></div>
       <section class="stats">
-        <a class="stat" href="#opportunities" data-reset="1"><div class="k">Open opportunities</div><div class="v">${open.length}</div><div class="s">From the latest snapshot</div></a>
-        <a class="stat hot" href="#opportunities" data-min="6"><div class="k">High match (6+)</div><div class="v">${high.length}</div><div class="s">Evaluated by Claude</div></a>
+        <a class="stat" href="#opportunities" data-reset="1" data-cat="${esc(ui.dcat)}"><div class="k">Open opportunities</div><div class="v">${open.length}</div><div class="s">From the latest snapshot</div></a>
+        <a class="stat hot" href="#opportunities" data-min="6" data-cat="${esc(ui.dcat)}"><div class="k">High match (6+)</div><div class="v">${high.length}</div><div class="s">Evaluated by Claude</div></a>
         <a class="stat" href="#pipeline"><div class="k">Forge internal deadlines (14d)</div><div class="v">${internal.length}</div><div class="s">Go/no-go and drafts due inside Forge</div></a>
         <a class="stat" href="#pipeline"><div class="k">Submission deadlines (30d)</div><div class="v">${deadlines.length}</div><div class="s">High match or in progress</div></a>
       </section>
-      ${revenuePanel(open)}
-      ${myPanel}
+      <div class="panel filters dcat"><label>Focus the dashboard on ${catSelect("d-cat", ui.dcat, "All categories")}</label>${ui.dcat ? `<span class="note">Showing only opportunities in <b>${esc(catLabel(ui.dcat))}</b>.</span> <button class="btn-ghost" data-dcat="" type="button">Show all</button>` : `<span class="note">Counts, revenue, deadlines and recommendations below follow this choice.</span>`}</div>
+      ${revenuePanel(open, OPPS.filter(inDash))}
+      ${ui.dcat ? "" : myPanel}
       <section class="grid2">
         <div class="panel"><h2>Forge internal deadlines</h2><p class="help" style="margin-bottom:6px">${leadLabel()[0].toUpperCase() + leadLabel().slice(1)} before each submission deadline, unless the team set another date.</p>${dueList(internal, internalOf, "No internal deadlines in the next 14 days for opportunities in progress.", true)}</div>
         <div class="panel"><h2>Submission deadlines</h2>${dueList(deadlines, (o) => o.closeDate, "No high-match submission deadlines in the next 30 days.")}</div>
       </section>
       <section><h2 class="sec-title">Top recommended</h2>${table(high.slice(0, 8), "No Claude-evaluated high matches yet.")}</section>
-      <section><h2 class="sec-title">Decision funnel</h2><div class="funnel">${STAGES.map((s) => `<a href="#opportunities" data-stage="${s}"><b>${counts[s]}</b> ${LABEL[s]}</a>`).join("")}</div></section>`;
+      ${byCategoryPanel()}
+      <section><h2 class="sec-title">Decision funnel</h2><div class="funnel">${STAGES.map((s) => `<a href="#opportunities" data-stage="${s}" data-cat="${esc(ui.dcat)}"><b>${counts[s]}</b> ${LABEL[s]}</a>`).join("")}</div></section>`;
   }
 
   // Potential revenue = sum of each opportunity's award ceiling (the most one award can be).
-  function revenuePanel(open) {
+  function revenuePanel(open, base = OPPS) {
     const sum = (xs) => xs.reduce((t, o) => t + (o.awardCeiling || 0), 0);
     const missing = (xs) => xs.filter((o) => !o.awardCeiling).length;
-    const pursuing = OPPS.filter((o) => ["go","drafting","submitted"].includes(stageOf(o)) && (stageOf(o) === "submitted" || (daysUntil(o.closeDate) ?? 0) >= 0));
+    const pursuing = base.filter((o) => ["go","drafting","submitted"].includes(stageOf(o)) && (stageOf(o) === "submitted" || (daysUntil(o.closeDate) ?? 0) >= 0));
     const review = open.filter((o) => ["screening","internal_review"].includes(stageOf(o)));
     const high = open.filter(isHigh);
     const cell = (k, xs, sub, lead) => `<div><div class="k">${k}</div><div class="v ${lead ? "lead" : ""}">${money(sum(xs))}</div><div class="s">${xs.length} ${xs.length === 1 ? "opportunity" : "opportunities"}${missing(xs) ? ` · ${missing(xs)} with no ceiling listed` : ""}${sub ? ` · ${sub}` : ""}</div></div>`;
@@ -742,7 +766,25 @@ details.addform[open] > summary::before { content: "− " }
       return true;
     };
   }
-  const filtered = () => OPPS.filter(matcher(false)).sort(byFit);
+  // Category helpers shared by Dashboard, Opportunities, Pipeline and Teaming. "@mine" = the viewer's categories.
+  const catKeywords = (cat) => cat === "@mine" ? myCats().flatMap((c) => c.keywords || []) : cat ? (S.categories[cat]?.keywords || []) : null;
+  const catLabel = (cat) => cat === "@mine" ? "My categories" : S.categories[cat]?.name || "";
+  const inCat = (o, cat) => { const kw = catKeywords(cat); return !kw || hits(o, kw).length > 0; };
+  const catSelect = (id, cur, any = "All categories") => `<select id="${id}" aria-label="Category"><option value="">${esc(any)}</option>${me ? `<option value="@mine" ${cur === "@mine" ? "selected" : ""}>My categories</option>` : ""}${sorted(S.categories).map((c) => `<option value="${esc(c.id)}" ${cur === c.id ? "selected" : ""}>${esc(c.name)}</option>`).join("")}</select>`;
+  const firstCat = (o) => catsFor(o)[0]?.name || "\uffff";   // sorts "no category" last
+  const byDeadline = (a, b) => Date.parse(a.closeDate || "9999-01-01") - Date.parse(b.closeDate || "9999-01-01");
+  const SORTS = { fit: ["Best fit", byFit], deadline: ["Deadline (soonest)", (a, b) => byDeadline(a, b) || byFit(a, b)], ceiling: ["Award ceiling (largest)", (a, b) => (b.awardCeiling || 0) - (a.awardCeiling || 0) || byFit(a, b)],
+    rating: ["Team rating", (a, b) => (teamAvg(b)?.avg || 0) - (teamAvg(a)?.avg || 0) || byFit(a, b)], category: ["Category (grouped)", (a, b) => firstCat(a).localeCompare(firstCat(b)) || byFit(a, b)] };
+  const sortSelect = (id, cur, keys) => `<select id="${id}" aria-label="Sort by">${keys.map((k) => `<option value="${k}" ${cur === k ? "selected" : ""}>Sort: ${SORTS[k][0]}</option>`).join("")}</select>`;
+  const filtered = () => OPPS.filter(matcher(false)).sort((SORTS[ui.sort] || SORTS.fit)[1]);
+  // Opportunities list: one table, or one table per category when sorted by category.
+  function resultsHtml(items) {
+    const list = items.slice(0, 300);
+    if (ui.sort !== "category" || !list.length) return table(list, "No opportunities match these filters.");
+    const groups = new Map();
+    for (const o of list) { const k = catsFor(o)[0]?.name || "No category"; if (!groups.has(k)) groups.set(k, []); groups.get(k).push(o); }
+    return [...groups].map(([name, xs]) => `<h2 class="catgroup">${esc(name)} <span class="note">${xs.length}</span></h2>${table(xs, "")}`).join("");
+  }
   const anyFilter = () => Boolean(ui.q || ui.min || ui.agency || ui.cat || ui.role || ui.mech || ui.stars || ui.partner || ui.clean);
 
   function filtersHtml(board) {
@@ -761,6 +803,7 @@ details.addform[open] > summary::before { content: "− " }
         <label><input type="checkbox" id="f-partner" ${ui.partner ? "checked" : ""}> Partner match</label>
         <label><input type="checkbox" id="f-clean" ${ui.clean ? "checked" : ""}> No failed criteria</label>
         <label><input type="checkbox" id="f-closed" ${ui.closed ? "checked" : ""}> ${board ? "Include past deadlines" : "Include closed"}</label>
+        ${board ? sortSelect("f-psort", ui.psort, ["deadline", "fit", "rating", "category"]) : sortSelect("f-sort", ui.sort, ["fit", "deadline", "ceiling", "rating", "category"])}
         <button class="btn-ghost" id="f-reset" type="button">Reset</button>
       </div>`;
   }
@@ -772,7 +815,7 @@ details.addform[open] > summary::before { content: "− " }
       <div class="legend"><span>Type: <span class="mech sbir">SBIR</span> <span class="mech baa">BAA</span> <span class="mech grant">Grant</span> <span class="mech contract">Contract</span></span><span>Role: <span class="role lead">Forge can lead</span> <span class="role partner">Partner role</span> <span class="role unclear">Lead: check notice</span></span><span>Criteria: no cash match · indirect costs · operating expenses · open solicitation</span>
         <span><i class="dot pass"></i>yes</span><span><i class="dot fail"></i>no</span><span><i class="dot unknown"></i>not stated</span>
         <span>Days left: <b class="dl urgent">under 30</b> <b class="dl soon">under 90</b> <b class="dl ok">90+</b></span></div>
-      <div id="results">${table(items.slice(0, 300), "No opportunities match these filters.")}</div>`;
+      <div id="results">${resultsHtml(items)}</div>`;
   }
 
   // ---------- detail ----------
@@ -857,12 +900,12 @@ details.addform[open] > summary::before { content: "− " }
     const active = boardCards();
     const canMove = Boolean(db && canWrite);
     return BOARD_COLS.map((c) => {
-      const cards = active.filter((o) => stageOf(o) === c).sort((a, b) => Date.parse(a.closeDate || "9999-01-01") - Date.parse(b.closeDate || "9999-01-01"));
+      const cards = active.filter((o) => stageOf(o) === c).sort(ui.psort === "deadline" ? byDeadline : (SORTS[ui.psort] || SORTS.fit)[1]);
       return `<div class="col" data-col="${c}"><h2>${LABEL[c]} <span class="num" style="color:var(--muted)">${cards.length}</span></h2>${cards.length ? cards.map((o) => {
         const d = S.decisions[o.id] || {};
         return `<div class="card" ${canMove ? `draggable="true"` : ""} data-card="${o.id}">
           <span style="display:flex;justify-content:space-between;gap:8px"><a class="ttl" href="#opp-${o.id}">${esc(o.title)}</a>${scoreHtml(o)}</span>
-          <span class="note">${esc(o.agency)}</span><span style="display:flex;flex-wrap:wrap;gap:4px">${o.source === "teaming" ? srcTag(o) : ""}${mechHtml(o)}${roleHtml(o)}</span>${deadlineCell(o)}${d.owner ? `<span class="note">Owner: ${esc(d.owner)}</span>` : ""}
+          <span class="note">${esc(o.agency)}</span><span style="display:flex;flex-wrap:wrap;gap:4px">${o.source === "teaming" ? srcTag(o) : ""}${mechHtml(o)}${roleHtml(o)}</span>${catsFor(o).length ? `<span class="cats" style="margin-top:0">${catsFor(o).slice(0, 3).map((x) => `<span class="cat">${esc(x.name)}</span>`).join("")}</span>` : ""}${deadlineCell(o)}${d.owner ? `<span class="note">Owner: ${esc(d.owner)}</span>` : ""}
           ${canMove ? `<select class="move" data-move="${o.id}" aria-label="Move ${esc(o.title)} to another stage">${STAGES.map((st) => `<option value="${st}" ${st === c ? "selected" : ""}>${st === c ? "Move to…" : LABEL[st]}</option>`).join("")}</select>` : ""}
         </div>`;
       }).join("") : `<p class="empty" style="font-size:13px">${canMove ? "Drop a card here." : "Nothing here."}</p>`}</div>`;
@@ -1870,9 +1913,9 @@ Reply with only a JSON object:
     for (const t of b.topics) {
       const tn = node("t:" + t.toLowerCase(), "topic", t);
       const connect = (n) => { if (!n.topics.includes(t)) { n.topics.push(t); links.push({ source: tn.id, target: n.id }); } };
-      if (TM.types.partner) sorted(S.partners).filter((p) => partnerHasTopic(p, t)).forEach((p) => connect(node("p:" + p.id, "partner", p.name, p)));
-      if (TM.types.source) sorted(S.sources).filter((x) => sourceHasTopic(x, t)).slice(0, TM.perTopic).forEach((x) => connect(node("s:" + x.id, "source", x.name, x)));
-      if (TM.types.opportunity) open.filter((o) => oppHasTopic(o, t)).sort(byFit).slice(0, TM.perTopic).forEach((o) => connect(node("o:" + o.id, "opportunity", o.title, o)));
+      if (TM.types.partner) sorted(S.partners).filter((p) => partnerHasTopic(p, t) && tcatOk("partner", p)).forEach((p) => connect(node("p:" + p.id, "partner", p.name, p)));
+      if (TM.types.source) sorted(S.sources).filter((x) => sourceHasTopic(x, t) && tcatOk("source", x)).slice(0, TM.perTopic).forEach((x) => connect(node("s:" + x.id, "source", x.name, x)));
+      if (TM.types.opportunity) open.filter((o) => oppHasTopic(o, t) && tcatOk("opportunity", o)).sort(byFit).slice(0, TM.perTopic).forEach((o) => connect(node("o:" + o.id, "opportunity", o.title, o)));
     }
     for (const k of b.items) {
       const it = itemOf(k); if (!it) continue;
@@ -1885,10 +1928,14 @@ Reply with only a JSON object:
     return { nodes: [...nodes.values()], links };
   }
 
+  const tcatKw = () => catKeywords(TM.cat || "");
+  const tcatOk = (kind, ref) => { const kw = tcatKw(); if (!kw) return true;
+    return kind === "partner" ? kw.some((k) => partnerHasTopic(ref, k)) : kind === "source" ? kw.some((k) => sourceHasTopic(ref, k)) : hits(ref, kw).length > 0; };
   function pickersHtml(picked) {
     const rows = [];
     const walk = (p, depth) => { rows.push({ p, depth }); if (depth < 4) childrenOf(p.id).forEach((c) => walk(c, depth + 1)); };
     sorted(S.partners).filter(isTop).forEach((p) => walk(p, 0));
+    if (tcatKw()) { const keep = rows.filter(({ p }) => picked.has("p:" + p.id) || tcatOk("partner", p)); rows.length = 0; rows.push(...keep); }
     const hide = (text, q) => (q && !text.includes(q.toLowerCase()) ? "hidden" : "");
     const prow = ({ p, depth }) => { const f = [p.name, p.type, ...(p.focus || []), ...lineage(p)].join(" ").toLowerCase(), t = teamAvg(rateable(p));
       return `<li data-filter="${esc(f)}" ${hide(f, TM.pq)} style="padding-left:${depth * 18}px"><label><input type="checkbox" data-tpick="p:${esc(p.id)}" ${picked.has("p:" + p.id) ? "checked" : ""} ${ro()}> <span>${depth ? "↳ " : ""}${esc(p.name)}</span></label><span class="note">${esc(p.type || "")}${t ? ` · ★ ${t.avg.toFixed(1)}` : ""}</span></li>`; };
@@ -1899,7 +1946,7 @@ Reply with only a JSON object:
       <p class="help">Pick the specific partners (a university, or a center, department or person under it) and the funding sponsors to build topics for. Picks show in the network and under Your picks.</p>
       <div class="grid2" id="tpickers" style="margin-top:8px">
         <div><div class="tph"><b>Partners</b><span class="note">${nP} picked</span></div><input id="tp-q" placeholder="Filter by name, type or focus area…" value="${esc(TM.pq)}" aria-label="Filter partners"><ul class="tlist tpick">${rows.map(prow).join("") || `<li class="help">No partners yet. Add them on the Partners tab.</li>`}</ul></div>
-        <div><div class="tph"><b>Funding sponsors</b><span class="note">${nS} picked</span></div><input id="ts-q" placeholder="Filter, e.g. IARPA, DARPA, AFRL, cyber…" value="${esc(TM.sq)}" aria-label="Filter funding sponsors"><ul class="tlist tpick">${sorted(S.sources).map(srow).join("")}</ul></div>
+        <div><div class="tph"><b>Funding sponsors</b><span class="note">${nS} picked</span></div><input id="ts-q" placeholder="Filter, e.g. IARPA, DARPA, AFRL, cyber…" value="${esc(TM.sq)}" aria-label="Filter funding sponsors"><ul class="tlist tpick">${sorted(S.sources).filter((x) => picked.has("s:" + x.id) || tcatOk("source", x)).map(srow).join("") || `<li class="help">No funding sponsors mention this category's keywords.</li>`}</ul></div>
       </div></section>`;
   }
   function viewTeaming() {
@@ -1923,6 +1970,7 @@ Reply with only a JSON object:
         <div class="chips" style="margin:8px 0">${b.topics.map((t) => `<span class="x tchip">${esc(t)}<button type="button" data-untopic="${esc(t)}" aria-label="Remove ${esc(t)}" ${ro()}>×</button></span>`).join("") || `<span class="help">No focus areas yet. Add one below or pick a suggestion.</span>`}</div>
         <form id="topic-form" class="search" style="max-width:520px"><input id="topic-in" list="topic-list" placeholder="Type a focus area, e.g. cyber, grid" aria-label="Add a focus area" maxlength="60" ${ro()}><button class="btn" ${ro()}>Add</button></form>
         <datalist id="topic-list">${[...pool.values()].slice(0, 400).map((e) => `<option value="${esc(e.label)}">`).join("")}</datalist>
+        <div class="tcat"><label>Category ${catSelect("t-cat", TM.cat || "", "Any category")}</label>${TM.cat ? `<button type="button" class="btn-ghost" data-catkw="1" ${ro()}>+ Add its keywords as focus areas</button><span class="note">The partner and sponsor pickers and the network show only items that mention its keywords (your picks always stay).</span>` : `<span class="note">Pick one to narrow the partners, sponsors and opportunities below to that category.</span>`}</div>
         <div class="tpull"><span class="note">Suggest tags from</span>${[["topic", "Keywords and categories"], ["partner", "Partners"], ["opportunity", "Opportunities"], ["source", "Funding sponsors"]].map(([k, l]) => `<label><input type="checkbox" data-pull="${k}" ${TM.pull[k] ? "checked" : ""}> ${l}</label>`).join("")}</div>
         <div class="tsugg">${sugg.map((e) => `<button type="button" data-addtopic="${esc(e.label)}" title="${esc(`Connects ${e.r.partner} partners, ${e.r.opportunity} open opportunities, ${e.r.source} funding sponsors · from ${[...e.from].join(", ")}`)}" ${ro()}>+ ${esc(e.label)} <span class="n">${e.r.partner}·${e.r.opportunity}·${e.r.source}</span></button>`).join("") || `<span class="help">No suggestions from the selected tag sources.</span>`}</div>
         <p class="help" style="margin-top:6px">Numbers: partners · open opportunities · funding sponsors each focus area connects.</p>
@@ -2670,7 +2718,7 @@ ${JSON.stringify({ partners: inp.partners, fundingSponsors: inp.sources, opportu
     if (box) { const o = OPPS.find((x) => x.id === box.dataset.id); if (o) box.innerHTML = starsHtml(o); return; }
     if (route() === "opportunities") {
       const items = filtered();
-      document.getElementById("results").innerHTML = table(items.slice(0, 300), "No opportunities match these filters.");
+      document.getElementById("results").innerHTML = resultsHtml(items);
       const n = document.querySelector(".head .sub .num"); if (n) n.textContent = items.length;
     } else render();
   }
@@ -2692,6 +2740,8 @@ ${JSON.stringify({ partners: inp.partners, fundingSponsors: inp.sources, opportu
     if (ds.reqdel) return removeReq(ds.reqdel, Number(ds.idx));
     if (ds.helpto) return document.getElementById("help-" + ds.helpto)?.scrollIntoView({ block: "start", behavior: "smooth" });
     if (ds.addtopic) return addTopic(ds.addtopic);
+    if (ds.catkw) { const kw = (tcatKw() || []).filter((k) => !tBoard().topics.some((t) => t.toLowerCase() === k.toLowerCase())).slice(0, 12); if (kw.length) saveBoard({ topics: [...tBoard().topics, ...kw] }, { action: "added category keywords as focus areas:", targetName: catLabel(TM.cat), changes: [{ field: "topics", label: "Focus areas added", to: kw }] }); return; }
+    if (ds.dcat !== undefined && t.tagName === "A" || (ds.dcat !== undefined && t.tagName === "BUTTON")) { e.preventDefault(); ui.dcat = ds.dcat; saveFilters(); render(); return; }
     if (ds.untopic) return removeTopic(ds.untopic);
     if (ds.tpick && t.tagName === "BUTTON") return togglePick(ds.tpick);
     if (t.id === "t-suggest") return suggestConcepts();
@@ -2772,6 +2822,9 @@ ${JSON.stringify({ partners: inp.partners, fundingSponsors: inp.sources, opportu
     if (e.target.dataset?.tpick) return togglePick(e.target.dataset.tpick);
     if (e.target.dataset?.pull) { TM.pull[e.target.dataset.pull] = e.target.checked; return render(); }
     if (e.target.dataset?.ttype) { TM.types[e.target.dataset.ttype] = e.target.checked; return render(); }
+    if (e.target.id === "d-cat") { ui.dcat = e.target.value; saveFilters(); return render(); }
+    if (e.target.id === "d-csort") { ui.dcsort = e.target.value; saveFilters(); return render(); }
+    if (e.target.id === "t-cat") { TM.cat = e.target.value; return render(); }
     if (e.target.id === "t-cfilter") { TM.cfilter = e.target.value; saveTm(); return render(); }
     if (e.target.id === "t-per") { TM.perTopic = Number(e.target.value) || 6; return render(); }
     if (e.target.id === "p-files") { const files = [...e.target.files]; e.target.value = ""; if (files.length) addFormFiles(files); return; }
@@ -2840,7 +2893,7 @@ ${JSON.stringify({ partners: inp.partners, fundingSponsors: inp.sources, opportu
     }
     if (e.target.id === "h-kind" || e.target.id === "h-who") { hf[e.target.id === "h-kind" ? "kind" : "who"] = e.target.value; return render(); }
     if (!e.target.closest("#filters")) return;
-    const map = { "f-q": "q", "f-min": "min", "f-agency": "agency", "f-stage": "stage", "f-cat": "cat", "f-role": "role", "f-mech": "mech", "f-stars": "stars", "f-basis": "starBasis" };
+    const map = { "f-q": "q", "f-min": "min", "f-agency": "agency", "f-stage": "stage", "f-cat": "cat", "f-role": "role", "f-mech": "mech", "f-stars": "stars", "f-basis": "starBasis", "f-sort": "sort", "f-psort": "psort" };
     if (map[e.target.id]) ui[map[e.target.id]] = e.target.value;
     if (e.target.id === "f-clean") ui.clean = e.target.checked;
     if (e.target.id === "f-closed") ui.closed = e.target.checked;
@@ -2850,7 +2903,7 @@ ${JSON.stringify({ partners: inp.partners, fundingSponsors: inp.sources, opportu
     clearTimeout(typing);
     typing = setTimeout(() => {
       if (route() === "pipeline") return refreshBoard();
-      const items = filtered(); document.getElementById("results").innerHTML = table(items.slice(0, 300), "No opportunities match these filters."); document.querySelector(".head .sub .num").textContent = items.length;
+      const items = filtered(); document.getElementById("results").innerHTML = resultsHtml(items); document.querySelector(".head .sub .num").textContent = items.length;
     }, 120);
   });
   app.addEventListener("focusin", async (e) => { if (e.target.id === "c-search" && user?.search) { const found = await user.search(""); found.forEach((p) => { names[p.id] = p.name; avatars[p.id] = p.avatarUrl; }); } });
