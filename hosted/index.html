@@ -1293,6 +1293,7 @@ Reply with only a JSON object:
   // ---------- proposal coaching (prepared by the scheduled Claude worker) ----------
   const COACH_MIN = 3;
   function coachingHtml(o) {
+    if (o.source === "teaming") return "";   // no listing or past awards to study for a team concept
     const t = teamAvg(o), c = S.coaching[o.id];
     const eligible = t && t.avg >= COACH_MIN;
     if (!c && !eligible) return `<section class="panel"><h2>Proposal coaching</h2><p class="empty">Rate this ${COACH_MIN}+ stars (team average) and Claude will study past winners and coach you on writing a winning proposal.</p></section>`;
