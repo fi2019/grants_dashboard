@@ -234,6 +234,9 @@ td .meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; color:
 .children { display: grid; gap: 8px; margin-top: 4px; padding-left: 14px; border-left: 3px solid var(--n-partner) }
 .children .item { background: var(--surface-2) }
 .partof { font-size: 12px; color: var(--muted) }
+.childed { grid-column: 1 / -1; display: grid; gap: 8px; border: 1px solid var(--line); border-left: 3px solid var(--n-partner); border-radius: 6px; padding: 10px 12px; background: var(--surface-2) }
+.childadd { display: grid; gap: 8px; grid-template-columns: minmax(0, 2fr) minmax(0, 1.2fr) minmax(0, 2fr) auto }
+@media (max-width: 720px) { .childadd { grid-template-columns: minmax(0, 1fr) } }
 .item.ctx > :not(.kids) { opacity: .55 }
 .prate { display: inline-flex; gap: 8px; align-items: baseline }
 .prate .team-avg { margin-top: 0 }
@@ -344,6 +347,13 @@ details.addform[open] > summary::before { content: "− " }
 .tag.teaming { background: var(--n-partner) }
 .cact { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; border-top: 1px dashed var(--line); padding-top: 8px }
 .cact .stars button { font-size: 19px }
+.people { display: grid; gap: 6px; font-size: 13px; border: 1px solid var(--line); border-left: 3px solid var(--n-partner); border-radius: 6px; padding: 8px 12px; background: var(--surface-2) }
+.people ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px }
+.people li { display: grid; gap: 1px }
+.people .who { display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: baseline }
+.people .who b { font-size: 14px }
+.people .why { color: var(--muted) }
+.people .btn-ghost { padding: 1px 8px; font-size: 12px }
 .moved { display: inline-flex; gap: 6px; align-items: center; font-size: 13px; font-weight: 600; color: var(--good); background: var(--good-bg); border-radius: 999px; padding: 2px 10px }
 .health { position: relative; display: inline-flex; align-items: center; gap: 5px; font-size: 11px; border-radius: 999px; padding: 1px 8px 1px 6px; white-space: nowrap; cursor: default; border: 1px solid var(--line); color: var(--muted) }
 .health::before { content: ""; width: 8px; height: 8px; border-radius: 50% ; background: var(--idle) }
@@ -383,7 +393,7 @@ details.addform[open] > summary::before { content: "− " }
 
   let OPPS = [], META = { profile: { federalAgencies: [], searchKeywords: [], capabilities: [], partners: [], goodFit: [], poorFit: [] } };
   // Shared, team-editable state (db collections).
-  const S = { decisions: {}, sources: {}, partners: {}, categories: {}, keywords: {}, profile: {}, history: {}, ratings: {}, partnerDocs: {}, research: {}, settings: {}, coaching: {}, teaming: {}, concepts: {}, proposals: {} };
+  const S = { decisions: {}, sources: {}, partners: {}, categories: {}, keywords: {}, profile: {}, history: {}, ratings: {}, partnerDocs: {}, research: {}, settings: {}, coaching: {}, teaming: {}, concepts: {}, proposals: {}, people: {} };
   // Effective Forge profile: the repo's profile file, overridden by the team's edits (profile/main).
   const P = () => ({ ...META.profile, ...(S.profile.main || {}) });
   const leadDays = () => Math.min(90, Math.max(1, Number(P().internalReviewLeadDays) || 14));
@@ -926,39 +936,77 @@ details.addform[open] > summary::before { content: "− " }
   }
   // Partner ratings share each person's ratings doc, keyed "p_<partner id>" so they never collide with opportunity ids.
   const rateable = (p) => ({ id: "p_" + p.id, title: p.name });
-  const pf = { q: "", type: "", stars: "", basis: "mine", unrated: true };
+  const pf = { q: "", type: "", stars: "", basis: "mine", unrated: true, matches: false, focus: "" };
   try { Object.assign(pf, JSON.parse(localStorage.getItem("fg-pfilters") || "{}")); } catch {}
   const savePf = () => { try { localStorage.setItem("fg-pfilters", JSON.stringify(pf)); } catch {} };
   function partnerPasses(p) {
     const q = pf.q.trim().toLowerCase();
     if (q && ![p.name, p.type, p.summary, (p.focus || []).join(" "), p.notes].some((f) => String(f || "").toLowerCase().includes(q))) return false;
     if (pf.type && p.type !== pf.type) return false;
+    if (pf.focus === "has" && !(p.focus || []).length) return false;
+    if (pf.focus === "none" && (p.focus || []).length) return false;
+    if (pf.matches && !OPPS.filter(isOpen).some((o) => hits(o, p.focus).length)) return false;
     if (pf.stars) {
       const r = pf.basis === "team" ? (teamAvg(rateable(p))?.avg || 0) : myRating(rateable(p));
       if (r ? r < Number(pf.stars) : !pf.unrated) return false;
     }
     return true;
   }
-  const anyPf = () => Boolean(pf.q || pf.type || pf.stars);
+  const anyPf = () => Boolean(pf.q || pf.type || pf.stars || pf.matches || pf.focus);
   function partnerFiltersHtml(shown, total) {
     const opt = (v, l, cur) => `<option value="${esc(v)}" ${String(cur) === String(v) ? "selected" : ""}>${esc(l)}</option>`;
     return `<div class="panel filters" id="pfilters">
-      <input id="pf-q" placeholder="Search name, focus area…" value="${esc(pf.q)}" aria-label="Search partners">
+      <input id="pf-q" placeholder="Search name, focus area, summary…" value="${esc(pf.q)}" aria-label="Search partners" style="flex:1 1 220px">
       <select id="pf-type" aria-label="Type">${opt("", "All types", pf.type)}${PARTNER_TYPES.map((t) => opt(t, t, pf.type)).join("")}</select>
       <select id="pf-stars" aria-label="Minimum stars">${opt("", "Any rating", pf.stars)}${[1, 2, 3, 4].map((n) => opt(n, `${n}+ stars`, pf.stars)).join("")}${opt(5, "5 stars", pf.stars)}</select>
       <select id="pf-basis" aria-label="Whose rating">${opt("mine", "My rating", pf.basis)}${opt("team", "Team average", pf.basis)}</select>
       <label title="Show partners nobody has rated yet (or you haven't, for My rating)"><input type="checkbox" id="pf-unrated" ${pf.unrated ? "checked" : ""}> Include unrated</label>
+      <select id="pf-focus" aria-label="Focus areas">${opt("", "Any focus areas", pf.focus)}${opt("has", "Has focus areas", pf.focus)}${opt("none", "Needs focus areas", pf.focus)}</select>
+      <label title="Only partners whose focus areas appear in at least one open opportunity"><input type="checkbox" id="pf-matches" ${pf.matches ? "checked" : ""}> Matches open opportunities</label>
       ${anyPf() ? `<button class="btn-ghost" id="pf-reset" type="button">Reset</button>` : ""}
       <span class="note">${shown === total ? `${total} partners` : `${shown} of ${total} match`}${anyPf() ? " · a parent that doesn't match is shown faded when something under it does" : ""}</span>
     </div>`;
+  }
+  // Edit mode: list and quick-add the centers, departments and people under this partner.
+  const CHILD_TYPES = ["Center or institute", "Department or college", "Lab or facility", "Program", "Faculty or researcher"];
+  function childrenEditorHtml(pid) {
+    const kids = childrenOf(pid), p = S.partners[pid] || {};
+    return `<div class="childed" id="childed">
+      <b style="font-size:13px;color:var(--fg)">Under ${esc(p.name || "this partner")}${kids.length ? ` (${kids.length})` : ""}</b>
+      ${kids.length ? `<ul class="tlist">${kids.map((c) => `<li><span>${safeUrl(c.url) ? `<a href="${esc(c.url)}" target="_blank" rel="noopener">${esc(c.name)} ↗</a>` : esc(c.name)} <span class="note">${esc(c.type || "")}${childrenOf(c.id).length ? ` · ${childrenOf(c.id).length} under it` : ""}</span></span><button type="button" class="btn-ghost" data-edit="partner" data-id="${esc(c.id)}" style="padding:1px 8px;font-size:12px" ${ro()}>Edit</button></li>`).join("")}</ul>` : `<p class="help">Nothing under this partner yet.</p>`}
+      <div class="childadd">
+        <input id="ch-name" placeholder="Add a center, department or person: name" maxlength="160" aria-label="Name" ${ro()}>
+        <select id="ch-type" aria-label="Type" ${ro()}>${CHILD_TYPES.map((t) => `<option>${esc(t)}</option>`).join("")}</select>
+        <input id="ch-url" type="url" placeholder="https:// (profile or page)" aria-label="Link" ${ro()}>
+        <button type="button" class="btn" data-addchildinline="${esc(pid)}" ${ro()}>Add</button>
+      </div>
+      <span class="help">Adds it right away under ${esc(p.name || "this partner")}, without leaving this form. Use Edit on it later to add links, documents and focus areas.</span>
+      <span class="toast" id="child-toast">${esc(flash["child-toast"] || "")}</span>
+    </div>`;
+  }
+  async function addChildInline(pid) {
+    const name = val("ch-name"), url = val("ch-url"), type = val("ch-type") || "Center or institute";
+    if (!name) return toast("child-toast", "Give it a name.");
+    if (url && !safeUrl(url)) return toast("child-toast", "The link should start with https://");
+    const parent = S.partners[pid]; if (!parent || !db || !canWrite) return;
+    const body = await stamp({ name, type, parentId: pid, url, links: [], contact: "", summary: "", focus: [], notes: "" });
+    try {
+      const ref = db.collection("partners").doc(); await ref.set(body);
+      logChange({ kind: "partner", action: "added", targetId: ref.id, targetName: name, changes: [{ field: "parentId", label: "Part of", to: parent.name }, { field: "type", label: "Type", to: type }, ...(url ? [{ field: "url", label: "Link", to: url }] : [])] });
+      if (url) queueResearch(ref.id, body);
+      document.getElementById("ch-name").value = ""; document.getElementById("ch-url").value = "";
+      toast("child-toast", `Added ${name}${url ? ". Web research is queued for it." : "."}`);
+      const box = document.getElementById("childed"); if (box) { const tmp = document.createElement("div"); tmp.innerHTML = childrenEditorHtml(pid); box.replaceWith(tmp.firstElementChild); }
+    } catch (err) { toast("child-toast", errMsg(err)); }
   }
   function viewPartners() {
     const e = editing.partner && editing.partner !== "new" ? S.partners[editing.partner] || {} : {};
     const isNew = !editing.partner || editing.partner === "new";
     const open = OPPS.filter(isOpen);
     return `<div class="head"><div><h1>Partners</h1><p class="sub" style="margin:4px 0 0">Labs, universities, researchers and program areas Forge could submit with. Their focus areas are matched against every opportunity to flag joint-submission candidates.</p></div></div>
-      <section class="panel"><h2>${isNew ? "Add a partner" : "Edit partner"}</h2>
-        <div class="form">
+      ${(() => { const all = sorted(S.partners); return partnerFiltersHtml(all.filter(partnerPasses).length, all.length); })()}
+      <details class="panel addform" id="pform" ${isNew && !pform.parent && !pform.open ? "" : "open"}><summary>${isNew ? (pform.parent && S.partners[pform.parent] ? `Add under ${esc(S.partners[pform.parent].name)}` : "Add a partner") : `Edit ${esc(e.name || "partner")}`}</summary>
+        <div class="form" style="margin-top:10px">
           ${field("p-name", "Name", e.name, 'placeholder="Idaho National Laboratory" maxlength="160"')}
           ${selectField("p-type", "Type", PARTNER_TYPES, e.type || (pform.parent ? "Center or institute" : "Federal lab"))}
           ${parentField(e)}
@@ -979,9 +1027,9 @@ details.addform[open] > summary::before { content: "− " }
             <span class="job ${pform.err ? "err" : ""}" id="p-gen" role="status">${pform.status || ""}</span></div>
           <label style="grid-column:1/-1;display:flex;gap:6px;align-items:center;font-size:13px;color:var(--fg)"><input type="checkbox" id="p-research" checked ${ro()}> Research this partner online after saving: Claude opens the link, searches the web and drafts a cited summary and focus areas (usually ready within the hour)</label>
           ${areaField("p-notes", "Notes", e.notes, "")}
+          ${isNew ? "" : childrenEditorHtml(editing.partner)}
           ${formActions("partner", isNew)}
-        </div></section>
-      ${(() => { const all = sorted(S.partners); return partnerFiltersHtml(all.filter(partnerPasses).length, all.length); })()}
+        </div></details>
       <section class="items" id="plist">${(() => {
         // A card shows if it matches the filters or something under it does.
         const memo = new Map();
@@ -1771,7 +1819,9 @@ ${JSON.stringify({ partners: inp.partners, fundingSponsors: inp.sources, opportu
       })).map((c) => ({ ...c, sponsorKey: c.sponsorKey || c.fundingFit[0]?.key || null })).filter((c) => c.title && c.problemStatement && c.sponsorKey && c.partnerRoles.length);
       if (!clean.length) throw Object.assign(new Error("Claude's suggestions didn't tie back to the picked sponsors and partners. Try again, or add focus areas and research to the partners."), { soft: true });
       const doc = await stamp({ createdAt: new Date().toISOString(), topics: inp.topics, inputs: inp.set.map((x) => ({ key: x.key, name: short(x.label, 160) })), concepts: clean });
-      await db.collection("concepts").add(doc);
+      const ref = db.collection("concepts").doc(); await ref.set(doc);
+      for (let i = 0; i < clean.length; i++) await queuePeople(ref.id, i, doc, true);
+      runResearchNow();
       logChange({ kind: "teaming", action: "drafted topic ideas for", targetName: inp.set.filter((x) => x.kind !== "partner").map((x) => x.label).join(", "), changes: [{ field: "concepts", label: "Topics", to: clean.map((c) => c.title) }] });
       TM.busy = false; setStatus(`Claude suggested ${clean.length} ${clean.length === 1 ? "topic" : "topics"}. They're saved below for the whole team.`); render();
     } catch (err) {
@@ -1800,6 +1850,7 @@ ${JSON.stringify({ partners: inp.partners, fundingSponsors: inp.sources, opportu
           ${x.outcomes.length ? `<div><b>Outcomes</b><ul>${x.outcomes.map((s) => `<li>${esc(s)}</li>`).join("")}</ul></div>` : ""}
         </div>
         ${x.gaps.length ? `<div class="gaps"><b>Check before committing</b><ul>${x.gaps.map((s) => `<li>${esc(s)}</li>`).join("")}</ul></div>` : ""}
+        ${peopleHtml(c, c.concepts.indexOf(x))}
         ${topicActionsHtml(c, c.concepts.indexOf(x))}</div>`).join("")}</div>`).join(""); })()}
     </article>`;
   }
@@ -1810,6 +1861,52 @@ ${JSON.stringify({ partners: inp.partners, fundingSponsors: inp.sources, opportu
   function conceptRateable(key) {
     const m = /^c_(.+)_(\d+)$/.exec(key || ""); if (!m) return null;
     const x = S.concepts[m[1]]?.concepts?.[Number(m[2])]; return x ? { id: key, title: x.title } : null;
+  }
+  // ---------- suggested people (looked up on the web by the scheduled Claude worker) ----------
+  const peopleId = (docId, i) => `${docId}_${i}`;
+  function topicPartners(x, inputs) {
+    // The partners named in the topic, plus anyone under them (centers, departments, faculty).
+    const keys = new Set((x.partnerRoles || []).map((f) => f.key));
+    for (const k of [...keys]) if (k.startsWith("p:")) descendants(k.slice(2)).forEach((id) => keys.add("p:" + id));
+    return [...keys].map((k) => { const p = S.partners[k.slice(2)]; if (!p) return null; const parent = p.parentId && S.partners[p.parentId];
+      return { key: k, name: p.name, type: p.type || "", url: p.url || "", links: (p.links || []).filter(safeUrl), partOf: parent ? parent.name : "", focus: (p.focus || []).slice(0, 15) }; }).filter(Boolean);
+  }
+  async function queuePeople(docId, i, cdoc, quiet) {
+    const c = cdoc || S.concepts[docId], x = c?.concepts?.[i]; if (!x || !db || !canWrite) return;
+    try {
+      await db.doc("people/" + peopleId(docId, i)).set(await stamp({ conceptId: docId, index: i, title: x.title, problemStatement: x.problemStatement, topics: x.topics || [],
+        partners: topicPartners(x), status: "queued", requestedAt: new Date().toISOString() }));
+      if (!quiet) { logChange({ kind: "teaming", action: "asked Claude to find people for", targetId: topicKey(docId, i), targetName: x.title, changes: [] }); runResearchNow(); }
+    } catch (err) { TM.status = errMsg(err); TM.err = true; render(); }
+  }
+  function peopleHtml(c, i) {
+    const x = c.concepts[i], req = S.people[peopleId(c.id, i)];
+    const roster = topicPartners(x).filter((p) => /faculty|researcher/i.test(p.type));   // people the team already added
+    const known = new Set(roster.map((p) => p.name.toLowerCase()));
+    const res = req?.status === "done" ? (req.result?.people || []).filter((p) => p?.name) : [];
+    const head = `<div class="who"><b style="font-size:13px">Suggested people</b>${req?.status === "done" ? `<span class="note">Claude, ${fmtDate(req.finishedAt)} · from the partners' own pages</span>` : ""}</div>`;
+    const found = new Set(res.map((p) => String(p.name).toLowerCase()));
+    const rosterHtml = roster.filter((p) => !found.has(p.name.toLowerCase())).map((p) => `<li><span class="who"><b>${safeUrl(p.url) ? `<a href="${esc(p.url)}" target="_blank" rel="noopener">${esc(p.name)} ↗</a>` : esc(p.name)}</b><span class="note">${esc(p.partOf || "")} · on your partners list</span></span></li>`).join("");
+    const resHtml = res.map((p, n) => { const pk = String(p.partnerKey || ""), parent = pk.startsWith("p:") && S.partners[pk.slice(2)];
+      return `<li><span class="who"><b>${safeUrl(p.url) ? `<a href="${esc(p.url)}" target="_blank" rel="noopener">${esc(p.name)} ↗</a>` : esc(p.name)}</b><span class="note">${esc([p.title, p.department, parent?.name || p.partner, known.has(String(p.name).toLowerCase()) ? "on your partners list" : ""].filter(Boolean).join(" · "))}</span>
+        ${parent && !known.has(String(p.name).toLowerCase()) ? `<button class="btn-ghost" data-addperson="${esc(peopleId(c.id, i))}" data-n="${n}" ${ro()}>Add under ${esc(short(parent.name, 40))}</button>` : ""}</span>
+        ${p.why ? `<span class="why">${esc(p.why)}</span>` : ""}</li>`; }).join("");
+    const status = !req ? `<span class="note">Not looked up yet.</span> <button class="btn-ghost" data-findpeople="${esc(c.id)}" data-idx="${i}" ${ro()}>Find people</button>`
+      : req.status === "queued" || req.status === "working" ? `<span class="note">${req.status === "working" ? "Claude is searching the partners' sites now…" : "Queued. Claude searches the partners' faculty and staff pages, usually within the hour (weekdays, 7 AM–7 PM CT)."}</span>`
+      : req.status === "failed" ? `<span class="note">Couldn't finish: ${esc(req.error || "no reliable profiles found")}</span> <button class="btn-ghost" data-findpeople="${esc(c.id)}" data-idx="${i}" ${ro()}>Try again</button>`
+      : !res.length ? `<span class="note">${esc(req.result?.notes || "No good matches found on the partners' sites.")}</span> <button class="btn-ghost" data-findpeople="${esc(c.id)}" data-idx="${i}" ${ro()}>Search again</button>`
+      : `${req.result?.notes ? `<span class="note">${esc(req.result.notes)}</span>` : ""}<span><button class="btn-ghost" data-findpeople="${esc(c.id)}" data-idx="${i}" ${ro()}>Search again</button></span>`;
+    return `<div class="people">${head}${rosterHtml || resHtml ? `<ul>${rosterHtml}${resHtml}</ul>` : ""}${status}</div>`;
+  }
+  async function addPerson(pid, n) {
+    const req = S.people[pid], p = req?.result?.people?.[n]; if (!p || !db || !canWrite) return;
+    const parentId = String(p.partnerKey || "").slice(2); if (!S.partners[parentId]) return;
+    const body = await stamp({ name: String(p.name).slice(0, 160), type: "Faculty or researcher", parentId, url: safeUrl(p.url) || "", links: [], contact: "",
+      summary: [p.title, p.department, p.why].filter(Boolean).join(". ").slice(0, 2000), focus: (p.focus || []).map(String).slice(0, 20), notes: `Suggested by Claude for the topic "${req.title}".` });
+    try {
+      const ref = db.collection("partners").doc(); await ref.set(body);
+      logChange({ kind: "partner", action: "added", targetId: ref.id, targetName: body.name, changes: [{ field: "parentId", label: "Part of", to: S.partners[parentId].name }, { field: "url", label: "Link", to: body.url }] });
+    } catch (err) { TM.status = errMsg(err); TM.err = true; render(); }
   }
   function topicActionsHtml(c, i) {
     const x = c.concepts[i], pid = proposalId(c.id, i), added = S.proposals[pid];
@@ -2122,9 +2219,12 @@ ${JSON.stringify({ partners: inp.partners, fundingSponsors: inp.sources, opportu
     if (t.id === "t-clear") return saveBoard({ items: [] }, { action: "cleared the picks on", targetName: "the teaming board", changes: [] });
     if (ds.delconcept) return removeConcept(ds.delconcept);
     if (ds.propose) return proposeTopic(ds.propose, Number(ds.idx));
+    if (ds.findpeople) return queuePeople(ds.findpeople, Number(ds.idx));
+    if (ds.addperson) return addPerson(ds.addperson, Number(ds.n));
+    if (ds.addchildinline) return addChildInline(ds.addchildinline);
     if (ds.unpropose) return unproposeTopic(ds.unpropose);
     if (ds.addchild) { editing.partner = null; resetPartnerForm(); pform.parent = ds.addchild; render(); document.getElementById("p-name")?.focus(); return scrollTo(0, 0); }
-    if (t.id === "pf-reset") { Object.assign(pf, { q: "", type: "", stars: "", unrated: true }); savePf(); return render(); }
+    if (t.id === "pf-reset") { Object.assign(pf, { q: "", type: "", stars: "", unrated: true, matches: false, focus: "" }); savePf(); return render(); }
     if (t.id === "f-reset") return go(route() === "pipeline" ? "#pipeline" : "#opportunities", CLEAR);
     if (ds.rate) return rate(ds.id, Number(ds.rate));
     if (ds.analyze) return analyzeDoc(ds.analyze);
@@ -2167,6 +2267,8 @@ ${JSON.stringify({ partners: inp.partners, fundingSponsors: inp.sources, opportu
     const k = editing.category || "new", box = document.getElementById("c-members");
     if (box) box.innerHTML = (draftMembers[k] || []).map((id) => personHtml(id, canWrite)).join("") || `<span class="help">No one yet.</span>`;
   }
+  // Remember whether the add-partner panel is open, so a live update doesn't fold it shut.
+  app.addEventListener("toggle", (e) => { if (e.target.id === "pform") pform.open = e.target.open; }, true);
   app.addEventListener("submit", (e) => {
     e.preventDefault();
     if (e.target.id === "qform") go("#opportunities", { ...CLEAR, q: val("dash-q") });
@@ -2235,8 +2337,8 @@ ${JSON.stringify({ partners: inp.partners, fundingSponsors: inp.sources, opportu
       return;
     }
     if (e.target.closest?.("#pfilters")) {
-      const k = { "pf-q": "q", "pf-type": "type", "pf-stars": "stars", "pf-basis": "basis", "pf-unrated": "unrated" }[e.target.id];
-      if (k) pf[k] = k === "unrated" ? e.target.checked : e.target.value;
+      const k = { "pf-q": "q", "pf-type": "type", "pf-stars": "stars", "pf-basis": "basis", "pf-unrated": "unrated", "pf-matches": "matches", "pf-focus": "focus" }[e.target.id];
+      if (k) pf[k] = k === "unrated" || k === "matches" ? e.target.checked : e.target.value;
       savePf(); clearTimeout(typing);
       if (e.target.id !== "pf-q") return render();
       typing = setTimeout(() => { const tmp = document.createElement("div"); tmp.innerHTML = viewPartners();
