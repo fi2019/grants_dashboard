@@ -1,5 +1,17 @@
 {
   "organization": "Forge Institute",
+  "organizationDetails": {
+    "company": "Forge Institute",
+    "established": "2018",
+    "type": "501(c)(3) non-profit",
+    "address": "600 E. Capitol Ave. #1030, Little Rock, AR 72202",
+    "cage": "8EG02",
+    "uei": "KXWFX3YSG411",
+    "poc": "Lee Watson",
+    "email": "lee@forge.institute",
+    "website": "https://www.forge.institute",
+    "phone": "501-500-0812"
+  },
   "summary": "Forge Institute is a 501(c)(3) nonprofit based in Little Rock, Arkansas, serving the energy sector. Core competencies are program management, project management, and grant application and administration, with some intelligence capability (ET-ISAC). Forge connects sectors that normally struggle to connect: it brings national lab and university expertise (Idaho National Laboratory, PNNL, UALR, UAF) to industry, especially rural and municipal electric utilities. In a typical award Forge applies, administers the grant, promotes participation, and manages the project, while a lab or university is the subrecipient or subcontractor that provides the technical content.",
   "identity": {
     "entityType": "501(c)(3) nonprofit",
@@ -67,14 +79,71 @@
     "innovation"
   ],
   "federalAgencies": [
-    { "id": "DOE", "name": "Department of Energy", "grantsGovPrefixes": ["DOE", "PAMS"], "url": "https://www.energy.gov/funding-financing" },
-    { "id": "EDA", "name": "Economic Development Administration", "grantsGovPrefixes": ["DOC-EDA"], "url": "https://www.eda.gov/funding/funding-opportunities" },
-    { "id": "USDA", "name": "U.S. Department of Agriculture", "grantsGovPrefixes": ["USDA"], "url": "https://www.rd.usda.gov/programs-services" },
-    { "id": "DRA", "name": "Delta Regional Authority", "grantsGovPrefixes": ["DRA"], "url": "https://dra.gov/funding-programs/" },
-    { "id": "DOL", "name": "Department of Labor", "grantsGovPrefixes": ["DOL"], "url": "https://www.dol.gov/grants" },
-    { "id": "NSF", "name": "National Science Foundation", "grantsGovPrefixes": ["NSF"], "url": "https://www.nsf.gov/funding" },
-    { "id": "DHS", "name": "Department of Homeland Security", "grantsGovPrefixes": ["DHS"], "url": "https://www.dhs.gov/dhs-grants" },
-    { "id": "DOD", "name": "Department of Defense", "grantsGovPrefixes": ["DOD"], "url": "https://www.grants.gov/search-grants?agencies=DOD" }
+    {
+      "id": "DOE",
+      "name": "Department of Energy",
+      "grantsGovPrefixes": [
+        "DOE",
+        "PAMS"
+      ],
+      "url": "https://www.energy.gov/funding-financing"
+    },
+    {
+      "id": "EDA",
+      "name": "Economic Development Administration",
+      "grantsGovPrefixes": [
+        "DOC-EDA"
+      ],
+      "url": "https://www.eda.gov/funding/funding-opportunities"
+    },
+    {
+      "id": "USDA",
+      "name": "U.S. Department of Agriculture",
+      "grantsGovPrefixes": [
+        "USDA"
+      ],
+      "url": "https://www.rd.usda.gov/programs-services"
+    },
+    {
+      "id": "DRA",
+      "name": "Delta Regional Authority",
+      "grantsGovPrefixes": [
+        "DRA"
+      ],
+      "url": "https://dra.gov/funding-programs/"
+    },
+    {
+      "id": "DOL",
+      "name": "Department of Labor",
+      "grantsGovPrefixes": [
+        "DOL"
+      ],
+      "url": "https://www.dol.gov/grants"
+    },
+    {
+      "id": "NSF",
+      "name": "National Science Foundation",
+      "grantsGovPrefixes": [
+        "NSF"
+      ],
+      "url": "https://www.nsf.gov/funding"
+    },
+    {
+      "id": "DHS",
+      "name": "Department of Homeland Security",
+      "grantsGovPrefixes": [
+        "DHS"
+      ],
+      "url": "https://www.dhs.gov/dhs-grants"
+    },
+    {
+      "id": "DOD",
+      "name": "Department of Defense",
+      "grantsGovPrefixes": [
+        "DOD"
+      ],
+      "url": "https://www.grants.gov/search-grants?agencies=DOD"
+    }
   ],
   "internalReviewLeadDays": 14
 }
