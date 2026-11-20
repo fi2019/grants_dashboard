@@ -226,6 +226,9 @@ td .meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; color:
 .children { display: grid; gap: 8px; margin-top: 4px; padding-left: 14px; border-left: 3px solid var(--n-partner) }
 .children .item { background: var(--surface-2) }
 .partof { font-size: 12px; color: var(--muted) }
+.item.ctx > :not(.kids) { opacity: .55 }
+.prate { display: inline-flex; gap: 8px; align-items: baseline }
+.prate .team-avg { margin-top: 0 }
 .btn-danger { background: var(--bad); color: var(--surface) }
 .status { font-size: 11px; border-radius: 999px; padding: 1px 8px; white-space: nowrap }
 .status.on { background: var(--good-bg); color: var(--good) } .status.todo { background: var(--warn-bg); color: var(--warn) } .status.off { background: var(--idle-bg); color: var(--muted) }
@@ -909,6 +912,34 @@ details.addform[open] > summary::before { content: "− " }
     const opts = sorted(S.partners).filter((p) => !banned.has(p.id)).map((p) => ({ id: p.id, label: [...lineage(p), p.name].join(" › ") })).sort((a, b) => a.label.localeCompare(b.label));
     return `<label for="p-parent">Part of (optional)<select id="p-parent" ${ro()}><option value="">— Main partner (no parent) —</option>${opts.map((o) => `<option value="${esc(o.id)}" ${o.id === cur ? "selected" : ""}>${esc(o.label)}</option>`).join("")}</select><span class="help">Put a center, department, lab or faculty member under its organization.</span></label>`;
   }
+  // Partner ratings share each person's ratings doc, keyed "p_<partner id>" so they never collide with opportunity ids.
+  const rateable = (p) => ({ id: "p_" + p.id, title: p.name });
+  const pf = { q: "", type: "", stars: "", basis: "mine", unrated: true };
+  try { Object.assign(pf, JSON.parse(localStorage.getItem("fg-pfilters") || "{}")); } catch {}
+  const savePf = () => { try { localStorage.setItem("fg-pfilters", JSON.stringify(pf)); } catch {} };
+  function partnerPasses(p) {
+    const q = pf.q.trim().toLowerCase();
+    if (q && ![p.name, p.type, p.summary, (p.focus || []).join(" "), p.notes].some((f) => String(f || "").toLowerCase().includes(q))) return false;
+    if (pf.type && p.type !== pf.type) return false;
+    if (pf.stars) {
+      const r = pf.basis === "team" ? (teamAvg(rateable(p))?.avg || 0) : myRating(rateable(p));
+      if (r ? r < Number(pf.stars) : !pf.unrated) return false;
+    }
+    return true;
+  }
+  const anyPf = () => Boolean(pf.q || pf.type || pf.stars);
+  function partnerFiltersHtml(shown, total) {
+    const opt = (v, l, cur) => `<option value="${esc(v)}" ${String(cur) === String(v) ? "selected" : ""}>${esc(l)}</option>`;
+    return `<div class="panel filters" id="pfilters">
+      <input id="pf-q" placeholder="Search name, focus area…" value="${esc(pf.q)}" aria-label="Search partners">
+      <select id="pf-type" aria-label="Type">${opt("", "All types", pf.type)}${PARTNER_TYPES.map((t) => opt(t, t, pf.type)).join("")}</select>
+      <select id="pf-stars" aria-label="Minimum stars">${opt("", "Any rating", pf.stars)}${[1, 2, 3, 4].map((n) => opt(n, `${n}+ stars`, pf.stars)).join("")}${opt(5, "5 stars", pf.stars)}</select>
+      <select id="pf-basis" aria-label="Whose rating">${opt("mine", "My rating", pf.basis)}${opt("team", "Team average", pf.basis)}</select>
+      <label title="Show partners nobody has rated yet (or you haven't, for My rating)"><input type="checkbox" id="pf-unrated" ${pf.unrated ? "checked" : ""}> Include unrated</label>
+      ${anyPf() ? `<button class="btn-ghost" id="pf-reset" type="button">Reset</button>` : ""}
+      <span class="note">${shown === total ? `${total} partners` : `${shown} of ${total} match`}${anyPf() ? " · a parent that doesn't match is shown faded when something under it does" : ""}</span>
+    </div>`;
+  }
   function viewPartners() {
     const e = editing.partner && editing.partner !== "new" ? S.partners[editing.partner] || {} : {};
     const isNew = !editing.partner || editing.partner === "new";
@@ -938,10 +969,18 @@ details.addform[open] > summary::before { content: "− " }
           ${areaField("p-notes", "Notes", e.notes, "")}
           ${formActions("partner", isNew)}
         </div></section>
-      <section class="items">${sorted(S.partners).filter(isTop).map((top) => (function card(p, depth) {
+      ${(() => { const all = sorted(S.partners); return partnerFiltersHtml(all.filter(partnerPasses).length, all.length); })()}
+      <section class="items" id="plist">${(() => {
+        // A card shows if it matches the filters or something under it does.
+        const memo = new Map();
+        const visible = (p, depth = 0) => { if (memo.has(p.id)) return memo.get(p.id); const v = partnerPasses(p) || (depth < 5 && childrenOf(p.id).some((c) => visible(c, depth + 1))); memo.set(p.id, v); return v; };
+        const tops = sorted(S.partners).filter(isTop).filter((p) => visible(p));
+        if (!tops.length && Object.keys(S.partners).length) return `<p class="panel empty">No partners match these filters.</p>`;
+        return tops.map((top) => (function card(p, depth) {
         const matches = open.filter((o) => hits(o, p.focus).length).sort(byFit);
-        const kids = depth < 4 ? childrenOf(p.id) : [];
-        return `<div class="item" id="partner-${esc(p.id)}"><div class="top"><h3>${safeUrl(p.url) ? `<a href="${esc(p.url)}" target="_blank" rel="noopener">${esc(p.name)} ↗</a>` : esc(p.name)}</h3><span class="pill">${esc(p.type)}</span></div>
+        const kids = depth < 4 ? childrenOf(p.id).filter((c) => visible(c)) : [];
+        const ctx = anyPf() && !partnerPasses(p);
+        return `<div class="item${ctx ? " ctx" : ""}" id="partner-${esc(p.id)}"><div class="top"><h3>${safeUrl(p.url) ? `<a href="${esc(p.url)}" target="_blank" rel="noopener">${esc(p.name)} ↗</a>` : esc(p.name)}</h3><span style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><span class="prate">${starsHtml(rateable(p))}</span><span class="pill">${esc(p.type)}</span></span></div>
           ${depth ? `<div class="partof">Part of ${esc(lineage(p).join(" › "))}</div>` : ""}
           ${p.summary ? `<div class="partner-summary">${esc(p.summary)}</div>` : ""}
           ${(p.links || []).filter(safeUrl).length ? `<div class="plinks">${p.links.filter(safeUrl).map((u) => `<a href="${esc(u)}" target="_blank" rel="noopener">${esc(u.replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, ""))} ↗</a>`).join("")}</div>` : ""}
@@ -953,7 +992,7 @@ details.addform[open] > summary::before { content: "− " }
           ${docsHtml(p)}
           <div class="btns" style="flex-wrap:wrap">${editBtn("partner", p.id)}<button class="btn-ghost" data-addchild="${esc(p.id)}" ${ro()}>Add center, department or person</button>${removeBtn("partner", p.id)}</div>
           ${kids.length ? `<details class="kids" open><summary class="note">${kids.length} under ${esc(p.name)}</summary><div class="children">${kids.map((c) => card(c, depth + 1)).join("")}</div></details>` : ""}</div>`;
-      })(top, 0)).join("") || `<p class="panel empty">No partners yet. Add the labs, universities and researchers Forge works with.</p>`}</section>`;
+      })(top, 0)).join("") || `<p class="panel empty">No partners yet. Add the labs, universities and researchers Forge works with.</p>`; })()}</section>`;
   }
 
   // ---------- partner documents ----------
@@ -1415,7 +1454,7 @@ Reply with only a JSON object:
     : `<div class="chg"><b>${esc(c.label)}</b>: ${c.from !== undefined ? `<del>${esc(show(c.from))}</del> → ` : ""}<ins>${esc(show(c.to))}</ins></div>`;
   function entryHtml(h, withTarget = true) {
     const who = h.by ? names[h.by] || "A teammate" : h.source === "claude" ? "Claude" : "Someone";
-    const target = !withTarget ? "" : h.kind === "decision" || h.kind === "rating" ? `<a href="#opp-${esc(h.targetId)}">${esc(h.targetName)}</a>` : `<b>${esc(h.targetName || "")}</b>`;
+    const target = !withTarget ? "" : String(h.targetId || "").startsWith("p_") ? `<a href="#partners">${esc(h.targetName)}</a>` : h.kind === "decision" || h.kind === "rating" ? `<a href="#opp-${esc(h.targetId)}">${esc(h.targetName)}</a>` : `<b>${esc(h.targetName || "")}</b>`;
     return `<li><div style="display:flex;flex-wrap:wrap;gap:6px 10px;align-items:baseline"><span class="kind">${KIND_LABEL[h.kind] || esc(h.kind)}</span><span>${esc(who)} ${esc(h.action)} ${target}</span><span class="when">${new Date(h.at).toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" })}</span></div>
       ${(h.changes || []).map(changeHtml).join("")}</li>`;
   }
@@ -1752,7 +1791,7 @@ ${JSON.stringify({ partners: inp.partners, opportunities: inp.opportunities, sou
     const f = document.activeElement;
     if (dirty) return route().startsWith("opp-") ? refreshRatings() : undefined;
     if (route() === "pipeline" && f && f.closest && f.closest("#filters, #board")) return refreshBoard();
-    if (f && f.closest && f.closest("#decision, #filters, #hfilters, #sfilters, .form, #kw-form, .picker, .sugg, #topic-form")) return;
+    if (f && f.closest && f.closest("#decision, #filters, #hfilters, #sfilters, .form, #kw-form, .picker, .sugg, #topic-form, #pfilters")) return;
     // Someone rating in the list or on a detail page: redraw only the ratings so nothing else jumps or resets.
     if (f && f.closest && f.closest("#results, #my-stars")) return refreshRatings();
     render();
@@ -1941,7 +1980,7 @@ ${JSON.stringify({ partners: inp.partners, opportunities: inp.opportunities, sou
 
   async function rate(oppId, n) {
     if (!db || !me || !canWrite) return;
-    const o = OPPS.find((x) => x.id === oppId); if (!o) return;
+    const o = OPPS.find((x) => x.id === oppId) || (oppId.startsWith("p_") && S.partners[oppId.slice(2)] ? rateable({ id: oppId.slice(2), ...S.partners[oppId.slice(2)] }) : null); if (!o) return;
     const prev = myRating(o), next = prev === n ? 0 : n;   // clicking your current rating clears it
     const mineDoc = { ...(S.ratings[me] || {}) };
     if (next) mineDoc[oppId] = next; else delete mineDoc[oppId];
@@ -1987,6 +2026,7 @@ ${JSON.stringify({ partners: inp.partners, opportunities: inp.opportunities, sou
     if (t.id === "t-clear") return saveBoard({ items: [] }, { action: "cleared the concept set on", targetName: "the teaming board", changes: [] });
     if (ds.delconcept) return removeConcept(ds.delconcept);
     if (ds.addchild) { editing.partner = null; resetPartnerForm(); pform.parent = ds.addchild; render(); document.getElementById("p-name")?.focus(); return scrollTo(0, 0); }
+    if (t.id === "pf-reset") { Object.assign(pf, { q: "", type: "", stars: "", unrated: true }); savePf(); return render(); }
     if (t.id === "f-reset") return go(route() === "pipeline" ? "#pipeline" : "#opportunities", CLEAR);
     if (ds.rate) return rate(ds.id, Number(ds.rate));
     if (ds.analyze) return analyzeDoc(ds.analyze);
@@ -2089,6 +2129,15 @@ ${JSON.stringify({ partners: inp.partners, opportunities: inp.opportunities, sou
       clearTimeout(typing);
       typing = setTimeout(() => { const html = viewSources(); const tmp = document.createElement("div"); tmp.innerHTML = html;
         document.getElementById("src-list").replaceWith(tmp.querySelector("#src-list")); document.getElementById("sf-count").textContent = tmp.querySelector("#sf-count").textContent; }, 120);
+      return;
+    }
+    if (e.target.closest?.("#pfilters")) {
+      const k = { "pf-q": "q", "pf-type": "type", "pf-stars": "stars", "pf-basis": "basis", "pf-unrated": "unrated" }[e.target.id];
+      if (k) pf[k] = k === "unrated" ? e.target.checked : e.target.value;
+      savePf(); clearTimeout(typing);
+      if (e.target.id !== "pf-q") return render();
+      typing = setTimeout(() => { const tmp = document.createElement("div"); tmp.innerHTML = viewPartners();
+        document.getElementById("plist")?.replaceWith(tmp.querySelector("#plist")); const n = document.querySelector("#pfilters .note"), m = tmp.querySelector("#pfilters .note"); if (n && m) n.textContent = m.textContent; }, 120);
       return;
     }
     if (e.target.id === "h-kind" || e.target.id === "h-who") { hf[e.target.id === "h-kind" ? "kind" : "who"] = e.target.value; return render(); }
