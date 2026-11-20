@@ -245,6 +245,13 @@ td .meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; color:
 .research .top { display: flex; flex-wrap: wrap; gap: 6px 12px; justify-content: space-between; align-items: baseline; font-size: 14px }
 .research ol { margin: 0; padding-left: 18px; font-size: 12px }
 .research ol a { overflow-wrap: anywhere }
+.awards { width: 100%; font-size: 13px }
+.awards td { vertical-align: top }
+.awards .abs { color: var(--muted); font-size: 12px; margin-top: 2px }
+.coach h3 { font-size: 14px; margin: 8px 0 4px }
+.coach ul, .coach ol { margin: 0; padding-left: 18px; font-size: 14px; line-height: 1.55 }
+.coach .outline li { margin-bottom: 4px }
+.coach blockquote { margin: 4px 0; padding: 8px 12px; border-left: 3px solid var(--info); background: var(--surface-2); font-size: 14px }
 .nav-badge { display: inline-block; min-width: 18px; margin-left: 5px; padding: 0 5px; border-radius: 9px; background: var(--accent); color: #fff; font: 600 11px/18px var(--mono); text-align: center }
 </style>
 
@@ -272,7 +279,7 @@ td .meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; color:
 
   let OPPS = [], META = { profile: { federalAgencies: [], searchKeywords: [], capabilities: [], partners: [], goodFit: [], poorFit: [] } };
   // Shared, team-editable state (db collections).
-  const S = { decisions: {}, sources: {}, partners: {}, categories: {}, keywords: {}, profile: {}, history: {}, ratings: {}, partnerDocs: {}, research: {}, settings: {} };
+  const S = { decisions: {}, sources: {}, partners: {}, categories: {}, keywords: {}, profile: {}, history: {}, ratings: {}, partnerDocs: {}, research: {}, settings: {}, coaching: {} };
   // Effective Forge profile: the repo's profile file, overridden by the team's edits (profile/main).
   const P = () => ({ ...META.profile, ...(S.profile.main || {}) });
   const leadDays = () => Math.min(90, Math.max(1, Number(P().internalReviewLeadDays) || 14));
@@ -542,6 +549,8 @@ td .meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; color:
           : `<p class="panel empty">Not yet evaluated by Claude. The score shown is a keyword pre-score.</p>`}
           ${(() => { const hs = Object.values(S.history).filter((h) => (h.kind === "decision" || h.kind === "rating") && h.targetId === o.id).sort((a, b) => String(b.at).localeCompare(String(a.at)));
             return hs.length ? `<section class="panel"><h2>Change history</h2><ul class="hist">${hs.map((h) => entryHtml(h, false)).join("")}</ul></section>` : ""; })()}
+          ${coachingHtml(o)}
+          ${pastAwardsHtml(o)}
           ${o.eligibility ? `<section class="panel"><h2>Eligibility (from listing)</h2><div class="longtext">${esc(o.eligibility)}</div></section>` : ""}
           ${o.description ? `<section class="panel"><h2>Description (from listing)</h2><div class="longtext">${esc(o.description)}</div></section>` : ""}
         </div>
@@ -1004,6 +1013,55 @@ Reply with only a JSON object:
     pform.docs = [];
   }
 
+  // ---------- past awards ----------
+  function pastAwardsHtml(o) {
+    const pa = o.pastAwards;
+    if (!pa) return `<section class="panel"><h2>Past awards</h2><p class="empty">No past awards found for this program${o.assistanceListings?.length ? ` (Assistance Listing ${esc(o.assistanceListings.join(", "))})` : ""}.</p></section>`;
+    return `<section class="panel"><h2>Past awards <span class="note" style="font-weight:400">· ${pa.awards.length} shown from ${esc(pa.source)}</span></h2>
+      <p class="help" style="margin-bottom:8px">${esc(pa.method)}. Full proposals aren't public; each link opens the award's public record${pa.source === "NSF Award Search" ? ", which includes the project abstract" : ""}. <a href="${esc(pa.searchUrl)}" target="_blank" rel="noopener">See all on ${esc(pa.source)} ↗</a></p>
+      ${pa.awards.length ? `<div class="tablewrap" style="border:0"><table class="awards"><thead><tr><th>Started</th><th>Recipient</th><th>Project</th><th>Amount</th></tr></thead><tbody>${pa.awards.map((a) => `<tr>
+        <td class="mono" style="white-space:nowrap">${esc(a.startDate || "—")}</td>
+        <td>${esc(a.recipient || "—")}</td>
+        <td style="min-width:240px"><a href="${esc(a.url)}" target="_blank" rel="noopener">${esc(a.title)}</a>${a.program ? `<div class="note">${esc(a.program)}</div>` : ""}${a.abstract ? `<details><summary class="note">Abstract excerpt</summary><div class="abs">${esc(a.abstract)}…</div></details>` : ""}</td>
+        <td class="num" style="white-space:nowrap">${money(a.amount)}</td></tr>`).join("")}</tbody></table></div>` : `<p class="empty">No awards in the last six years.</p>`}
+    </section>`;
+  }
+
+  // ---------- proposal coaching (prepared by the scheduled Claude worker) ----------
+  const COACH_MIN = 3;
+  function coachingHtml(o) {
+    const t = teamAvg(o), c = S.coaching[o.id];
+    const eligible = t && t.avg >= COACH_MIN;
+    if (!c && !eligible) return `<section class="panel"><h2>Proposal coaching</h2><p class="empty">Rate this ${COACH_MIN}+ stars (team average) and Claude will study past winners and coach you on writing a winning proposal.</p></section>`;
+    if (!c || c.status === "queued" || c.status === "working") {
+      return `<section class="panel"><h2>Proposal coaching</h2><p class="empty">${c?.status === "working" ? "Claude is studying past winners for this opportunity now…" : `Coaching is prepared automatically for opportunities rated ${COACH_MIN}+ stars. It usually arrives within the hour (weekdays, 7 AM–7 PM Central).`}</p>
+        ${!c && canWrite ? `<div class="btns"><button class="btn-ghost" data-coach="${esc(o.id)}">Request it now</button></div>` : ""}</section>`;
+    }
+    if (c.status === "failed") return `<section class="panel"><h2>Proposal coaching</h2><p class="empty">Couldn't finish: ${esc(c.error || "unknown reason")}</p><div class="btns"><button class="btn-ghost" data-coach="${esc(o.id)}" ${ro()}>Try again</button></div></section>`;
+    const r = c.result || {};
+    const list = (xs) => (xs || []).length ? `<ul>${xs.map((x) => `<li>${esc(x)}</li>`).join("")}</ul>` : "";
+    return `<section class="panel coach"><h2>Proposal coaching <span class="note" style="font-weight:400">· Claude, ${fmtDate(c.finishedAt)} · from ${(r.awardsReviewed || []).length} past awards</span></h2>
+      ${r.overview ? `<div class="prose"><p>${esc(r.overview)}</p></div>` : ""}
+      ${(r.winnerPatterns || []).length ? `<h3>What the winners had in common</h3>${list(r.winnerPatterns)}` : ""}
+      ${(r.writingStyle || []).length ? `<h3>Writing style</h3>${list(r.writingStyle)}` : ""}
+      ${(r.whatReviewersReward || []).length ? `<h3>What reviewers reward</h3>${list(r.whatReviewersReward)}` : ""}
+      ${(r.outline || []).length ? `<h3>Suggested proposal outline</h3><ol class="outline">${r.outline.map((s) => `<li><b>${esc(s.section)}</b>: ${esc(s.guidance)}</li>`).join("")}</ol>` : ""}
+      ${(r.forgeAngles || []).length ? `<h3>Forge's strongest angles</h3>${list(r.forgeAngles)}` : ""}
+      ${(r.pitfalls || []).length ? `<h3>Pitfalls to avoid</h3>${list(r.pitfalls)}` : ""}
+      ${r.exampleOpening ? `<h3>Example opening paragraph</h3><blockquote>${esc(r.exampleOpening)}</blockquote>` : ""}
+      ${(r.awardsReviewed || []).length || (r.sources || []).length ? `<details><summary class="note">Awards and sources Claude reviewed</summary><ol style="font-size:12px">${[...(r.awardsReviewed || []), ...(r.sources || [])].map((x) => `<li>${safeUrl(x.url) ? `<a href="${esc(x.url)}" target="_blank" rel="noopener">${esc(x.title || x.url)}</a>` : esc(x.title || "")}${x.recipient ? ` · ${esc(x.recipient)}` : ""}</li>`).join("")}</ol></details>` : ""}
+      <p class="note" style="margin-top:8px">AI-generated from public award abstracts and the solicitation. Full winning proposals aren't public. <button class="btn-ghost" data-coach="${esc(o.id)}" ${ro()} style="padding:1px 8px;font-size:12px">Refresh coaching</button></p>
+    </section>`;
+  }
+  async function requestCoaching(oppId) {
+    const o = OPPS.find((x) => x.id === oppId); if (!o || !db || !canWrite) return;
+    try {
+      await db.doc("coaching/" + oppId).set(await stamp({ oppId, title: o.title, status: "queued", requestedAt: new Date().toISOString() }));
+      logChange({ kind: "decision", action: "requested proposal coaching for", targetId: oppId, targetName: o.title, changes: [] });
+      runResearchNow();
+    } catch (err) { alertInline(errMsg(err)); }
+  }
+
   // ---------- web research (done by a scheduled Claude session with web search) ----------
   // The page can't reach the web, so it queues a request in the shared store; a scheduled
   // Claude Code session opens the link, searches online, and writes back a cited draft.
@@ -1410,6 +1468,7 @@ Reply with only a JSON object:
     if (ds.rate) return rate(ds.id, Number(ds.rate));
     if (ds.analyze) return analyzeDoc(ds.analyze);
     if (ds.research) return queueResearch(ds.research);
+    if (ds.coach) return requestCoaching(ds.coach);
     if (ds.usesummary) return applyResearchSummary(ds.usesummary);
     if (ds.addsugg) return addSuggested(ds.addsugg);
     if (ds.deldoc) return removeDoc(ds.deldoc);

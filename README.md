@@ -15,6 +15,30 @@ It shows the latest data snapshot. Team-editable lists live in the page's shared
 - **Sources**: websites and databases to check, with an optional API URL and the *name* of the API key. Keys are never stored on the page; they go in the scanner's environment under that name.
 - **Search keywords**: team additions on the Forge profile tab, on top of `config/forge-profile.json`. Go/No-go decisions, owners, notes and review dates entered there are shared by everyone the page is shared with. It cannot run scans. To refresh it, run `npm run scan`, then `python3 hosted/build-data.py`, then republish `hosted/index.html` with `hosted/opportunities.json` and `hosted/meta.json` to the same URL.
 
+## Claude Project connector (MCP)
+
+The app includes an MCP server so Claude can work with Forge's opportunities inside a Claude Project, Claude Desktop or Claude Code.
+
+| Tool | What it does |
+|---|---|
+| `search_opportunities` | Search screened opportunities by text, agency, fit and Forge's role (lead or partner) |
+| `get_opportunity` | Full listing, decision criteria, Claude's evaluation and past awards |
+| `get_past_awards` | Live lookup of previously funded awards (NSF Award Search with abstracts, or USAspending.gov by Assistance Listing) |
+| `get_award` | One award's full public record (NSF abstract or USAspending description) |
+| `get_forge_profile` | Forge's capabilities, partners and fit criteria |
+
+Prompts: `coach_proposal` (study past winners and coach a winning proposal) and `review_draft` (compare a draft section with past winners and the solicitation).
+
+**In a Claude Project (claude.ai):** deploy the app (for example to Vercel; the MCP endpoint only reads data, so it works on a read-only filesystem), set `MCP_ACCESS_KEY` to a long random string, then add a custom connector in claude.ai Settings → Connectors with the URL `https://<your-host>/api/mcp?key=<MCP_ACCESS_KEY>`. Enable it in the project and ask, for example, "Use coach_proposal for gg-344608."
+
+**In Claude Desktop or Claude Code (local):** run `npm run mcp` as a stdio server. Desktop config:
+
+```json
+{ "mcpServers": { "forge-grants": { "command": "npm", "args": ["run", "--silent", "mcp", "--prefix", "/path/to/grants_dashboard"] } } }
+```
+
+Full winning proposals are not public. The tools use what is: NSF project abstracts and USAspending award records.
+
 ## Quick start
 
 ```bash

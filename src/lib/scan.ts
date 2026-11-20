@@ -1,6 +1,7 @@
 import { evaluateWithClaude, isClaudeConfigured } from "./evaluation/claude";
 import { profile } from "./profile";
 import { screen } from "./screening/criteria";
+import { fetchPastAwards } from "./sources/past-awards";
 import { CONNECTORS, connectorFor } from "./sources";
 import { listOpportunities, saveScanLog, upsertOpportunities, type ScanLog } from "./store";
 import type { Opportunity } from "./types";
@@ -55,6 +56,14 @@ export async function runScan(opts: ScanOptions = {}): Promise<ScanLog> {
       }
     }
     o.screening = screen(o);
+  }
+
+  // Past awards under the same program, cached per program so shared listings are fetched once.
+  const awardCache = new Map<string, Promise<Opportunity["pastAwards"]>>();
+  for (const o of fresh) {
+    const key = (o.agencyCode ?? "").startsWith("NSF") ? `nsf:${o.title}` : `al:${(o.assistanceListings ?? []).join(",")}`;
+    if (!awardCache.has(key)) awardCache.set(key, fetchPastAwards(o).catch((e) => { errors.push(`past awards ${o.id}: ${(e as Error).message}`); return null; }));
+    o.pastAwards = await awardCache.get(key)!;
   }
 
   let evaluated = 0;

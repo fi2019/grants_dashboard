@@ -76,6 +76,30 @@ export interface Evaluation {
   evaluatedAt: string;
 }
 
+/** A previously funded award under the same program, from a public award database. */
+export interface PastAward {
+  id: string;
+  title: string;
+  recipient: string | null;
+  amount: number | null;
+  startDate: string | null;
+  program: string | null;
+  /** Public award record (NSF award page or USAspending award page). */
+  url: string;
+  /** Project abstract when the source publishes one (NSF), trimmed. */
+  abstract: string | null;
+}
+
+export interface PastAwards {
+  source: "NSF Award Search" | "USAspending.gov";
+  /** How the awards were matched, in plain words, including caveats. */
+  method: string;
+  /** Link to the full search on the source site. */
+  searchUrl: string;
+  awards: PastAward[];
+  fetchedAt: string;
+}
+
 export interface Opportunity {
   /** Stable id, prefixed by source: "grants.gov:361238". */
   id: string;
@@ -87,6 +111,9 @@ export interface Opportunity {
   agencyCode: string | null;
   description: string | null;
   eligibilityText: string | null;
+  /** Assistance Listing (CFDA) numbers, e.g. ["47.076"]. */
+  assistanceListings?: string[];
+  pastAwards?: PastAwards | null;
   /** grants.gov: "True"/"False"; null when the source does not say. */
   costSharing: boolean | null;
   awardFloor: number | null;

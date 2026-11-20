@@ -10,10 +10,13 @@
     "lint": "tsc --noEmit",
     "test": "vitest run",
     "scan": "tsx --env-file-if-exists=.env.local scripts/scan.mts",
-    "rescreen": "tsx scripts/rescreen.mts"
+    "rescreen": "tsx scripts/rescreen.mts",
+    "enrich-awards": "tsx scripts/enrich-awards.mts",
+    "mcp": "tsx scripts/mcp-stdio.mts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "1.5.0",
+    "@modelcontextprotocol/sdk": "^1.32.2",
     "next": "16.4.5",
     "react": "19.2.4",
     "react-dom": "19.2.4",

@@ -19,6 +19,7 @@ interface SearchHit {
   openDate: string;
   closeDate: string;
   oppStatus: string;
+  cfdaList?: string[];
 }
 
 interface AgencyFacet {
@@ -108,7 +109,7 @@ interface Synopsis {
 }
 
 export async function fetchDetails(id: string): Promise<Partial<Opportunity>> {
-  const data = await post<{ synopsis?: Synopsis; forecast?: Synopsis }>("fetchOpportunity", {
+  const data = await post<{ synopsis?: Synopsis; forecast?: Synopsis; cfdas?: { cfdaNumber?: string }[] }>("fetchOpportunity", {
     opportunityId: Number(id),
   });
   const s = data.synopsis ?? data.forecast ?? {};
@@ -116,7 +117,9 @@ export async function fetchDetails(id: string): Promise<Partial<Opportunity>> {
     ? s.applicantTypes.map((t) => t.description).join("; ")
     : "";
   const cost = String(s.costSharing ?? "").toLowerCase();
+  const listings = (data.cfdas ?? []).map((c) => c.cfdaNumber).filter((x): x is string => Boolean(x));
   return {
+    ...(listings.length ? { assistanceListings: [...new Set(listings)] } : {}),
     description: stripHtml(s.synopsisDesc),
     eligibilityText: [applicantTypes, stripHtml(s.applicantEligibilityDesc)].filter(Boolean).join("\n\n") || null,
     costSharing: cost === "true" ? true : cost === "false" ? false : null,
@@ -138,6 +141,7 @@ function toOpportunity(hit: SearchHit, now: string): Opportunity {
     agencyCode: hit.agencyCode || null,
     description: null,
     eligibilityText: null,
+    assistanceListings: hit.cfdaList ?? [],
     costSharing: null,
     awardFloor: null,
     awardCeiling: null,
