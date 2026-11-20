@@ -12,7 +12,9 @@
     "scan": "tsx --env-file-if-exists=.env.local scripts/scan.mts",
     "rescreen": "tsx scripts/rescreen.mts",
     "enrich-awards": "tsx scripts/enrich-awards.mts",
-    "mcp": "tsx scripts/mcp-stdio.mts"
+    "mcp": "tsx scripts/mcp-stdio.mts",
+    "eval-queue": "tsx scripts/evaluation-queue.mts",
+    "apply-evals": "tsx scripts/apply-evaluations.mts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "1.5.0",

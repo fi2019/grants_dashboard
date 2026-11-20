@@ -414,11 +414,18 @@ details.addform[open] > summary::before { content: "− " }
     ? `<ul class="list">${items.slice(0, 8).map((o) => `<li><span class="t">${oppLink(o)}</span><span class="r">${showInternal ? internalHtml(o) : dlHtml(dateOf(o))}${scoreHtml(o)}</span></li>`).join("")}</ul>`
     : `<p class="empty">${empty}</p>`;
 
+  // When new listings are fetched: written by the scheduled daily scan (settings/scan).
+  function scanLine() {
+    const sc = S.settings.scan;
+    const last = sc?.lastRun || META.snapshotAt;
+    const when = last ? new Date(last).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit", timeZone: "America/Chicago" }) + " CT" : "never";
+    return `${OPPS.length} listings · last scan ${when}${sc?.added != null ? ` (${sc.added} new${sc.evaluated ? `, ${sc.evaluated} scored by Claude` : ""})` : ""} · ${esc(sc?.schedule || "scans weekdays ~6:30 AM CT")}`;
+  }
   function storeBanner() {
     const msg = storeState === "ready" ? (canWrite ? "Decisions, categories, partners and sources are shared with everyone on this page." : "View only. Ask the owner for Contributor access to make changes.")
       : storeState === "offline" ? "Shared data is unavailable in this view. Sign in to claude.ai to see and record it."
       : "Connecting to shared data…";
-    return `<div class="banner"><span>Grants.gov snapshot ${fmtDate(META.snapshotAt)} · ${OPPS.length} listings</span><span>${msg}</span></div>`;
+    return `<div class="banner"><span>${scanLine()}</span><span>${msg}</span></div>`;
   }
 
   // ---------- dashboard ----------
