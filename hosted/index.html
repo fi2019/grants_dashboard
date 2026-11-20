@@ -1,4 +1,4 @@
-<title>Forge Grants</title>
+<title>Forge Grants Dashboard</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
@@ -199,6 +199,13 @@ td .meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; color:
 .hist del { color: var(--bad); text-decoration: line-through; text-decoration-thickness: 1px }
 .hist ins { color: var(--good); text-decoration: none }
 .kind { font-size: 11px; border-radius: 4px; padding: 0 6px; background: var(--surface-2); border: 1px solid var(--line); color: var(--muted); text-transform: capitalize }
+.stars { display: inline-flex; gap: 0; white-space: nowrap }
+.stars button { background: none; border: 0; padding: 0 1px; font-size: 17px; line-height: 1; color: var(--line); cursor: pointer }
+.stars button.on { color: #e0a100 }
+.stars button:disabled { cursor: default }
+.stars:not(.ro):hover button { color: #e0a100 }
+.stars:not(.ro) button:hover ~ button { color: var(--line) }
+.team-avg { display: block; font: 11px var(--mono); color: var(--muted); white-space: nowrap; margin-top: 2px }
 .nav-badge { display: inline-block; min-width: 18px; margin-left: 5px; padding: 0 5px; border-radius: 9px; background: var(--accent); color: #fff; font: 600 11px/18px var(--mono); text-align: center }
 </style>
 
@@ -226,14 +233,14 @@ td .meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; color:
 
   let OPPS = [], META = { profile: { federalAgencies: [], searchKeywords: [], capabilities: [], partners: [], goodFit: [], poorFit: [] } };
   // Shared, team-editable state (db collections).
-  const S = { decisions: {}, sources: {}, partners: {}, categories: {}, keywords: {}, profile: {}, history: {} };
+  const S = { decisions: {}, sources: {}, partners: {}, categories: {}, keywords: {}, profile: {}, history: {}, ratings: {} };
   // Effective Forge profile: the repo's profile file, overridden by the team's edits (profile/main).
   const P = () => ({ ...META.profile, ...(S.profile.main || {}) });
   const leadDays = () => Math.min(90, Math.max(1, Number(P().internalReviewLeadDays) || 14));
   const leadLabel = () => leadDays() === 14 ? "2 weeks" : leadDays() % 7 === 0 ? `${leadDays() / 7} weeks` : `${leadDays()} days`;
   let db = null, user = null, me = null, canWrite = false, storeState = "connecting";
   const names = {}, avatars = {};
-  const ui = { q: "", min: "", agency: "", stage: "", cat: "", partner: false, clean: false, closed: false };
+  const ui = { q: "", min: "", agency: "", stage: "", cat: "", partner: false, clean: false, closed: false, stars: "", starBasis: "mine", unrated: true };
   try { Object.assign(ui, JSON.parse(localStorage.getItem("fg-filters") || "{}")); } catch {}
   const editing = { source: null, partner: null, category: null, profile: false };
   const hf = { kind: "", who: "" };   // history filters   // id being edited, or "new"
@@ -307,10 +314,23 @@ td .meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; color:
   const personHtml = (id, removable) => `<span class="person">${avatars[id] ? `<img src="${esc(avatars[id])}" alt="">` : ""}${esc(names[id] || (id === me ? "You" : "Team member"))}${removable ? `<button type="button" data-unpick="${esc(id)}" aria-label="Remove">×</button>` : ""}</span>`;
   const ro = () => canWrite ? "" : "disabled";
 
+  // Ratings: one document per person (ratings/<their id>) mapping opportunity id -> 1..5 stars.
+  const myRating = (o) => (me && Number(S.ratings[me]?.[o.id])) || 0;
+  const teamRatings = (o) => Object.entries(S.ratings).map(([uid, r]) => [uid, Number(r?.[o.id]) || 0]).filter(([, n]) => n >= 1 && n <= 5);
+  const teamAvg = (o) => { const r = teamRatings(o); return r.length ? { avg: r.reduce((t, [, n]) => t + n, 0) / r.length, count: r.length } : null; };
+  function starsHtml(o) {
+    const mine = myRating(o), canRate = Boolean(me && canWrite && db);
+    const t = teamAvg(o);
+    const raters = t ? teamRatings(o).map(([uid, n]) => `${names[uid] || (uid === me ? "You" : "A teammate")}: ${n}`).join(", ") : "";
+    return `<span class="stars ${canRate ? "" : "ro"}" role="group" aria-label="Your rating">${[1, 2, 3, 4, 5].map((n) =>
+      `<button type="button" class="${n <= mine ? "on" : ""}" data-rate="${n}" data-id="${o.id}" ${canRate ? "" : "disabled"} title="${canRate ? (n === mine ? "Click again to clear your rating" : `Rate ${n} star${n > 1 ? "s" : ""}`) : "Sign in with Contributor access to rate"}" aria-label="Rate ${n} star${n > 1 ? "s" : ""}">&#9733;</button>`).join("")}</span>
+      <span class="team-avg" title="${esc(raters)}">${t ? `Team ${t.avg.toFixed(1)} · ${t.count} rating${t.count > 1 ? "s" : ""}` : "Team: no ratings"}</span>`;
+  }
+
   function table(items, empty) {
     if (!items.length) return `<p class="panel empty">${empty}</p>`;
-    return `<div class="tablewrap"><table><thead><tr><th>Fit</th><th>Opportunity</th><th>Deadline</th><th>Award ceiling</th><th>Criteria</th><th>Stage</th></tr></thead><tbody>${
-      items.map((o) => `<tr><td>${scoreHtml(o)}</td><td style="min-width:260px">${oppLink(o)}<div class="meta"><span class="tag">grants.gov</span><span>${esc(o.agency)}</span>${o.number ? `<span class="mono">${esc(o.number)}</span>` : ""}</div>${tagsHtml(o)}</td><td>${deadlineCell(o)}</td><td class="num">${money(o.awardCeiling)}</td><td>${dots(o)}</td><td>${pill(stageOf(o))}</td></tr>`).join("")
+    return `<div class="tablewrap"><table><thead><tr><th>Fit</th><th>Rating</th><th>Opportunity</th><th>Deadline</th><th>Award ceiling</th><th>Criteria</th><th>Stage</th></tr></thead><tbody>${
+      items.map((o) => `<tr><td>${scoreHtml(o)}</td><td>${starsHtml(o)}</td><td style="min-width:260px">${oppLink(o)}<div class="meta"><span class="tag">grants.gov</span><span>${esc(o.agency)}</span>${o.number ? `<span class="mono">${esc(o.number)}</span>` : ""}</div>${tagsHtml(o)}</td><td>${deadlineCell(o)}</td><td class="num">${money(o.awardCeiling)}</td><td>${dots(o)}</td><td>${pill(stageOf(o))}</td></tr>`).join("")
     }</tbody></table></div>`;
   }
   const dueList = (items, dateOf, empty, showInternal) => items.length
@@ -381,6 +401,10 @@ td .meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; color:
       if (catKw && !hits(o, catKw).length) return false;
       if (ui.partner && !partnersFor(o).length) return false;
       if (ui.clean && o.criteria.some((c) => c.status === "fail")) return false;
+      if (ui.stars) {
+        const r = ui.starBasis === "team" ? (teamAvg(o)?.avg || 0) : myRating(o);
+        if (r ? r < Number(ui.stars) : !ui.unrated) return false;
+      }
       if (q && !textOf(o).includes(q) && !(o.number || "").toLowerCase().includes(q)) return false;
       return true;
     }).sort(byFit);
@@ -396,6 +420,9 @@ td .meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; color:
         <select id="f-agency" aria-label="Agency">${opt("", "All agencies", ui.agency)}${META.profile.federalAgencies.map((a) => opt(a.id, a.name, ui.agency)).join("")}</select>
         <select id="f-cat" aria-label="Category">${opt("", "All categories", ui.cat)}${me ? opt("@mine", "My categories", ui.cat) : ""}${sorted(S.categories).map((c) => opt(c.id, c.name, ui.cat)).join("")}</select>
         <select id="f-stage" aria-label="Stage">${opt("", "Open stages", ui.stage)}${STAGES.map((s) => opt(s, LABEL[s], ui.stage)).join("")}</select>
+        <select id="f-stars" aria-label="Minimum stars">${opt("", "Any rating", ui.stars)}${[1, 2, 3, 4].map((n) => opt(n, `${n}+ stars`, ui.stars)).join("")}${opt(5, "5 stars", ui.stars)}</select>
+        <select id="f-basis" aria-label="Whose rating">${opt("mine", "My rating", ui.starBasis)}${opt("team", "Team average", ui.starBasis)}</select>
+        <label title="Show opportunities nobody has rated yet (or you haven't, for My rating)"><input type="checkbox" id="f-unrated" ${ui.unrated ? "checked" : ""}> Include unrated</label>
         <label><input type="checkbox" id="f-partner" ${ui.partner ? "checked" : ""}> Partner match</label>
         <label><input type="checkbox" id="f-clean" ${ui.clean ? "checked" : ""}> No failed criteria</label>
         <label><input type="checkbox" id="f-closed" ${ui.closed ? "checked" : ""}> Include closed</label>
@@ -426,6 +453,7 @@ td .meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; color:
             ${o.url ? `<a href="${esc(o.url)}" target="_blank" rel="noopener">View the official listing on Grants.gov ↗</a>` : ""}</div>
           <div class="panel facts">
             <div><div class="k">Fit</div>${scoreHtml(o, true)}</div>
+            <div><div class="k">Your rating</div><div id="my-stars" data-id="${o.id}">${starsHtml(o)}</div></div>
             <div><div class="k">Submission deadline</div>${dlHtml(o.closeDate)}</div>
             <div><div class="k">Forge internal deadline</div>${internal ? `<span class="dl ${urgency(daysUntil(internal))}">${fmtDate(internal)}</span><div class="note">${d.reviewDate ? "Set by the team" : `${leadLabel()} before submission`}</div>` : `<span class="note">Set once a deadline is known</span>`}</div>
             <div><div class="k">Award range</div><span class="num">${range(o.awardFloor, o.awardCeiling)}</span></div>
@@ -453,7 +481,7 @@ td .meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; color:
             ${ev.risks.length ? sec("Risks and open questions", `<ul style="margin:0;padding-left:18px">${ev.risks.map((r) => `<li>${esc(r)}</li>`).join("")}</ul>`) : ""}
             <p class="note" style="margin:0">Evaluated ${fmtDate(ev.evaluatedAt)} · ${esc(ev.model)}. AI-generated; verify before relying on it.</p>`
           : `<p class="panel empty">Not yet evaluated by Claude. The score shown is a keyword pre-score.</p>`}
-          ${(() => { const hs = Object.values(S.history).filter((h) => h.kind === "decision" && h.targetId === o.id).sort((a, b) => String(b.at).localeCompare(String(a.at)));
+          ${(() => { const hs = Object.values(S.history).filter((h) => (h.kind === "decision" || h.kind === "rating") && h.targetId === o.id).sort((a, b) => String(b.at).localeCompare(String(a.at)));
             return hs.length ? `<section class="panel"><h2>Change history</h2><ul class="hist">${hs.map((h) => entryHtml(h, false)).join("")}</ul></section>` : ""; })()}
           ${o.eligibility ? `<section class="panel"><h2>Eligibility (from listing)</h2><div class="longtext">${esc(o.eligibility)}</div></section>` : ""}
           ${o.description ? `<section class="panel"><h2>Description (from listing)</h2><div class="longtext">${esc(o.description)}</div></section>` : ""}
@@ -657,14 +685,14 @@ td .meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; color:
   }
 
   // ---------- history ----------
-  const KIND_LABEL = { decision: "Decision", source: "Source", partner: "Partner", category: "Category", keyword: "Keyword", profile: "Profile" };
+  const KIND_LABEL = { rating: "Rating", decision: "Decision", source: "Source", partner: "Partner", category: "Category", keyword: "Keyword", profile: "Profile" };
   const show = (v) => v === null || v === undefined || v === "" ? "(empty)" : Array.isArray(v) ? (v.length ? v.join(", ") : "(empty)") : String(v);
   const changeHtml = (c) => c.added || c.removed
     ? `<div class="chg"><b>${esc(c.label)}</b>: ${[...(c.added || []).map((x) => `<ins>+ ${esc(x)}</ins>`), ...(c.removed || []).map((x) => `<del>${esc(x)}</del>`)].join(" · ") || "reordered"}</div>`
     : `<div class="chg"><b>${esc(c.label)}</b>: ${c.from !== undefined ? `<del>${esc(show(c.from))}</del> → ` : ""}<ins>${esc(show(c.to))}</ins></div>`;
   function entryHtml(h, withTarget = true) {
     const who = h.by ? names[h.by] || "A teammate" : "Someone";
-    const target = !withTarget ? "" : h.kind === "decision" ? `<a href="#opp-${esc(h.targetId)}">${esc(h.targetName)}</a>` : `<b>${esc(h.targetName || "")}</b>`;
+    const target = !withTarget ? "" : h.kind === "decision" || h.kind === "rating" ? `<a href="#opp-${esc(h.targetId)}">${esc(h.targetName)}</a>` : `<b>${esc(h.targetName || "")}</b>`;
     return `<li><div style="display:flex;flex-wrap:wrap;gap:6px 10px;align-items:baseline"><span class="kind">${KIND_LABEL[h.kind] || esc(h.kind)}</span><span>${esc(who)} ${esc(h.action)} ${target}</span><span class="when">${new Date(h.at).toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" })}</span></div>
       ${(h.changes || []).map(changeHtml).join("")}</li>`;
   }
@@ -696,15 +724,19 @@ td .meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; color:
     app.innerHTML = r.startsWith("opp-") ? viewDetail(r.slice(4)) : (VIEWS[r] || viewDashboard)();
   }
   const saveFilters = () => { try { localStorage.setItem("fg-filters", JSON.stringify(ui)); } catch {} };
-  const CLEAR = { q: "", min: "", agency: "", stage: "", cat: "", partner: false, clean: false, closed: false };
+  const CLEAR = { q: "", min: "", agency: "", stage: "", cat: "", partner: false, clean: false, closed: false, stars: "", starBasis: ui.starBasis || "mine", unrated: true };
   const go = (hash, patch) => { Object.assign(ui, patch || {}); saveFilters(); if (location.hash === hash) render(); else location.hash = hash; };
   // Re-render on shared-data changes without clobbering a field someone is typing in.
+  let dirty = false;   // the viewer has typed into a form that isn't saved yet
   function softRender() {
     const f = document.activeElement;
+    if (dirty) return route().startsWith("opp-") ? refreshRatings() : undefined;
     if (f && f.closest && f.closest("#decision, #filters, #hfilters, .form, #kw-form, .picker")) return;
+    // Someone rating in the list or on a detail page: redraw only the ratings so nothing else jumps or resets.
+    if (f && f.closest && f.closest("#results, #my-stars")) return refreshRatings();
     render();
   }
-  addEventListener("hashchange", () => { armed.clear(); editing.profile = false; for (const k in flash) delete flash[k]; render(); scrollTo(0, 0); });
+  addEventListener("hashchange", () => { armed.clear(); dirty = false; editing.profile = false; for (const k in flash) delete flash[k]; render(); scrollTo(0, 0); });
 
   // ---------- writes ----------
   const flash = {};   // toast id -> message, so a re-render from a live update keeps it
@@ -757,7 +789,7 @@ td .meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; color:
     const after = { stage: body.stage, owner: body.owner, notes: body.notes, reviewDate: (body.reviewDate || defaultInternal(o) || "").slice(0, 10) || null };
     const changes = diff(before, after, LABELS.decision).map((c) => c.field === "stage" ? { ...c, from: LABEL[c.from] || c.from, to: LABEL[c.to] || c.to } : c);
     try {
-      await db.doc("decisions/" + o.id).set(body); toast("d-toast", changes.length ? "Saved" : "No changes to save");
+      await db.doc("decisions/" + o.id).set(body); dirty = false; toast("d-toast", changes.length ? "Saved" : "No changes to save");
       if (changes.length) logChange({ kind: "decision", action: "updated", targetId: o.id, targetName: o.title, changes });
     }
     catch (err) { toast("d-toast", errMsg(err)); }
@@ -792,7 +824,7 @@ td .meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; color:
     toast(t, "Saving…");
     try {
       const id = editing[kind];
-      const isEdit = id && id !== "new";
+      const isEdit = id && id !== "new"; dirty = false;
       const prev = isEdit ? S[coll][id] : null;
       const view = (x) => x && kind === "category" ? { ...x, members: memberNames(x.members) } : x;
       if (isEdit) await db.doc(`${coll}/${id}`).set(body); else await db.collection(coll).add(body);
@@ -861,13 +893,45 @@ td .meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; color:
     const patch = { summary, internalReviewLeadDays: lead };
     PROFILE_LISTS.forEach(([k]) => (patch[k] = lines("pf-" + k)));
     toast("profile-toast", "Saving…");
-    try { if (await writeProfile(patch, "profile-toast")) { editing.profile = false; render(); toast("profile-toast", "Profile saved"); } }
+    try { if (await writeProfile(patch, "profile-toast")) { dirty = false; editing.profile = false; render(); toast("profile-toast", "Profile saved"); } }
     catch (err) { toast("profile-toast", errMsg(err)); }
   }
   async function removeBaseKeyword(k) {
     if (!db) return;
     try { await writeProfile({ searchKeywords: (P().searchKeywords || []).filter((x) => x !== k) }, "kw-toast"); toast("kw-toast", `Removed "${k}"`); }
     catch (err) { toast("kw-toast", errMsg(err)); }
+  }
+
+  async function rate(oppId, n) {
+    if (!db || !me || !canWrite) return;
+    const o = OPPS.find((x) => x.id === oppId); if (!o) return;
+    const prev = myRating(o), next = prev === n ? 0 : n;   // clicking your current rating clears it
+    const mineDoc = { ...(S.ratings[me] || {}) };
+    if (next) mineDoc[oppId] = next; else delete mineDoc[oppId];
+    S.ratings = { ...S.ratings, [me]: mineDoc };   // show it right away
+    refreshRatings();
+    try {
+      await db.doc("ratings/" + me).set(mineDoc);
+      logChange({ kind: "rating", action: next ? "rated" : "cleared their rating on", targetId: oppId, targetName: o.title,
+        changes: [{ field: "stars", label: "Stars", from: prev || null, to: next || null }] });
+    } catch (err) {
+      alertInline(errMsg(err));
+    }
+  }
+  // Re-draw just the parts that show ratings, so a click doesn't reset scroll or filters.
+  function refreshRatings() {
+    const f = document.activeElement, again = f?.dataset?.rate ? `[data-rate="${f.dataset.rate}"][data-id="${f.dataset.id}"]` : null;
+    redrawRatings();
+    if (again) document.querySelector(again)?.focus();
+  }
+  function redrawRatings() {
+    const box = document.getElementById("my-stars");
+    if (box) { const o = OPPS.find((x) => x.id === box.dataset.id); if (o) box.innerHTML = starsHtml(o); return; }
+    if (route() === "opportunities") {
+      const items = filtered();
+      document.getElementById("results").innerHTML = table(items.slice(0, 300), "No opportunities match these filters.");
+      const n = document.querySelector(".head .sub .num"); if (n) n.textContent = items.length;
+    } else render();
   }
 
   // ---------- events ----------
@@ -879,9 +943,11 @@ td .meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; color:
       return go("#opportunities", { ...CLEAR, min: ds.min || "", stage: ds.stage || "", agency: ds.agency || "", cat: ds.mycats ? "@mine" : ds.cat || "" });
     }
     if (t.id === "f-reset") return go("#opportunities", CLEAR);
+    if (ds.rate) return rate(ds.id, Number(ds.rate));
     if (ds.decide) { document.getElementById("d-stage").value = ds.decide; return saveDecision(); }
     if (t.id === "d-save") return saveDecision();
     if (ds.save) return saveItem(ds.save);
+    if (ds.cancel || ds.cancelprofile) dirty = false;
     if (ds.cancel) { delete draftMembers[editing[ds.cancel]]; editing[ds.cancel] = null; return render(); }
     if (ds.edit) { editing[ds.edit] = ds.id; delete draftMembers[ds.id]; render(); return scrollTo(0, 0); }
     if (ds.arm) { armed.add(ds.arm); return render(); }
@@ -915,6 +981,7 @@ td .meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; color:
     if (e.target.id === "kw-form") addKeywords();
   });
   let typing;
+  app.addEventListener("input", (e) => { if (e.target.closest("#decision, .form")) dirty = true; });
   app.addEventListener("input", async (e) => {
     if (e.target.id === "c-search") {
       const list = document.getElementById("c-results");
@@ -926,11 +993,12 @@ td .meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; color:
     }
     if (e.target.id === "h-kind" || e.target.id === "h-who") { hf[e.target.id === "h-kind" ? "kind" : "who"] = e.target.value; return render(); }
     if (!e.target.closest("#filters")) return;
-    const map = { "f-q": "q", "f-min": "min", "f-agency": "agency", "f-stage": "stage", "f-cat": "cat" };
+    const map = { "f-q": "q", "f-min": "min", "f-agency": "agency", "f-stage": "stage", "f-cat": "cat", "f-stars": "stars", "f-basis": "starBasis" };
     if (map[e.target.id]) ui[map[e.target.id]] = e.target.value;
     if (e.target.id === "f-clean") ui.clean = e.target.checked;
     if (e.target.id === "f-closed") ui.closed = e.target.checked;
     if (e.target.id === "f-partner") ui.partner = e.target.checked;
+    if (e.target.id === "f-unrated") ui.unrated = e.target.checked;
     saveFilters();
     clearTimeout(typing);
     typing = setTimeout(() => { const items = filtered(); document.getElementById("results").innerHTML = table(items.slice(0, 300), "No opportunities match these filters."); document.querySelector(".head .sub .num").textContent = items.length; }, 120);
@@ -943,6 +1011,7 @@ td .meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; color:
     const ids = new Set();
     Object.values(S.decisions).forEach((d) => d.updatedBy && ids.add(d.updatedBy));
     Object.values(S.history).forEach((h) => h.by && ids.add(h.by));
+    Object.keys(S.ratings).forEach((uid) => ids.add(uid));
     if (S.profile.main?.updatedBy) ids.add(S.profile.main.updatedBy);
     Object.values(S.categories).forEach((c) => (c.members || []).forEach((m) => ids.add(m)));
     Object.values(draftMembers).forEach((l) => l.forEach((m) => ids.add(m)));
