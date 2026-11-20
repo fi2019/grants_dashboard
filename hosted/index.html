@@ -174,6 +174,7 @@ td .meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; color:
 .item .btns button { padding: 3px 10px; font-size: 13px }
 .refresh { display: flex; flex-direction: column; align-items: flex-end; gap: 3px }
 .refresh .help { font-size: 12px; max-width: 280px; text-align: right }
+.plinks { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 13px; margin: 4px 0 }
 .btn-danger { background: var(--bad); color: var(--surface) }
 .status { font-size: 11px; border-radius: 999px; padding: 1px 8px; white-space: nowrap }
 .status.on { background: var(--good-bg); color: var(--good) } .status.todo { background: var(--warn-bg); color: var(--warn) } .status.off { background: var(--idle-bg); color: var(--muted) }
@@ -310,7 +311,7 @@ details.addform[open] > summary::before { content: "− " }
   const LABEL = { new:"New", screening:"Screening", internal_review:"Internal review", go:"Go", drafting:"Drafting", submitted:"Submitted", awarded:"Awarded", not_awarded:"Not awarded", declined:"No-go" };
   const OPEN = ["new","screening","internal_review","go","drafting"];
   const DAY = 86400000;
-  const PARTNER_TYPES = ["Federal lab", "University", "Researcher", "Program area", "Industry", "Utility", "Nonprofit", "Other"];
+  const PARTNER_TYPES = ["Federal lab", "University", "Researcher", "Program area", "Industry", "Utility", "Nonprofit", "State agency", "Other"];
   const SOURCE_TYPES = ["Website", "Database", "API", "RSS feed", "Email list"];
   const app = document.getElementById("app");
 
@@ -856,6 +857,8 @@ details.addform[open] > summary::before { content: "− " }
           ${selectField("p-type", "Type", PARTNER_TYPES, e.type || "Federal lab")}
           ${field("p-url", "Link (institution, researcher or program page)", e.url, 'type="url" placeholder="https://"')}
           ${field("p-contact", "Contact (optional)", e.contact, 'placeholder="Name, role" maxlength="160"')}
+          <label class="wide" for="p-links">More links (optional)<textarea id="p-links" rows="3" placeholder="One per line: program pages, core facilities, directories" ${ro()}>${esc((e.links || []).join("\n"))}</textarea>
+            <span class="help">Other pages for this partner. Web research opens these too.</span></label>
           <div style="grid-column:1/-1;display:grid;gap:6px">
             <span class="note">Documents (optional): capability statements, research summaries, briefing decks. Claude uses them for the draft below.</span>
             <div class="formdocs"><span id="pf-docs" class="formdocs">${formDocsHtml()}</span>
@@ -875,6 +878,7 @@ details.addform[open] > summary::before { content: "− " }
         const matches = open.filter((o) => hits(o, p.focus).length).sort(byFit);
         return `<div class="item"><div class="top"><h3>${safeUrl(p.url) ? `<a href="${esc(p.url)}" target="_blank" rel="noopener">${esc(p.name)} ↗</a>` : esc(p.name)}</h3><span class="pill">${esc(p.type)}</span></div>
           ${p.summary ? `<div class="partner-summary">${esc(p.summary)}</div>` : ""}
+          ${(p.links || []).filter(safeUrl).length ? `<div class="plinks">${p.links.filter(safeUrl).map((u) => `<a href="${esc(u)}" target="_blank" rel="noopener">${esc(u.replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, ""))} ↗</a>`).join("")}</div>` : ""}
           ${p.contact ? `<div class="kv"><span>Contact <b>${esc(p.contact)}</b></span></div>` : ""}
           ${(p.focus || []).length ? `<div class="chips">${p.focus.map((f) => `<span>${esc(f)}</span>`).join("")}</div>` : `<p class="help">Add focus areas to match opportunities.</p>`}
           ${p.notes ? `<p class="help">${esc(p.notes)}</p>` : ""}
@@ -1216,7 +1220,7 @@ Reply with only a JSON object:
     if (pending && (pending.status === "queued" || pending.status === "working")) return setJob(pid, "Web research is already queued for this partner.");
     try {
       const ref = db.collection("research").doc();
-      await ref.set(await stamp({ partnerId: pid, name: p.name, type: p.type || "", url: p.url || "", status: "queued", requestedAt: new Date().toISOString() }));
+      await ref.set(await stamp({ partnerId: pid, name: p.name, type: p.type || "", url: p.url || "", links: (p.links || []).filter(safeUrl), status: "queued", requestedAt: new Date().toISOString() }));
       logChange({ kind: "partner", action: "requested web research for", targetId: pid, targetName: p.name, changes: [] });
       setJob(pid, "Queued for web research. Results usually arrive within the hour.");
       runResearchNow();
@@ -1421,7 +1425,7 @@ Reply with only a JSON object:
   const LABELS = {
     decision: { stage: "Stage", reviewDate: "Forge internal deadline", owner: "Owner", notes: "Notes" },
     source: { name: "Name", category: "Category", api: "API available", status: "Status", url: "Website", apiUrl: "API URL", apiDetails: "Data access", credential: "Key name", parentAgency: "Parent agency", mechanisms: "Funding mechanisms", focusAreas: "Focus areas", unsolicited: "White-paper path", cadence: "Update cadence", notes: "Notes" },
-    partner: { name: "Name", type: "Type", url: "Link", contact: "Contact", summary: "Focus summary", focus: "Focus areas", notes: "Notes" },
+    partner: { name: "Name", type: "Type", url: "Link", links: "More links", contact: "Contact", summary: "Focus summary", focus: "Focus areas", notes: "Notes" },
     category: { name: "Name", keywords: "Keywords", members: "Team members" },
     profile: { summary: "Summary", capabilities: "Capabilities", partners: "Core partners", goodFit: "Good fit", poorFit: "Poor fit", decisionCriteria: "Decision criteria", internalReviewLeadDays: "Internal deadline lead days", searchKeywords: "Built-in keywords" },
   };
@@ -1472,7 +1476,10 @@ Reply with only a JSON object:
       const name = val("p-name"), url = val("p-url");
       if (!name) return toast(t, "Give the partner a name.");
       if (url && !safeUrl(url)) return toast(t, "The link should start with https://");
-      coll = "partners"; body = { name, type: val("p-type"), url, contact: val("p-contact"), summary: (document.getElementById("p-summary")?.value || "").trim().slice(0, 2000), focus: splitList(val("p-focus")), notes: val("p-notes").slice(0, 2000) };
+      const links = (document.getElementById("p-links")?.value || "").split(/\s+/).map((x) => x.trim()).filter(Boolean);
+      const badLink = links.find((x) => !safeUrl(x));
+      if (badLink) return toast(t, `Each extra link should start with https:// (check ${badLink.slice(0, 60)}).`);
+      coll = "partners"; body = { name, type: val("p-type"), url, links: [...new Set(links)].slice(0, 20), contact: val("p-contact"), summary: (document.getElementById("p-summary")?.value || "").trim().slice(0, 2000), focus: splitList(val("p-focus")), notes: val("p-notes").slice(0, 2000) };
     } else {
       const name = val("c-name");
       if (!name) return toast(t, "Give the category a name.");
