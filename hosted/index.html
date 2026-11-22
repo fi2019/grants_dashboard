@@ -1,6 +1,6 @@
 <title>Forge Grants Dashboard</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<meta name="forge:published" content="2026-11-22T20:46:40Z">
+<meta name="forge:published" content="2026-11-22T21:16:58Z">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
@@ -667,6 +667,12 @@ dialog.modal .btns { display: flex; flex-wrap: wrap; justify-content: flex-end; 
 .mech.baa, .mech.cso, .mech.ot { background: #fdeee0; color: #8a4a0b; border-color: transparent }
 .mech.grant, .mech.coop { background: var(--good-bg); color: var(--good); border-color: transparent }
 .mech.contract { background: var(--info-bg); color: var(--info); border-color: transparent }
+.mech.fdn { background: #e6f4f1; color: #0f6b5c; border-color: transparent }
+.mech.agr { background: #eef0f6; color: #3d4a7a; border-color: transparent }
+.mech.cong { background: #f6e9ee; color: #8a2050; border-color: transparent }
+.mech.memb { background: #f1efe6; color: #6b5a1e; border-color: transparent }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .mech.fdn { background: #12332d; color: #7fd3c1 } :root:not([data-theme="light"]) .mech.agr { background: #232a44; color: #b5c0ee } :root:not([data-theme="light"]) .mech.cong { background: #3a1a28; color: #f0a8c6 } :root:not([data-theme="light"]) .mech.memb { background: #332d16; color: #e6d08a } }
+:root[data-theme="dark"] .mech.fdn { background: #12332d; color: #7fd3c1 } :root[data-theme="dark"] .mech.agr { background: #232a44; color: #b5c0ee } :root[data-theme="dark"] .mech.cong { background: #3a1a28; color: #f0a8c6 } :root[data-theme="dark"] .mech.memb { background: #332d16; color: #e6d08a }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .mech.sbir, :root:not([data-theme="light"]) .mech.sttr { background: #2e2244; color: #c9a8f5 } :root:not([data-theme="light"]) .mech.baa, :root:not([data-theme="light"]) .mech.cso, :root:not([data-theme="light"]) .mech.ot { background: #3a2a14; color: #f0b874 } }
 :root[data-theme="dark"] .mech.sbir, :root[data-theme="dark"] .mech.sttr { background: #2e2244; color: #c9a8f5 }
 :root[data-theme="dark"] .mech.baa, :root[data-theme="dark"] .mech.cso, :root[data-theme="dark"] .mech.ot { background: #3a2a14; color: #f0b874 }
@@ -683,6 +689,7 @@ details.addform > summary::before { content: "+ "; color: var(--link) }
 details.addform[open] > summary::before { content: "− " }
 .tag.dhs { background: #5a3e8a }
 .tag.teaming { background: var(--n-partner) }
+.tag.asana { background: #7a4a8c }
 .cact { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; border-top: 1px dashed var(--line); padding-top: 8px }
 .cact .stars button { font-size: 19px }
 .tpeople { display: grid; gap: 6px; font-size: 13px; border: 1px solid var(--line); border-left: 3px solid var(--n-partner); border-radius: 6px; padding: 8px 12px; background: var(--surface-2) }
@@ -946,13 +953,13 @@ details.addform[open] > summary::before { content: "− " }
   const roleWhy = (o) => o.evaluation?.roleRationale || o.leadReason || "";
   const roleHtml = (o) => { const r = roleOf(o); return `<span class="role ${r}" title="${esc(roleWhy(o))}">${ROLE_TEXT[r]}</span>`; };
   // Funding vehicle labels (SBIR, BAA, Grant…) computed by the scanner from the listing.
-  const MECH_ORDER = ["SBIR", "STTR", "BAA", "CSO", "OT", "Prize / challenge", "Fellowship", "RFI", "Notice of intent", "Forecast", "Grant", "Cooperative agreement", "Contract", "Other"];
-  const MECH_CLASS = { SBIR: "sbir", STTR: "sttr", BAA: "baa", CSO: "cso", OT: "ot", Grant: "grant", "Cooperative agreement": "coop", Contract: "contract" };
-  const MECH_SHORT = { "Cooperative agreement": "Coop. agreement", "Prize / challenge": "Prize", "Notice of intent": "NOI" };
+  const MECH_ORDER = ["SBIR", "STTR", "BAA", "CSO", "OT", "Prize / challenge", "Fellowship", "RFI", "Notice of intent", "Forecast", "Grant", "Cooperative agreement", "Contract", "Foundation", "Agreement", "Congressional request", "Membership", "Other"];
+  const MECH_CLASS = { SBIR: "sbir", STTR: "sttr", BAA: "baa", CSO: "cso", OT: "ot", Grant: "grant", "Cooperative agreement": "coop", Contract: "contract", Foundation: "fdn", Agreement: "agr", "Congressional request": "cong", Membership: "memb" };
+  const MECH_SHORT = { "Congressional request": "Congressional", "Cooperative agreement": "Coop. agreement", "Prize / challenge": "Prize", "Notice of intent": "NOI" };
   const mechsOf = (o) => o.mechanisms || [];
   const mechHtml = (o) => mechsOf(o).length ? `<span class="mechs">${mechsOf(o).map((m) => `<span class="mech ${MECH_CLASS[m] || ""}" title="${esc(m)}">${esc(MECH_SHORT[m] || m)}</span>`).join("")}</span>` : "";
   const SRC_LABEL = { "grants.gov": "grants.gov", "dhs-apfs": "DHS forecast", teaming: "Team concept", manual: "Added by team" };
-  const srcTag = (o, style) => `<span class="tag ${o.source === "dhs-apfs" ? "dhs" : o.source === "teaming" ? "teaming" : ""}" ${o.source === "teaming" ? `title="Topic idea from the Teaming page that the team chose to pursue"` : ""} ${style ? `style="${style}"` : ""}>${SRC_LABEL[o.source] || esc(o.source || "grants.gov")}</span>`;
+  const srcTag = (o, style) => `<span class="tag ${o.source === "dhs-apfs" ? "dhs" : o.source === "teaming" ? "teaming" : o.manual?.import === "asana" ? "asana" : ""}" ${o.source === "teaming" ? `title="Topic idea from the Teaming page that the team chose to pursue"` : o.manual?.import === "asana" ? `title="Imported from Forge's Asana opportunities list"` : ""} ${style ? `style="${style}"` : ""}>${o.manual?.import === "asana" ? "From Asana" : SRC_LABEL[o.source] || esc(o.source || "grants.gov")}</span>`;
   const realCriteria = (o) => o.criteria.filter((c) => c.id !== "lead_eligible");
   const dots = (o) => `<span class="dots">${realCriteria(o).map((c) => `<span class="dot ${c.status}" title="${esc(c.label)}: ${c.status === "unknown" ? "not stated" : c.status}"></span>`).join("")}</span>`;
   const oppLink = (o) => `<a href="#opp-${o.id}" class="ttl">${esc(o.title)}</a>`;
@@ -1374,7 +1381,7 @@ ${String(text).slice(0, SEND_CHARS)}
   function whatItIsHtml(o) {
     const d = String(o.description || "").trim();
     const head = o.source === "teaming" ? "The concept" : "What it is";
-    const src = o.source === "teaming" ? "From the Teaming topic idea" : o.source === "manual" ? (o.manual?.sourceDoc ? `Summarized by Claude from ${o.manual.sourceDoc}` : o.manual?.lookup ? "Found online by Claude" : "Entered by the team") : o.source === "dhs-apfs" ? "From the DHS acquisition forecast" : "From the official listing";
+    const src = o.source === "teaming" ? "From the Teaming topic idea" : o.source === "manual" ? (o.manual?.import === "asana" ? "From the Asana task notes" : o.manual?.sourceDoc ? `Summarized by Claude from ${o.manual.sourceDoc}` : o.manual?.lookup ? "Found online by Claude" : "Entered by the team") : o.source === "dhs-apfs" ? "From the DHS acquisition forecast" : "From the official listing";
     if (!d) return `<section class="panel whatis"><h2>${head}</h2><p class="empty">The listing has no description. Open the official listing for details.</p></section>`;
     const long = d.length > 900;
     return `<section class="panel whatis"><h2>${head} <span class="note" style="font-weight:400">· ${src}</span></h2>
@@ -1397,7 +1404,7 @@ ${String(text).slice(0, SEND_CHARS)}
         <div style="display:grid;gap:16px;min-width:0">
           <div><div class="meta" style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;color:var(--muted);font-size:13px">${srcTag(o)}${esc(o.agency)} ${o.number ? `<span class="mono">${esc(o.number)}</span>` : ""} ${pill(st)} ${roleHtml(o)} ${mechHtml(o)}</div>
             <h1 style="font-size:24px;margin-top:6px">${esc(o.title)}</h1>
-            ${o.url ? `<a href="${esc(o.url)}" target="_blank" rel="noopener">${o.source === "dhs-apfs" ? "View the DHS forecast page (download the full forecast there) ↗" : o.source === "teaming" ? "Open the funding sponsor's page ↗" : o.source === "manual" ? "Open the official listing ↗" : "View the official listing on Grants.gov ↗"}</a>` : ""}</div>
+            ${o.url ? `<a href="${esc(o.url)}" target="_blank" rel="noopener">${o.source === "dhs-apfs" ? "View the DHS forecast page (download the full forecast there) ↗" : o.source === "teaming" ? "Open the funding sponsor's page ↗" : o.source === "manual" ? (o.manual?.import === "asana" ? (/drive\.google|docs\.google/.test(o.url) ? "Open the Google Drive folder ↗" : "Open the link from Asana ↗") : "Open the official listing ↗") : "View the official listing on Grants.gov ↗"}</a>` : ""}</div>
           ${(() => { const subs = subsFor(o.id); return `<div class="sbstart">${subs.map((x) => `<a class="btn${subs.length === 1 ? "" : "-ghost"}" href="${subLink(x.id)}">Open submission: ${esc(short(x.title, 60))} <span class="note">(${SUB_STATUS[x.status] || "Concept"})</span></a>`).join("")}
             <button class="${subs.length ? "btn-ghost" : "btn"}" data-substart="${esc(o.id)}" ${ro()}>${subs.length ? "Start another submission" : "Start a submission concept"}</button></div>`; })()}
           ${whatItIsHtml(o)}
@@ -1408,6 +1415,7 @@ ${String(text).slice(0, SEND_CHARS)}
             <div><div class="k">Forge internal deadline</div>${internal ? `<span class="dl ${urgency(daysUntil(internal))}">${fmtDate(internal)}</span><div class="note">${d.reviewDate ? "Set by the team" : `${leadLabel()} before submission`}</div>` : `<span class="note">Set once a deadline is known</span>`}</div>
             <div><div class="k">Award range</div><span class="num">${range(o.awardFloor, o.awardCeiling)}</span></div>
             <div><div class="k">Program total</div><span class="num">${money(o.estimatedFunding)}</span>${o.expectedAwards ? ` <span class="note">· ${o.expectedAwards} awards</span>` : ""}</div>
+            ${o.manual?.valueToForge ? `<div><div class="k">Value to Forge</div><span class="num">${money(o.manual.valueToForge)}</span></div>` : ""}
           </div>
           ${o.warnings.length ? `<div class="warnbox">${o.warnings.map((w) => `⚠ ${esc(w)}`).join("<br>")}</div>` : ""}
           ${cats.length || parts.length ? `<section class="panel"><h2>Team routing</h2>
