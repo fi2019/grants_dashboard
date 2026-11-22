@@ -1,6 +1,6 @@
 <title>Forge Grants Dashboard</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<meta name="forge:published" content="2026-11-22T22:35:52Z">
+<meta name="forge:published" content="2026-11-22T22:45:32Z">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
@@ -376,8 +376,21 @@ pre.outline { white-space: pre-wrap; font: 13px/1.55 var(--font); margin: 8px 0 
 .staffcard h3 { font-size: 17px }
 .sttitle { font-size: 14px; color: var(--muted) }
 .stacct { display: grid; gap: 6px }
-.awkpi { display: grid; gap: 14px }
-.awkpi .stats { grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)) }
+:root { --ver-bg: #eaf6ee; --ver-line: #2e8b57; --ver-ink: #1d6b40 }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --ver-bg: #10291b; --ver-line: #3fae6e; --ver-ink: #7fd3a5 } }
+:root[data-theme="dark"] { --ver-bg: #10291b; --ver-line: #3fae6e; --ver-ink: #7fd3a5 }
+.verified { display: grid; gap: 14px; padding: 16px; border: 2px solid var(--ver-line); border-radius: 12px; background: var(--ver-bg) }
+.verified .stats, .sysres .stats { grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)) }
+.verified .vstat { border-color: var(--ver-line) }
+.vhead { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 6px 12px; align-items: flex-start }
+.vnote { margin: 4px 0 0; font-size: 13px; color: var(--ver-ink) }
+.vwarn { margin: 0; font-size: 13px; color: var(--warn); background: var(--warn-bg); padding: 8px 10px; border-radius: 8px }
+.vbadge { display: inline-block; font: 600 11px/1.6 var(--font); letter-spacing: .02em; border-radius: 999px; padding: 0 8px; white-space: nowrap; vertical-align: middle }
+.vbadge.ok { background: var(--ver-line); color: #fff }
+.vbadge.no { background: var(--warn-bg); color: var(--warn); border: 1px solid currentColor }
+.sysres { display: grid; gap: 14px }
+.awdocs { display: grid; gap: 4px; margin: 6px 0 }
+tr.awunv td { background: var(--warn-bg) }
 .kbars { display: grid; gap: 8px }
 .kbar { display: grid; grid-template-columns: minmax(90px, 38%) 1fr auto; gap: 4px 10px; align-items: center; font-size: 13px }
 .kbar .kk { overflow: hidden; text-overflow: ellipsis; white-space: nowrap }
@@ -928,7 +941,7 @@ details.addform[open] > summary::before { content: "− " }
 
   let OPPS = [], META = { profile: { federalAgencies: [], searchKeywords: [], capabilities: [], partners: [], goodFit: [], poorFit: [] } };
   // Shared, team-editable state (db collections).
-  const S = { decisions: {}, sources: {}, partners: {}, categories: {}, keywords: {}, profile: {}, history: {}, ratings: {}, partnerDocs: {}, research: {}, settings: {}, coaching: {}, teaming: {}, concepts: {}, proposals: {}, people: {}, teamingSaved: {}, staff: {}, staffDocs: {}, consortia: {}, forgeDocs: {}, manual: {}, lookups: {}, submissions: {}, awards: {} };
+  const S = { decisions: {}, sources: {}, partners: {}, categories: {}, keywords: {}, profile: {}, history: {}, ratings: {}, partnerDocs: {}, research: {}, settings: {}, coaching: {}, teaming: {}, concepts: {}, proposals: {}, people: {}, teamingSaved: {}, staff: {}, staffDocs: {}, consortia: {}, forgeDocs: {}, manual: {}, lookups: {}, submissions: {}, awards: {}, awardDocs: {} };
   // Effective Forge profile: the repo's profile file, overridden by the team's edits (profile/main).
   const P = () => ({ ...META.profile, ...(S.profile.main || {}) });
   const leadDays = () => Math.min(90, Math.max(1, Number(P().internalReviewLeadDays) || 14));
@@ -1165,7 +1178,8 @@ details.addform[open] > summary::before { content: "− " }
         <div class="panel"><h2>Forge internal deadlines</h2><p class="help" style="margin-bottom:6px">${leadLabel()[0].toUpperCase() + leadLabel().slice(1)} before each submission deadline, unless the team set another date.</p>${dueList(internal, internalOf, "No internal deadlines in the next 14 days for opportunities in progress.", true)}</div>
         <div class="panel"><h2>Submission deadlines</h2>${dueList(deadlines, (o) => o.closeDate, "No high-match submission deadlines in the next 30 days.")}</div>
       </section>
-      ${awardsKpiHtml()}
+      ${verifiedAwardsHtml()}
+      ${pipelineResultsHtml()}
       ${byCategoryPanel()}
       <section><h2 class="sec-title">Decision funnel</h2><div class="funnel">${STAGES.map((s) => `<a href="#opportunities" data-stage="${s}" data-cat="${esc(ui.dcat)}"><b>${counts[s]}</b> ${LABEL[s]}</a>`).join("")}</div></section>`;
   }
@@ -1180,42 +1194,65 @@ details.addform[open] > summary::before { content: "− " }
     const max = Math.max(1, ...rows.map((r) => r.v));
     return `<div class="ycols" role="img" aria-label="Awarded dollars by year">${rows.map((r) => `<div class="ycol" title="${esc(`${r.k}: ${fmt(r.v)} · ${r.n} award${r.n === 1 ? "" : "s"}`)}"><span class="yv num">${r.v ? fmt(r.v) : ""}</span><span class="yb"><i style="height:${r.v ? Math.max(3, (r.v / max) * 100).toFixed(1) : 0}%"></i></span><span class="yk">${esc(String(r.k))}</span></div>`).join("")}</div>`;
   }
-  function awardsKpiHtml() {
-    const aw = awardsList(), today = new Date().toISOString().slice(0, 10);
+  function partnerAwardRows(aw) {
+    const pt = new Map();
+    aw.forEach((a) => { const linked = new Set(); (a.partners || []).forEach((n) => { const pid = linkPartners([n])[0]; if (pid && linked.has(pid)) return; if (pid) linked.add(pid);
+      const k = pid ? "p:" + pid : "n:" + String(n).toLowerCase(); const r = pt.get(k) || { pid, name: pid ? partnerLabel(pid) : n, awards: 0, amount: 0 }; r.awards++; r.amount += a.amount || 0; pt.set(k, r); }); });
+    return [...pt.values()].sort((a, b) => b.amount - a.amount || b.awards - a.awards).slice(0, 8);
+  }
+  // Verified section: ONLY awards whose name and amounts are found in an uploaded awards document.
+  function verifiedAwardsHtml() {
+    const all = awardsList(), aw = verifiedAwards(), unv = all.filter((a) => !verifyAward(a).ok);
+    const docs = [...new Set(aw.map((a) => a.docId))].map((id) => S.awardDocs[id]).filter(Boolean);
     const total = aw.reduce((t, a) => t + (a.amount || 0), 0), forge = aw.reduce((t, a) => t + (a.forgeAmount || 0), 0), noForge = aw.filter((a) => a.amount && a.forgeAmount == null).length;
     const active = aw.filter(awActive), activeAmt = active.reduce((t, a) => t + (a.forgeAmount ?? a.amount ?? 0), 0);
-    const st = (o) => stageOf(o), won = OPPS.filter((o) => st(o) === "awarded"), lost = OPPS.filter((o) => st(o) === "not_awarded");
-    const decided = won.length + lost.length, rate = decided ? Math.round((won.length / decided) * 100) : null;
-    const pending = OPPS.filter((o) => st(o) === "submitted"), pendAmt = pending.reduce((t, o) => t + (o.awardCeiling || 0), 0);
-    const working = OPPS.filter((o) => ["go", "drafting"].includes(st(o)));
-    const years = aw.map(awYear).filter(Boolean), y0 = years.length ? Math.max(Math.min(...years), new Date().getFullYear() - 9) : null, y1 = new Date().getFullYear();
+    const years = aw.map(awYear).filter(Boolean), yMin = years.length ? Math.min(...years) : null, y0 = years.length ? Math.max(yMin, new Date().getFullYear() - 9) : null, y1 = new Date().getFullYear();
     const byYear = y0 ? Array.from({ length: y1 - y0 + 1 }, (_, i) => { const y = y0 + i, xs = aw.filter((a) => awYear(a) === y); return { k: y, v: xs.reduce((t, a) => t + (a.amount || 0), 0), n: xs.length }; }) : [];
     const sp = new Map(); aw.forEach((a) => { const k = a.sponsor || "Not stated"; const r = sp.get(k) || { k, v: 0, n: 0 }; r.v += a.amount || 0; r.n++; sp.set(k, r); });
     const sponsors = [...sp.values()].sort((a, b) => b.v - a.v || b.n - a.n).slice(0, 6).map((r) => ({ ...r, sub: `${r.n} award${r.n === 1 ? "" : "s"}` }));
-    // Partners: awards together (awards list) plus pipeline outcomes together (decisions' teaming partners).
-    const pt = new Map(), keyOf = (pid, name) => pid ? "p:" + pid : "n:" + String(name).toLowerCase(), labelOf = (pid, name) => pid ? partnerLabel(pid) : name;
-    const bump = (pid, name, f) => { const k = keyOf(pid, name); const r = pt.get(k) || { pid, name: labelOf(pid, name), awards: 0, amount: 0, won: 0, lost: 0, pending: 0 }; f(r); pt.set(k, r); };
-    aw.forEach((a) => { const linked = new Set(); (a.partners || []).forEach((n) => { const pid = linkPartners([n])[0]; if (pid && linked.has(pid)) return; if (pid) linked.add(pid); bump(pid, n, (r) => { r.awards++; r.amount += a.amount || 0; }); }); });
-    OPPS.forEach((o) => { const s2 = st(o); if (!["awarded", "not_awarded", "submitted"].includes(s2)) return; (S.decisions[o.id]?.partners || []).filter((pid) => S.partners[pid]).forEach((pid) => bump(pid, null, (r) => { if (s2 === "awarded") r.won++; else if (s2 === "not_awarded") r.lost++; else r.pending++; })); });
-    const partners = [...pt.values()].sort((a, b) => b.amount - a.amount || (b.awards + b.won) - (a.awards + a.won)).slice(0, 8);
-    const tile = (k, v, s, href) => `<a class="stat" href="${href || "#profile"}"><div class="k">${k}</div><div class="v">${v}</div><div class="s">${s}</div></a>`;
-    return `<section class="awkpi"><div class="tbar"><h2 class="sec-title" style="margin:0">Grants and awards</h2><a class="note" href="#profile" data-scrollaw="1">Manage awards on Forge profile →</a></div>
+    const partners = partnerAwardRows(aw);
+    const tile = (k, v, s2) => `<div class="stat vstat"><div class="k">${k}</div><div class="v">${v}</div><div class="s">${s2}</div></div>`;
+    const head = `<div class="vhead"><div><h2 class="sec-title" style="margin:0">Grants and awards <span class="vbadge ok">✓ Verified</span></h2>
+        <p class="vnote">${aw.length ? `Every number here comes from ${docs.length === 1 ? `<b>${esc(docs[0].name)}</b>` : `${docs.length} uploaded awards documents`} on Forge profile: each award's name and dollar amounts were found in the document's text.` : "Only awards confirmed against an uploaded awards document appear here."}</p></div>
+        <a class="note" href="#profile" data-scrollaw="1">Awards on Forge profile →</a></div>`;
+    if (!aw.length) return `<section class="verified" aria-label="Verified grants and awards">${head}<p class="vnote">${unv.length ? `${unv.length} award${unv.length === 1 ? " is" : "s are"} on file but not verified, so nothing is counted yet.` : "No awards yet."} Upload Forge's awards list under <a href="#profile" data-scrollaw="1">Forge profile → Awards and past performance</a>.</p></section>`;
+    return `<section class="verified" aria-label="Verified grants and awards">${head}
       <div class="stats">
-        ${tile("Total awarded", aw.length ? money(total) : "—", aw.length ? `${aw.length} award${aw.length === 1 ? "" : "s"}${y0 ? ` since ${Math.min(...years)}` : ""}` : "Upload Forge's awards list")}
-        ${tile("Value to Forge", forge ? money(forge) : "—", forge ? `Forge's share${noForge ? ` · ${noForge} without a share listed` : ""}` : aw.length ? "Add Forge's share to each award" : "From the awards list")}
-        ${tile("Active awards", aw.length ? String(active.length) : "—", aw.length ? `${money(activeAmt)} in active work` : "From the awards list")}
-        ${tile("Win rate", rate == null ? "—" : rate + "%", decided ? `${won.length} won of ${decided} decided in the pipeline` : "No pipeline outcomes yet", "#pipeline")}
-        ${tile("Awaiting decision", String(pending.length), pending.length ? `${money(pendAmt)} in award ceilings submitted` : "Nothing submitted and pending", "#pipeline")}
-        ${tile("Go and drafting", String(working.length), "Opportunities being pursued now", "#pipeline")}
+        ${tile("Total awarded", money(total), `${aw.length} award${aw.length === 1 ? "" : "s"}${yMin ? ` since ${yMin}` : ""}`)}
+        ${tile("Value to Forge", forge ? money(forge) : "—", forge ? `Forge's share${noForge ? ` · ${noForge} without a share in the document` : ""}` : "No Forge share in the document")}
+        ${tile("Active awards", String(active.length), `${money(activeAmt)} in active work`)}
+        ${tile("Sponsors", String(sp.size), sponsors[0] ? `Largest: ${esc(sponsors[0].k)}` : "")}
       </div>
-      ${aw.length ? `<div class="grid2">
-        <div class="panel"><h2>Awarded by year</h2><p class="help">Total award value by award year${y0 && y0 > Math.min(...years) ? " (last 10 years)" : ""}. Hover a bar for the count.</p>${yearBarsHtml(byYear, money)}</div>
-        <div class="panel"><h2>Top sponsors</h2><p class="help">By total award value.</p>${barsHtml(sponsors.map((r) => ({ ...r, k: r.k })), money, "Awarded dollars by sponsor")}</div>
-      </div>` : `<div class="panel empty">Add Forge's named awards and dollar amounts under <a href="#profile" data-scrollaw="1">Forge profile → Awards and past performance</a> to see totals, awards by year and by sponsor, and results with each partner.</div>`}
-      ${partners.length ? `<div class="panel"><h2>Results with partners</h2><p class="help">Awards that name the partner (from the awards list) and pipeline outcomes where the partner was picked as a teaming partner.</p>
-        <div class="tablewrap" style="border:0"><table class="awtable"><thead><tr><th>Partner</th><th class="num">Awards together</th><th class="num">Award value</th><th class="num">Pipeline won</th><th class="num">Lost</th><th class="num">Pending</th></tr></thead><tbody>
-        ${partners.map((r) => `<tr><td>${r.pid ? `<a href="#partner-${esc(r.pid)}">${esc(r.name)}</a>` : esc(r.name)}</td><td class="num">${r.awards || "—"}</td><td class="num">${r.amount ? money(r.amount) : "—"}</td><td class="num">${r.won || "—"}</td><td class="num">${r.lost || "—"}</td><td class="num">${r.pending || "—"}</td></tr>`).join("")}
-        </tbody></table></div></div>` : ""}
+      <div class="grid2">
+        <div class="panel"><h2>Awarded by year</h2><p class="help">Total award value by award year${y0 > yMin ? " (last 10 years)" : ""}. Hover a bar for the count.</p>${yearBarsHtml(byYear, money)}</div>
+        <div class="panel"><h2>Top sponsors</h2><p class="help">By total award value.</p>${barsHtml(sponsors, money, "Awarded dollars by sponsor")}</div>
+      </div>
+      ${partners.length ? `<div class="panel"><h2>Partners on awards</h2><p class="help">Organizations named on the verified awards.</p><div class="tablewrap" style="border:0"><table class="awtable"><thead><tr><th>Partner</th><th class="num">Awards together</th><th class="num">Award value</th></tr></thead><tbody>
+        ${partners.map((r) => `<tr><td>${r.pid ? `<a href="#partner-${esc(r.pid)}">${esc(r.name)}</a>` : esc(r.name)}</td><td class="num">${r.awards}</td><td class="num">${r.amount ? money(r.amount) : "—"}</td></tr>`).join("")}</tbody></table></div></div>` : ""}
+      ${unv.length ? `<p class="vwarn">⚠ ${unv.length} award${unv.length === 1 ? " isn't" : "s aren't"} counted because ${unv.length === 1 ? "it" : "they"} couldn't be verified against an uploaded document (${unv.slice(0, 3).map((a) => esc(a.title)).join(", ")}${unv.length > 3 ? "…" : ""}). <a href="#profile" data-scrollaw="1">Review on Forge profile</a>.</p>` : ""}
+    </section>`;
+  }
+  // System numbers: calculated from Pipeline stages and teaming partners (not verified against a document).
+  function pipelineResultsHtml() {
+    const st = (o) => stageOf(o), won = OPPS.filter((o) => st(o) === "awarded"), lost = OPPS.filter((o) => st(o) === "not_awarded");
+    const decided = won.length + lost.length, rate = decided ? Math.round((won.length / decided) * 100) : null;
+    const pending = OPPS.filter((o) => st(o) === "submitted"), pendAmt = pending.reduce((t, o) => t + (o.awardCeiling || 0), 0);
+    const working = OPPS.filter((o) => ["go", "drafting"].includes(st(o))), review = OPPS.filter((o) => ["screening", "internal_review"].includes(st(o)));
+    const pt = new Map();
+    OPPS.forEach((o) => { const s2 = st(o); if (!["awarded", "not_awarded", "submitted", "go", "drafting"].includes(s2)) return;
+      (S.decisions[o.id]?.partners || []).filter((pid) => S.partners[pid]).forEach((pid) => { const r = pt.get(pid) || { pid, won: 0, lost: 0, pending: 0, working: 0 };
+        if (s2 === "awarded") r.won++; else if (s2 === "not_awarded") r.lost++; else if (s2 === "submitted") r.pending++; else r.working++; pt.set(pid, r); }); });
+    const partners = [...pt.values()].sort((a, b) => (b.won + b.pending + b.working) - (a.won + a.pending + a.working)).slice(0, 8);
+    const tile = (k, v, s2) => `<a class="stat" href="#pipeline"><div class="k">${k}</div><div class="v">${v}</div><div class="s">${s2}</div></a>`;
+    return `<section class="sysres"><div class="tbar"><h2 class="sec-title" style="margin:0">From the pipeline <span class="note" style="font-weight:400">· calculated from Pipeline stages, not verified against a document</span></h2><a class="note" href="#pipeline">Pipeline →</a></div>
+      <div class="stats">
+        ${tile("Win rate", rate == null ? "—" : rate + "%", decided ? `${won.length} awarded of ${decided} decided` : "No outcomes recorded yet")}
+        ${tile("Awaiting decision", String(pending.length), pending.length ? `${money(pendAmt)} in award ceilings` : "Nothing submitted and pending")}
+        ${tile("Go and drafting", String(working.length), "Being pursued now")}
+        ${tile("In review", String(review.length), "Screening and internal review")}
+      </div>
+      ${partners.length ? `<div class="panel"><h2>Pipeline results with partners</h2><p class="help">Where the partner was picked as a teaming partner on an opportunity.</p><div class="tablewrap" style="border:0"><table class="awtable"><thead><tr><th>Partner</th><th class="num">Awarded</th><th class="num">Not awarded</th><th class="num">Submitted</th><th class="num">Go / drafting</th></tr></thead><tbody>
+        ${partners.map((r) => `<tr><td><a href="#partner-${esc(r.pid)}">${esc(partnerLabel(r.pid))}</a></td><td class="num">${r.won || "—"}</td><td class="num">${r.lost || "—"}</td><td class="num">${r.pending || "—"}</td><td class="num">${r.working || "—"}</td></tr>`).join("")}</tbody></table></div></div>` : ""}
     </section>`;
   }
 
@@ -3039,6 +3076,36 @@ ${String(text).slice(0, SEND_CHARS)}
     "a-state": "arkansas state", asu: "arkansas state", uca: "central arkansas", atu: "arkansas tech", ara: "arkansas research alliance" };
   const linkPartners = (names) => [...new Set((names || []).map((n) => { const k0 = String(n).toLowerCase().trim(), k = PARTNER_ALIAS[k0] || k0;
     return sorted(S.partners).find((p) => p.name.toLowerCase() === k || (k.length > 4 && (p.name.toLowerCase().includes(k) || k.includes(p.name.toLowerCase()))))?.id; }).filter(Boolean))];
+  // ---- verification: every award must trace to the text of an uploaded awards document ----
+  // awardDocs/<id>: { name, kind, text, chars, uploadedAt, by }. Awards carry docId. Checks run live on every render.
+  const docIdx = new Map();
+  function textIndex(text) {
+    const low = String(text || "").toLowerCase(), nums = new Set();
+    const re = /(\d{1,3}(?:,\d{3})+|\d+)(?:\.(\d+))?\s*(billion|million|thousand|mil|bn|mm|m|k|b)?\b/g;
+    for (const m of low.matchAll(re)) { const base = Number(m[1].replace(/,/g, "") + (m[2] ? "." + m[2] : "")), u = m[3] || "";
+      const mult = /^(b|bn|billion)$/.test(u) ? 1e9 : /^(m|mm|mil|million)$/.test(u) ? 1e6 : /^(k|thousand)$/.test(u) ? 1e3 : 1; nums.add(Math.round(base * mult)); }
+    return { nums, low: low.replace(/\s+/g, " ") };
+  }
+  function docIndex(id) {
+    const d = S.awardDocs[id]; if (!d) return null;
+    const key = d.uploadedAt + ":" + (d.chars || 0), c = docIdx.get(id); if (c && c.key === key) return c.ix;
+    const ix = textIndex(d.text); docIdx.set(id, { key, ix }); return ix;
+  }
+  const titleWords = (t) => String(t || "").toLowerCase().split(/[^a-z0-9]+/).filter((w) => w.length >= 4 || /\d/.test(w));
+  function verifyWith(a, ix, docName) {
+    const fails = [];
+    if (a.amount != null && !ix.nums.has(Math.round(a.amount))) fails.push(`amount ${money(a.amount)} isn't in the document`);
+    if (a.forgeAmount != null && !ix.nums.has(Math.round(a.forgeAmount))) fails.push(`Forge's share ${money(a.forgeAmount)} isn't in the document`);
+    const w = titleWords(a.title), hit = w.filter((x) => ix.low.includes(x)).length;
+    if (w.length && hit / w.length < 0.6) fails.push("the award name doesn't match the document");
+    return fails.length ? { ok: false, why: fails.join("; ") } : { ok: true, why: `Name and amounts found in ${docName}` };
+  }
+  function verifyAward(a) {
+    if (!a.docId) return { ok: false, why: "Entered by hand, not from an uploaded document" };
+    const ix = docIndex(a.docId); if (!ix) return { ok: false, why: "Its source document was removed" };
+    return verifyWith(a, ix, S.awardDocs[a.docId].name);
+  }
+  const verifiedAwards = () => awardsList().filter((a) => verifyAward(a).ok);
   function awJob(msg, err) { AW.job = msg ? { msg, err: Boolean(err) } : null; const el = document.getElementById("aw-job"); if (el) { el.textContent = msg || ""; el.className = "job" + (err ? " err" : ""); } }
   const AWARDS_PROMPT = (name, text) => `Below is a document from Forge Institute (a 501(c)(3) in Little Rock, Arkansas) named "${name}" that lists awards, grants, contracts or agreements Forge has won or is part of. Extract every distinct award. Reply with only a JSON object:
 {"awards": [{"title": "award or project name as written", "sponsor": "funding agency or organization", "number": "award, grant or contract number, or empty", "amount": total award value in US dollars as a number or null, "forgeAmount": Forge's share in US dollars as a number or null (null if not stated), "role": "prime" if Forge is the prime or lead, "sub" if a subrecipient or subcontractor, "partner" if another unfunded or unclear role, "partners": ["other organizations named on the award"], "start": "YYYY-MM-DD or YYYY-MM or empty", "end": "YYYY-MM-DD or YYYY-MM or empty", "year": award year as a number or null, "status": "active", "completed" or "pending", "mechanism": "Grant, Cooperative agreement, Contract, OT, CRADA, Foundation grant, Appropriation or similar", "notes": "one short line of anything important (for example funding still pending), or empty"}]}
@@ -3066,17 +3133,25 @@ ${String(text).slice(0, SEND_CHARS)}
           status: AW_STATUS[a?.status] ? a.status : (end && end < new Date().toISOString().slice(0, 10) ? "completed" : "active"), mechanism: String(a?.mechanism || "").trim().slice(0, 60), notes: String(a?.notes || "").trim().slice(0, 300), sourceDoc: file.name.slice(0, 200) }; }).filter((a) => a.title);
       if (!rows.length) return awJob(`Claude found no awards in ${file.name}.`, true);
       const existing = awardsList();
-      rows.forEach((a) => { a.dup = existing.find((e) => (a.number && e.number && normNum(e.number) === normNum(a.number)) || (e.title.toLowerCase() === a.title.toLowerCase() && (e.sponsor || "").toLowerCase() === a.sponsor.toLowerCase()))?.title || ""; a.keep = !a.dup; });
-      AW.draft = rows; render(); awJob(`Claude found ${rows.length} award${rows.length === 1 ? "" : "s"} in ${file.name}. Untick any you don't want, then choose Save.`);
+      rows.forEach((a) => { const m = existing.find((e) => (a.number && e.number && normNum(e.number) === normNum(a.number)) || (e.title.toLowerCase() === a.title.toLowerCase() && (e.sponsor || "").toLowerCase() === a.sponsor.toLowerCase()));
+        a.dup = m?.title || ""; a.dupId = m?.id || ""; a.dupVerified = m ? verifyAward(m).ok : false; a.keep = !m || !a.dupVerified; });
+      AW.draftDoc = { name: file.name.slice(0, 200), text: clean.slice(0, 400000), chars: clean.length };
+      const dix = textIndex(AW.draftDoc.text); rows.forEach((a) => { a.check = verifyWith(a, dix, file.name); if (!a.check.ok) a.keep = false; });
+      const bad = rows.filter((a) => !a.check.ok).length;
+      AW.draft = rows; render(); awJob(`Claude found ${rows.length} award${rows.length === 1 ? "" : "s"} in ${file.name}.${bad ? ` ${bad} couldn't be matched to the document's text and ${bad === 1 ? "is" : "are"} unticked.` : " Every name and amount was found in the document."} Review, then choose Save.`);
     } catch (err) { awJob(err?.message?.startsWith(file.name) || err?.message?.startsWith("The document") ? err.message : err?.code ? aiErr(err) : `${file.name} couldn't be read.`, true); }
   }
   async function saveAwardDraft() {
     const rows = (AW.draft || []).filter((a, i) => document.querySelector(`input[data-awkeep="${i}"]`)?.checked);
     if (!rows.length) return awJob("Tick at least one award to save.", true);
     try {
-      for (const a of rows) { const { dup, keep, ...body } = a; await db.collection("awards").add(await stamp(body)); }
+      const dref = db.collection("awardDocs").doc();
+      await dref.set(await stamp({ ...AW.draftDoc, uploadedAt: new Date().toISOString(), by: me || null }));
+      for (const a of rows) { const { dup, dupId, dupVerified, keep, check, ...body } = a;
+        if (dupId && !dupVerified) await db.doc("awards/" + dupId).set(await stamp({ ...body, docId: dref.id }));   // the document's version replaces an unverified entry
+        else await db.collection("awards").add(await stamp({ ...body, docId: dref.id })); }
       logChange({ kind: "profile", action: "added awards to", targetName: "Forge profile", changes: [{ field: "awards", label: "Awards added", to: `${rows.length} from ${rows[0].sourceDoc}` }] });
-      AW.draft = null; render(); awJob(`Saved ${rows.length} award${rows.length === 1 ? "" : "s"}.`);
+      AW.draft = null; AW.draftDoc = null; render(); awJob(`Saved ${rows.length} award${rows.length === 1 ? "" : "s"} and the source document for verification.`);
     } catch (err) { awJob(errMsg(err), true); }
   }
   async function saveAwardEdit() {
@@ -3085,12 +3160,17 @@ ${String(text).slice(0, SEND_CHARS)}
     const title = v("title"); if (!title) return awJob("Give the award a name.", true);
     const partners = splitList(v("partners")), start = v("start"), end = v("end");
     const body = await stamp({ title: title.slice(0, 300), sponsor: v("sponsor").slice(0, 200), number: v("number").slice(0, 80), amount: n("amount"), forgeAmount: n("forge"), role: v("role") || "prime", partners, partnerIds: linkPartners(partners),
-      start, end, year: Number(v("year")) || Number(start.slice(0, 4)) || null, status: v("status") || "active", mechanism: v("mech").slice(0, 60), notes: v("notes").slice(0, 300), sourceDoc: S.awards[id]?.sourceDoc || "" });
+      start, end, year: Number(v("year")) || Number(start.slice(0, 4)) || null, status: v("status") || "active", mechanism: v("mech").slice(0, 60), notes: v("notes").slice(0, 300), sourceDoc: S.awards[id]?.sourceDoc || "", docId: id === "new" ? null : S.awards[id]?.docId || null });
     try {
       if (id === "new") await db.collection("awards").add(body); else await db.doc("awards/" + id).set(body);
       logChange({ kind: "profile", action: id === "new" ? "added an award to" : "updated an award in", targetName: "Forge profile", changes: [{ field: "award", label: "Award", to: `${title}${body.amount ? ` (${money(body.amount)})` : ""}` }] });
       AW.edit = null; dirty = false; render(); awJob("Award saved."); return true;
     } catch (err) { awJob(errMsg(err), true); }
+  }
+  async function removeAwardDoc(id) {
+    const d = S.awardDocs[id]; armed.delete("awdoc:" + id); if (!d) return;
+    try { await db.doc("awardDocs/" + id).delete(); logChange({ kind: "profile", action: "removed an awards source document from", targetName: "Forge profile", changes: [{ field: "document", label: "Source document", from: d.name, to: null }] }); render(); }
+    catch (err) { awJob(errMsg(err), true); }
   }
   async function removeAward(id) {
     const a = S.awards[id]; armed.delete("aw:" + id); if (!a) return;
@@ -3118,20 +3198,22 @@ ${String(text).slice(0, SEND_CHARS)}
     const d = AW.draft;
     return `<section class="panel" id="awardsec"><div class="tbar"><h2 style="margin:0">Awards and past performance <span class="note">${all.length}</span></h2>
         ${AW.edit ? "" : `<button class="btn-ghost" data-awadd="1" ${ro()}>+ Add an award</button>`}</div>
-      <p class="help">Forge's named awards, dollar amounts, roles and partners. Upload a list (PDF, Word, PowerPoint, Excel or CSV) and Claude pulls out each award for you to review, or add them one at a time. These feed the Dashboard's awards KPIs and help Claude cite past performance.</p>
+      <p class="help">Forge's named awards, dollar amounts, roles and partners. Upload a list (PDF, Word, PowerPoint, Excel or CSV) and Claude pulls out each award for you to review. The document's text is kept, and only awards whose name and dollar amounts are found in it count as <b>verified</b> on the Dashboard. Awards added by hand, or edited to numbers the document doesn't contain, are listed but not counted there.</p>
       <div class="fdtop"><label class="upload">Upload an awards list<input type="file" id="aw-file" accept=".pdf,.docx,.pptx,.xlsx,.csv,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.openxmlformats-officedocument.presentationml.presentation,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv" ${ro()}></label>
         ${all.length ? `<span class="note">${money(tot)} total awarded${fg ? ` · ${money(fg)} to Forge` : ""}</span>` : ""}</div>
       <div class="job${AW.job?.err ? " err" : ""}" id="aw-job" role="status">${esc(AW.job?.msg || "")}</div>
+      ${Object.keys(S.awardDocs).length ? `<div class="awdocs"><span class="stlbl">Source documents (the Dashboard's verified numbers are checked against these)</span>${Object.entries(S.awardDocs).sort((a, b) => String(b[1].uploadedAt).localeCompare(String(a[1].uploadedAt))).map(([id, d]) => { const n = all.filter((a) => a.docId === id).length, k = "awdoc:" + id;
+        return `<div class="stdoc"><span>📄 ${esc(d.name)} <span class="note">${n} award${n === 1 ? "" : "s"} · uploaded ${fmtDate(d.uploadedAt)}${d.by ? ` by ${esc(names[d.by] || "a teammate")}` : ""}</span></span><span class="btns">${armed.has(k) ? `<span class="note">Its awards stay but stop counting as verified.</span><button class="btn-danger" data-awdocdel="${esc(id)}">Confirm remove</button><button class="btn-ghost" data-disarm="${esc(k)}">Cancel</button>` : `<button class="btn-ghost" data-arm="${esc(k)}" ${ro()}>Remove</button>`}</span></div>`; }).join("")}</div>` : ""}
       ${AW.edit ? `<div class="panel" style="background:var(--surface-2)"><b>${AW.edit === "new" ? "Add an award" : "Edit award"}</b>${awardFormHtml(AW.edit === "new" ? {} : S.awards[AW.edit] || {})}</div>` : ""}
       ${d ? `<div class="aodraft panel" style="background:var(--surface-2)"><b>Review what Claude found</b>
-        <div class="tablewrap"><table class="awtable"><thead><tr><th>Save</th><th>Award</th><th>Sponsor</th><th>Amount</th><th>Forge</th><th>Role</th><th>Years</th><th>Partners</th></tr></thead><tbody>
-        ${d.map((a, i) => `<tr><td><input type="checkbox" data-awkeep="${i}" ${a.keep ? "checked" : ""} aria-label="Save ${esc(a.title)}"></td><td><b>${esc(a.title)}</b>${a.number ? `<div class="note mono">${esc(a.number)}</div>` : ""}${a.dup ? `<div class="note" style="color:var(--warn)">Looks like “${esc(a.dup)}”, already saved</div>` : ""}${a.notes ? `<div class="note">${esc(a.notes)}</div>` : ""}</td>
+        <div class="tablewrap"><table class="awtable"><thead><tr><th>Save</th><th>In document?</th><th>Award</th><th>Sponsor</th><th>Amount</th><th>Forge</th><th>Role</th><th>Years</th><th>Partners</th></tr></thead><tbody>
+        ${d.map((a, i) => `<tr><td><input type="checkbox" data-awkeep="${i}" ${a.keep ? "checked" : ""} aria-label="Save ${esc(a.title)}"></td><td>${a.check.ok ? `<span class="vbadge ok" title="${esc(a.check.why)}">✓ Found</span>` : `<span class="vbadge no" title="${esc(a.check.why)}">⚠ Not found</span><div class="note">${esc(a.check.why)}</div>`}</td><td><b>${esc(a.title)}</b>${a.number ? `<div class="note mono">${esc(a.number)}</div>` : ""}${a.dup ? `<div class="note" style="color:var(--warn)">${a.dupVerified ? `Already saved and verified as “${esc(a.dup)}”` : `Replaces the unverified entry “${esc(a.dup)}”`}</div>` : ""}${a.notes ? `<div class="note">${esc(a.notes)}</div>` : ""}</td>
           <td>${esc(a.sponsor)}</td><td class="num">${money(a.amount)}</td><td class="num">${money(a.forgeAmount)}</td><td>${AW_ROLE[a.role]}</td><td class="note">${esc([a.start?.slice(0, 7), a.end?.slice(0, 7)].filter(Boolean).join(" – ") || a.year || "")}</td><td class="note">${esc(a.partners.join(", "))}</td></tr>`).join("")}
         </tbody></table></div>
         <div class="actions"><button class="btn" data-awdraftsave="1" ${ro()}>Save ticked awards</button><button class="btn-ghost" data-awdraftcancel="1">Discard</button></div></div>` : ""}
       ${all.length ? `<div class="filters" style="margin:10px 0"><input id="aw-q" placeholder="Search awards, sponsors, partners…" value="${esc(AW.q)}" aria-label="Search awards" style="flex:1 1 220px"><span class="note">${rows.length === all.length ? `${all.length} awards` : `${rows.length} of ${all.length}`}</span></div>
-        <div class="tablewrap"><table class="awtable"><thead><tr><th>Award</th><th>Sponsor</th><th>Amount</th><th>Forge</th><th>Role</th><th>Status</th><th>Years</th><th>Partners</th><th></th></tr></thead><tbody>
-        ${rows.map((a) => { const k = "aw:" + a.id; return `<tr><td><b>${esc(a.title)}</b>${a.number ? `<div class="note mono">${esc(a.number)}</div>` : ""}${a.mechanism ? `<div class="note">${esc(a.mechanism)}</div>` : ""}</td><td>${esc(a.sponsor || "")}</td><td class="num">${money(a.amount)}</td><td class="num">${money(a.forgeAmount)}</td><td>${AW_ROLE[a.role] || ""}</td>
+        <div class="tablewrap"><table class="awtable"><thead><tr><th>Verified</th><th>Award</th><th>Sponsor</th><th>Amount</th><th>Forge</th><th>Role</th><th>Status</th><th>Years</th><th>Partners</th><th></th></tr></thead><tbody>
+        ${rows.map((a) => { const k = "aw:" + a.id, vf = verifyAward(a); return `<tr class="${vf.ok ? "" : "awunv"}"><td>${vf.ok ? `<span class="vbadge ok" title="${esc(vf.why)}">✓ Verified</span>` : `<span class="vbadge no" title="${esc(vf.why)}">⚠ Not verified</span><div class="note">${esc(vf.why)}</div>`}</td><td><b>${esc(a.title)}</b>${a.number ? `<div class="note mono">${esc(a.number)}</div>` : ""}${a.mechanism ? `<div class="note">${esc(a.mechanism)}</div>` : ""}</td><td>${esc(a.sponsor || "")}</td><td class="num">${money(a.amount)}</td><td class="num">${money(a.forgeAmount)}</td><td>${AW_ROLE[a.role] || ""}</td>
           <td><span class="pill ${awActive(a) ? "go" : "new"}">${awActive(a) ? "Active" : AW_STATUS[a.status] || ""}</span></td><td class="note">${esc([a.start?.slice(0, 7), a.end?.slice(0, 7)].filter(Boolean).join(" – ") || awYear(a) || "")}</td>
           <td class="note">${(a.partners || []).map((n) => { const pid = linkPartners([n])[0]; return pid ? `<a href="#partner-${esc(pid)}">${esc(n)}</a>` : esc(n); }).join(", ")}</td>
           <td class="awbtns"><button class="btn-ghost" data-awedit="${esc(a.id)}" ${ro()}>Edit</button>${armed.has(k) ? `<button class="btn-danger" data-awdel="${esc(a.id)}">Confirm</button><button class="btn-ghost" data-disarm="${esc(k)}">Cancel</button>` : `<button class="btn-ghost" data-arm="${esc(k)}" ${ro()}>Remove</button>`}</td></tr>`; }).join("")}
@@ -4338,7 +4420,7 @@ ${JSON.stringify({ partners: inp.partners, consortia: inp.consortia, fundingSpon
       </ol>`],
     ["daily", "A typical day", `
       <ol>
-        <li><b>Dashboard.</b> Check <i>Grants and awards</i> (total awarded, Forge's share, active awards, win rate, pending decisions, awards by year and sponsor, results with partners), <i>Your categories</i>, <i>Assignments</i>, Forge internal deadlines (next 14 days) and submission deadlines (next 30 days).</li>
+        <li><b>Dashboard.</b> Check <i>Grants and awards</i> (the green, verified section: totals, Forge's share, active awards, awards by year, sponsor and partner), <i>From the pipeline</i> (win rate, pending decisions, work in progress), <i>Your categories</i>, <i>Assignments</i>, Forge internal deadlines (next 14 days) and submission deadlines (next 30 days).</li>
         <li><b>Opportunities.</b> Filter to what's new or high match, sort by fit, rating, deadline, stage or award ceiling (click a column heading, click again to reverse), and rate what you open.</li>
         <li><b>Decide.</b> On an opportunity's page choose <i>Go</i> or <i>No-go</i>, or set the stage, owners, teaming partners, internal deadline and notes.</li>
         <li><b>Pipeline.</b> Move work forward: drag cards on the Board, or use the stage menu on each row in the List.</li>
@@ -4419,7 +4501,7 @@ ${JSON.stringify({ partners: inp.partners, consortia: inp.consortia, fundingSpon
         <li><b>Organization details</b> (CAGE, UEI, address, point of contact) with one-click Copy buttons for forms.</li>
         <li><b>Staff.</b> Titles, capability and skill tags, a proposal-ready bio and résumés. Upload a résumé and Claude drafts the tags and bio for you to accept. Link each person to their <b>Claude account</b> (Edit → search the team, or <i>This is me</i>) so their card shows the open opportunities they own; one account can be linked to only one staff record.</li>
         <li><b>Forge documents.</b> Upload capability statements, decks, narratives, press releases and past performance. Claude summarizes each and suggests capabilities, good and poor fits and search keywords; the ones you add go into the profile.</li>
-        <li><b>Awards and past performance.</b> Upload Forge's awards list (PDF, Word, PowerPoint, Excel or CSV); Claude pulls out each award's name, sponsor, number, total and Forge's share, role, partners, dates and status for you to review before saving. Add or edit awards by hand too. They drive the Dashboard's <i>Grants and awards</i> KPIs, and Claude cites them as past performance when drafting submissions.</li>
+        <li><b>Awards and past performance.</b> Upload Forge's awards list (PDF, Word, PowerPoint, Excel or CSV); Claude pulls out each award's name, sponsor, number, total and Forge's share, role, partners, dates and status for you to review before saving. Add or edit awards by hand too. The document's text is kept, and every award is checked against it each time the Dashboard loads: only awards whose name and dollar amounts appear in an uploaded document are <b>verified</b> and counted in the green <i>Grants and awards</i> section. Awards added by hand, edited to a number the document doesn't contain, or whose source document is removed are marked ⚠ Not verified and left out (the Dashboard says how many). Uploading a document that contains an unverified award replaces it with the verified version. Claude cites the awards as past performance when drafting submissions.</li>
         <li><b>The profile itself</b> (summary, capabilities, good and poor fit, decision criteria, search keywords) is what the daily scan and Claude use to judge fit, so keeping it current improves every score.</li>
       </ul>`],
     ["sponsors", "Funding sponsors", `
@@ -4862,7 +4944,8 @@ ${JSON.stringify({ partners: inp.partners, consortia: inp.consortia, fundingSpon
     if (ds.awsave) { saveAwardEdit().then((ok) => ok && backFromEdit()); return; }
     if (ds.awdel) return removeAward(ds.awdel);
     if (ds.awdraftsave) return saveAwardDraft();
-    if (ds.awdraftcancel) { AW.draft = null; awJob(""); return render(); }
+    if (ds.awdraftcancel) { AW.draft = null; AW.draftDoc = null; awJob(""); return render(); }
+    if (ds.awdocdel) return removeAwardDoc(ds.awdocdel);
     if (ds.fdapply) return applyForgeDoc(ds.fdapply, false);
     if (ds.fddismiss) return applyForgeDoc(ds.fddismiss, true);
     if (ds.fdredo) return analyzeForgeDoc(ds.fdredo);
