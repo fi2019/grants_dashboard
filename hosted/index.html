@@ -1,6 +1,6 @@
 <title>Forge Grants Dashboard</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<meta name="forge:published" content="2026-11-22T20:12:18Z">
+<meta name="forge:published" content="2026-11-22T20:30:26Z">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
@@ -368,6 +368,13 @@ details.stbio[open] summary { display: none }
 .sbpolish { display: grid; gap: 6px; border: 1px solid var(--line); border-left: 3px solid var(--info); border-radius: 6px; padding: 8px 10px; background: var(--surface) }
 .sbpolish ul { margin: 0; padding-left: 18px }
 .sbreview p { margin: 0 0 8px }
+dialog.modal { border: 1px solid var(--line); border-radius: 10px; padding: 20px 22px; max-width: min(520px, calc(100vw - 32px)); background: var(--surface); color: var(--fg); box-shadow: 0 12px 40px rgba(0,0,0,.3) }
+dialog.modal::backdrop { background: rgba(4, 28, 44, .55) }
+dialog.modal h2 { margin: 0 0 10px; font-size: 18px; color: #8B1A1A }
+dialog.modal p { margin: 0 0 10px; font-size: 14px; line-height: 1.5 }
+dialog.modal .btns { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; margin-top: 14px }
+.sblock { margin: 6px 0 0; font-size: 13px; padding: 6px 10px; border-radius: 6px; background: var(--warn-bg); color: var(--warn) }
+.sbdlopt { display: inline-flex; gap: 4px; align-items: center }
 .fbbox, .rtbox { display: grid; gap: 6px; border-radius: 6px; padding: 10px 12px; font-size: 14px; line-height: 1.5 }
 .fbbox { background: #FFF8D6; color: #9A4A00; border: 1px solid #F2D675 }
 .rtbox { background: #FDECEC; color: #8B1A1A; border: 1px solid #F1B5B5 }
@@ -2821,12 +2828,12 @@ ${JSON.stringify(subBrief(x, o)).slice(0, 60000)}
       SB.dirty = false; render(); document.getElementById("sb-draft")?.scrollIntoView({ block: "start", behavior: "smooth" });
     } catch (err) { sbStatus(errMsg(err), true); }
   }
-  async function draftSections(id, only) {
+  async function draftSections(id, only, confirmed) {
     const x = S.submissions[id], o = oppOf(x), c = x?.concepts?.[x.chosen]; if (!x) return;
     if (!c) return sbStatus("Pick a concept first, so Claude knows what to write.", true);
     const e0 = subEdit(id), targets = only == null ? e0.sections.map((_, i) => i) : [only];
     const filled = targets.filter((i) => String(e0.sections[i]?.text || "").trim());
-    if (only == null && filled.length && !confirm(`${filled.length} section${filled.length === 1 ? " has" : "s have"} text already. Replace ${filled.length === 1 ? "it" : "them"} with Claude's draft?`)) return;
+    if (!confirmed && only == null && filled.length && !confirm(`${filled.length} section${filled.length === 1 ? " has" : "s have"} text already. Replace ${filled.length === 1 ? "it" : "them"} with Claude's draft?`)) return;
     const sample = await sampler(); if (!sample) return sbStatus("Claude isn't available in this view. Open the page on claude.ai while signed in.", true);
     SB.busy = only == null ? "draft" : "sec" + only; sbStatus(only == null ? "Claude is writing the first draft…" : `Claude is drafting ${e0.sections[only].name}…`); render();
     try {
@@ -3008,6 +3015,110 @@ Concept being proposed: ${JSON.stringify(x.concepts?.[x.chosen] || null).slice(0
         : `<p>Checks this section's language against the notice's requirements and scoring rules${s.text?.trim() ? "" : " once it has text"}.</p>`}</div>`;
   }
 
+  // --- warning popup (a real dialog, not the browser's confirm) ---
+  function confirmModal({ title, body, ok = "Continue", cancel = "Cancel", danger = true }) {
+    return new Promise((resolve) => {
+      const dlg = document.createElement("dialog"); dlg.className = "modal";
+      dlg.innerHTML = `<form method="dialog"><h2>${esc(title)}</h2>${body}<div class="btns"><button value="cancel" class="btn-ghost" autofocus>${esc(cancel)}</button><button value="ok" class="${danger ? "btn-danger" : "btn"}">${esc(ok)}</button></div></form>`;
+      dlg.addEventListener("close", () => { resolve(dlg.returnValue === "ok"); dlg.remove(); });
+      dlg.addEventListener("click", (ev) => { if (ev.target === dlg) dlg.close("cancel"); });
+      document.body.append(dlg); dlg.showModal();
+    });
+  }
+  // Once a concept is chosen and the working draft has text, changing step 2 or redrafting step 3 needs a confirm.
+  const draftStarted = (x, e) => x?.chosen != null && (e?.sections || []).some((s) => String(s.text || "").trim());
+  async function guardSub(id, kind, i) {
+    const x = S.submissions[id], e = subEdit(id); if (!draftStarted(x, e)) return true;
+    const chosen = x.concepts?.[x.chosen]?.title || "the chosen concept";
+    const filled = e.sections.filter((s) => String(s.text || "").trim()).length;
+    const words = e.sections.reduce((n, s) => n + (String(s.text || "").trim().match(/\S+/g) || []).length, 0);
+    if (kind === "concepts") return confirmModal({ title: "The working draft has already started", ok: "Draft new concepts",
+      body: `<p>The team is writing a draft (${filled} section${filled === 1 ? "" : "s"}, ${words} words) built on <b>${esc(chosen)}</b>.</p><p>Drafting new concepts replaces the three concepts in step 2, including the chosen one. The working draft stays, but it will no longer match any concept shown, and Claude won't draft new sections until someone picks a concept again.</p><p>Check with whoever is working on the draft first.</p>` });
+    if (kind === "choose") return confirmModal({ title: "Switch the concept?", ok: "Switch concept",
+      body: `<p>The working draft (${filled} section${filled === 1 ? "" : "s"}, ${words} words) is built on <b>${esc(chosen)}</b>.</p><p>Switching to <b>${esc(x.concepts?.[i]?.title || "another concept")}</b> doesn't change the text already written, but Claude will draft, polish and red team from the new concept from now on, so the sections may stop fitting together.</p><p>Check with whoever is working on the draft first.</p>` });
+    if (kind === "draftall") return confirmModal({ title: "Replace the working draft?", ok: "Replace with Claude's draft",
+      body: `<p>Writing the draft with Claude replaces the text in all ${e.sections.length} sections, including ${filled} that already have text (${words} words of edits and polished wording).</p><p>Comments stay, but red team results will be out of date. To redo just one section, use <b>Draft this section</b> instead.</p>` });
+    if (kind === "draft1" && String(e.sections[i]?.text || "").trim()) return confirmModal({ title: `Replace "${e.sections[i].name}"?`, ok: "Replace this section",
+      body: `<p>Claude's new draft replaces the ${(String(e.sections[i].text).trim().match(/\S+/g) || []).length} words in this section.</p>` });
+    return true;
+  }
+  // --- download the working draft as a Word document ---
+  const xe = (t) => String(t ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])).replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, "");
+  function docxRuns(text, opts = {}) {
+    // [confirm: …] markers are highlighted so they stand out in Word.
+    return String(text).split(/(\[confirm:[^\]]*\])/i).filter(Boolean).map((part) => {
+      const mark = /^\[confirm:/i.test(part);
+      const rpr = [opts.bold ? "<w:b/>" : "", opts.italic ? "<w:i/>" : "", opts.color ? `<w:color w:val="${opts.color}"/>` : "", mark ? `<w:highlight w:val="yellow"/>` : ""].join("");
+      return `<w:r>${rpr ? `<w:rPr>${rpr}</w:rPr>` : ""}<w:t xml:space="preserve">${xe(part)}</w:t></w:r>`;
+    }).join("");
+  }
+  const docxP = (text, style, opts) => `<w:p>${style ? `<w:pPr><w:pStyle w:val="${style}"/></w:pPr>` : ""}${docxRuns(text, opts)}</w:p>`;
+  function docxBody(text) {
+    return String(text || "").split(/\n/).map((line) => {
+      const t = line.trimEnd(); if (!t.trim()) return "";
+      const bullet = t.match(/^\s*[-•*]\s+(.*)$/), num = t.match(/^\s*(\d+)[.)]\s+(.*)$/);
+      if (bullet) return `<w:p><w:pPr><w:pStyle w:val="ListPara"/></w:pPr>${docxRuns("•\t" + bullet[1])}</w:p>`;
+      if (num) return `<w:p><w:pPr><w:pStyle w:val="ListPara"/></w:pPr>${docxRuns(num[1] + ".\t" + num[2])}</w:p>`;
+      return docxP(t);
+    }).join("");
+  }
+  async function downloadDocx(id) {
+    const x = S.submissions[id], o = oppOf(x), e = subEdit(id); if (!x) return;
+    let downloads = null; try { downloads = await window.claude?.use?.("downloads"); } catch {}
+    if (!downloads) return sbStatus("Downloads aren't available in this view. Use Copy all and paste into Word instead.", true);
+    const withNotes = document.getElementById("sb-dlnotes")?.checked;
+    sbStatus("Building the Word document…");
+    try {
+      await loadScript(JSZIP_URL);
+      const chosen = x.concepts?.[x.chosen];
+      const team = ["Forge Institute" + (e.forgeRole === "lead" ? " (lead)" : " (partner)"), ...(x.consortia || []).filter((c) => S.consortia[c]).map((c) => "Consortium: " + S.consortia[c].name), ...(x.partners || []).filter((p) => S.partners[p]).map(partnerLabel)];
+      const meta = [o ? `${o.title}` : x.oppTitle, o ? [o.agency, o.number, o.closeDate ? `Due ${fmtDate(o.closeDate)}` : ""].filter(Boolean).join(" · ") : "",
+        `Working draft · ${SUB_STATUS[e.status] || ""} · ${new Date().toLocaleDateString("en-US", { dateStyle: "long" })}`, `Team: ${team.join("; ")}`, chosen ? `Concept: ${chosen.title}` : ""].filter(Boolean);
+      let body = docxP(e.title.replace(/\s*\n\s*/g, " "), "Title") + meta.map((m) => docxP(m, "Meta")).join("");
+      for (const sec of e.sections) body += docxP(sec.name, "Heading1") + (String(sec.text || "").trim() ? docxBody(sec.text) : docxP("(Not written yet.)", null, { italic: true, color: "777777" }));
+      if (withNotes) {
+        body += `<w:p><w:r><w:br w:type="page"/></w:r></w:p>` + docxP("Appendix: suggestions, comments and red team notes", "Heading1");
+        const rv = x.review, norm = (t) => String(t || "").trim().toLowerCase();
+        for (const sec of e.sections) {
+          const sug = rv ? (rv.suggestions || []).filter((g) => norm(g.section) === norm(sec.name)).map((g) => "Reviewer: " + g.suggestion) : [];
+          const lines = [...sug, ...(sec.notes || []).map((t) => "Claude's polish note: " + t), ...(sec.comments || []).map((c) => `${c.by ? names[c.by] || "Teammate" : "Someone"}: ${c.text}`)];
+          const rt = sec.redteam;
+          if (!lines.length && !rt) continue;
+          body += docxP(sec.name, "Heading2");
+          lines.forEach((l) => (body += `<w:p><w:pPr><w:pStyle w:val="ListPara"/></w:pPr>${docxRuns("•\t" + l, { color: "9A4A00" })}</w:p>`));
+          if (rt) {
+            body += docxP(`Red team${rt.rating ? `: ${rt.rating}` : ""}${rt.hash !== textHash(sec.text) ? " (text has changed since this check)" : ""}. ${rt.verdict || ""}`, null, { color: "8B1A1A", bold: true });
+            const ST = { met: "Met", partial: "Partly met", missing: "Missing" };
+            rt.requirements.forEach((q) => (body += `<w:p><w:pPr><w:pStyle w:val="ListPara"/></w:pPr>${docxRuns(`•\t${ST[q.status]}: ${q.requirement}${q.note ? ` (${q.note})` : ""}`, { color: "8B1A1A" })}</w:p>`));
+            rt.scoring.forEach((q) => (body += `<w:p><w:pPr><w:pStyle w:val="ListPara"/></w:pPr>${docxRuns(`•\t${q.risk} risk: ${q.criterion}: ${q.assessment}`, { color: "8B1A1A" })}</w:p>`));
+            rt.fixes.forEach((f, n) => (body += `<w:p><w:pPr><w:pStyle w:val="ListPara"/></w:pPr>${docxRuns(`${n + 1}.\t${f}`, { color: "8B1A1A" })}</w:p>`));
+          }
+        }
+      }
+      const W = 'xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"';
+      const zip = new window.JSZip();
+      zip.file("[Content_Types].xml", `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/><Override PartName="/word/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml"/><Override PartName="/docProps/core.xml" ContentType="application/vnd.openxmlformats-package.core-properties+xml"/></Types>`);
+      zip.file("_rels/.rels", `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/package/2006/relationships/metadata/core-properties" Target="docProps/core.xml"/></Relationships>`);
+      zip.file("docProps/core.xml", `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><cp:coreProperties xmlns:cp="http://schemas.openxmlformats.org/package/2006/metadata/core-properties" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><dc:title>${xe(e.title)}</dc:title><dc:creator>Forge Institute</dc:creator><dcterms:created xsi:type="dcterms:W3CDTF">${new Date().toISOString().slice(0, 19)}Z</dcterms:created></cp:coreProperties>`);
+      zip.file("word/_rels/document.xml.rels", `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>`);
+      zip.file("word/styles.xml", `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:styles ${W}><w:docDefaults><w:rPrDefault><w:rPr><w:rFonts w:ascii="Calibri" w:hAnsi="Calibri" w:eastAsia="Calibri" w:cs="Calibri"/><w:sz w:val="22"/><w:szCs w:val="22"/><w:lang w:val="en-US"/></w:rPr></w:rPrDefault><w:pPrDefault><w:pPr><w:spacing w:after="140" w:line="276" w:lineRule="auto"/></w:pPr></w:pPrDefault></w:docDefaults>
+<w:style w:type="paragraph" w:default="1" w:styleId="Normal"><w:name w:val="Normal"/><w:qFormat/></w:style>
+<w:style w:type="paragraph" w:styleId="Title"><w:name w:val="Title"/><w:basedOn w:val="Normal"/><w:next w:val="Normal"/><w:qFormat/><w:pPr><w:spacing w:after="120"/></w:pPr><w:rPr><w:b/><w:color w:val="041C2C"/><w:sz w:val="36"/><w:szCs w:val="36"/></w:rPr></w:style>
+<w:style w:type="paragraph" w:styleId="Meta"><w:name w:val="Meta"/><w:basedOn w:val="Normal"/><w:pPr><w:spacing w:after="40"/></w:pPr><w:rPr><w:color w:val="566878"/><w:sz w:val="20"/></w:rPr></w:style>
+<w:style w:type="paragraph" w:styleId="Heading1"><w:name w:val="heading 1"/><w:basedOn w:val="Normal"/><w:next w:val="Normal"/><w:qFormat/><w:pPr><w:keepNext/><w:spacing w:before="320" w:after="120"/><w:outlineLvl w:val="0"/></w:pPr><w:rPr><w:b/><w:color w:val="0072CE"/><w:sz w:val="28"/><w:szCs w:val="28"/></w:rPr></w:style>
+<w:style w:type="paragraph" w:styleId="Heading2"><w:name w:val="heading 2"/><w:basedOn w:val="Normal"/><w:next w:val="Normal"/><w:qFormat/><w:pPr><w:keepNext/><w:spacing w:before="200" w:after="80"/><w:outlineLvl w:val="1"/></w:pPr><w:rPr><w:b/><w:sz w:val="24"/></w:rPr></w:style>
+<w:style w:type="paragraph" w:styleId="ListPara"><w:name w:val="List Paragraph"/><w:basedOn w:val="Normal"/><w:pPr><w:spacing w:after="60"/><w:ind w:left="720" w:hanging="360"/><w:tabs><w:tab w:val="left" w:pos="720"/></w:tabs></w:pPr></w:style></w:styles>`);
+      zip.file("word/document.xml", `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:document ${W}><w:body>${body}<w:sectPr><w:pgSz w:w="12240" w:h="15840"/><w:pgMar w:top="1440" w:right="1440" w:bottom="1440" w:left="1440" w:header="720" w:footer="720" w:gutter="0"/></w:sectPr></w:body></w:document>`);
+      const blob = await zip.generateAsync({ type: "blob", mimeType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document" });
+      const fname = (e.title.replace(/[\\/:*?"<>|\n]+/g, " ").replace(/\s+/g, " ").trim().slice(0, 120) || "Submission draft") + ".docx";
+      await downloads.save({ filename: fname, data: blob });
+      sbStatus(`Saved ${fname}.`);
+    } catch (err) {
+      const c = err?.code;
+      sbStatus(c === "declined" ? "Download cancelled." : c === "rate_limited" ? "A download prompt is already open. Try again in a moment." : c === "unavailable" || c === "not_granted" || c === "capability_disabled" ? "Downloads aren't available in this view. Use Copy all and paste into Word instead." : `Couldn't build the Word document${err?.message ? ` (${err.message})` : ""}.`, c !== "declined");
+    }
+  }
+
   // --- views ---
   function viewSubmissions() {
     const all = Object.entries(S.submissions).map(([id, x]) => ({ id, ...x })).sort((a, b) => String(b.updatedAt).localeCompare(String(a.updatedAt)));
@@ -3081,6 +3192,7 @@ Concept being proposed: ${JSON.stringify(x.concepts?.[x.chosen] || null).slice(0
 
         <section class="panel"><div class="tbar"><h2 style="margin:0">2. Concepts</h2><button class="btn" data-sbconcepts="1" ${busy ? "disabled" : ""} ${ro()}>${busy === "concepts" ? "Drafting…" : x.concepts?.length ? "Draft new concepts" : "Draft concepts with Claude"}</button></div>
           <p class="help">Claude proposes three different approaches from the notice, Forge's profile and documents, the team above and your notes. Pick one to build the working draft from.</p>
+          ${draftStarted(x, e) ? `<p class="sblock">🔒 The working draft has started on <b>${esc(chosen?.title || "")}</b>. Changing concepts now asks for confirmation first.</p>` : ""}
           ${x.concepts?.length ? `<div class="sbconcepts">${x.concepts.map(conceptCard).join("")}</div>` : `<p class="empty">No concepts yet.</p>`}
         </section>
 
@@ -3088,7 +3200,8 @@ Concept being proposed: ${JSON.stringify(x.concepts?.[x.chosen] || null).slice(0
             <span class="btns"><button class="btn" data-sbdraftall="1" ${busy || !chosen ? "disabled" : ""} title="${chosen ? "" : "Pick a concept first"}" ${ro()}>${busy === "draft" ? "Writing…" : "Write the draft with Claude"}</button>
               <button class="btn-ghost" data-sbreview="1" ${busy ? "disabled" : ""} ${ro()}>${busy === "review" ? "Reviewing…" : "Review as a reviewer"}</button>
               <button class="btn-ghost rtbtn" data-sbrtall="1" ${busy ? "disabled" : ""} ${ro()}>${busy === "rtall" ? "Red team checking…" : "Red team all sections"}</button>
-              <button class="btn-ghost" data-sbcopy="1">Copy all</button></span></div>
+              <button class="btn-ghost" data-sbcopy="1">Copy all</button>
+              <button class="btn-ghost" data-sbdocx="1">Download .docx</button><label class="note sbdlopt"><input type="checkbox" id="sb-dlnotes"> include notes and red team</label></span></div>
           <p class="help">${chosen ? `Building on <b>${esc(chosen.title)}</b>.` : "Pick a concept above so Claude can draft from it, or write here yourself."} Edit any section, then use <b>Polish with Claude</b> to tighten it; you compare before anything changes. Text marked [confirm: …] needs a fact from the team. Save keeps your edits for everyone.</p>
           <div class="sbrefs"><span class="stlbl">Notice and reference documents for the red team</span>
             <div class="sbrefrow">${o?.manual?.excerpt ? `<span class="pchip">${esc(o.manual.sourceDoc || "Uploaded notice")} <span class="note">from the opportunity</span></span>` : ""}
@@ -3113,10 +3226,11 @@ Concept being proposed: ${JSON.stringify(x.concepts?.[x.chosen] || null).slice(0
     const id = SB.id; if (!id || !route().startsWith("sub-")) return false;
     const e = subEdit(id); const i = Number(ds.sbup ?? ds.sbdown ?? ds.sbdel ?? ds.sbpolish ?? ds.sbaccept ?? ds.sbreject ?? ds.sbdraft1 ?? ds.sbchoose ?? -1);
     if (ds.sbsave) { saveSubmission(id); return true; }
-    if (ds.sbconcepts) { draftConcepts(id); return true; }
-    if (ds.sbchoose !== undefined) { chooseConcept(id, i); return true; }
-    if (ds.sbdraftall) { draftSections(id, null); return true; }
-    if (ds.sbdraft1 !== undefined) { draftSections(id, i); return true; }
+    if (ds.sbconcepts) { guardSub(id, "concepts").then((ok) => ok && draftConcepts(id)); return true; }
+    if (ds.sbchoose !== undefined) { guardSub(id, "choose", i).then((ok) => ok && chooseConcept(id, i)); return true; }
+    if (ds.sbdraftall) { guardSub(id, "draftall").then((ok) => ok && draftSections(id, null, true)); return true; }
+    if (ds.sbdraft1 !== undefined) { guardSub(id, "draft1", i).then((ok) => ok && draftSections(id, i, true)); return true; }
+    if (ds.sbdocx) { downloadDocx(id); return true; }
     if (ds.sbpolish !== undefined) { polishSection(id, i); return true; }
     if (ds.sbaccept !== undefined) { e.sections[i].text = SB.polish[i].text; e.sections[i].notes = SB.polish[i].notes; delete SB.polish[i]; SB.dirty = true; saveSubmission(id, true); logChange({ kind: "submission", action: "polished", targetId: S.submissions[id].oppId, targetName: S.submissions[id].oppTitle, changes: [{ field: "draft", label: "Section polished with Claude", to: e.sections[i].name }] }); return true; }
     if (ds.sbreject !== undefined) { delete SB.polish[i]; render(); return true; }
@@ -3807,7 +3921,7 @@ ${JSON.stringify({ partners: inp.partners, consortia: inp.consortia, fundingSpon
         <dt><a href="#dashboard">Dashboard</a></dt><dd>Counts, potential revenue (sum of award ceilings), your categories, upcoming deadlines, top recommendations and the Refresh button.</dd>
         <dt><a href="#opportunities">Opportunities</a></dt><dd>Every open listing, with search and filters for fit, agency, category, stage, rating, type, role and partner matches. <b>+ Add an opportunity</b> checks whether a NOFO, solicitation or Assistance Listing number (or title) is already here; if not, upload the notice and Claude pulls in the details and scores fit, or ask Claude to look it up on Grants.gov and SAM.gov in the background.</dd>
         <dt><a href="#pipeline">Pipeline</a></dt><dd>A board from Screening to Awarded. Drag cards or use each card's Move menu; every move is recorded.</dd>
-        <dt><a href="#submissions">Submissions</a></dt><dd>Working drafts of submission concepts. Start one from an opportunity's page with <b>Start a submission concept</b>, then: (1) pick the team (partners and consortia, and whether Forge leads); (2) have Claude draft three concepts from the notice, Forge's profile and documents and the team, and choose one; (3) build the working draft section by section. Claude can write the first draft, polish any section (you compare before anything changes) and review the whole draft as a reviewer would. Under each section, a yellow box collects suggestions (from the reviewer read and Claude's polish notes) and team comments, and a red box holds the red team assessment: Claude checks the section's language against the notice's requirements and scoring rules, using the uploaded notice and any NOFO, Call or scoring rubric you attach to the submission. Text marked [confirm: …] needs a fact from the team. Save keeps your edits for everyone; leaving the page saves too.</dd>
+        <dt><a href="#submissions">Submissions</a></dt><dd>Working drafts of submission concepts. Start one from an opportunity's page with <b>Start a submission concept</b>, then: (1) pick the team (partners and consortia, and whether Forge leads); (2) have Claude draft three concepts from the notice, Forge's profile and documents and the team, and choose one; (3) build the working draft section by section. Claude can write the first draft, polish any section (you compare before anything changes) and review the whole draft as a reviewer would. Under each section, a yellow box collects suggestions (from the reviewer read and Claude's polish notes) and team comments, and a red box holds the red team assessment: Claude checks the section's language against the notice's requirements and scoring rules, using the uploaded notice and any NOFO, Call or scoring rubric you attach to the submission. Text marked [confirm: …] needs a fact from the team. Once a concept is chosen and the draft has text, changing the concepts or rewriting the draft with Claude asks for confirmation first. <b>Download .docx</b> saves the working draft as a Word document (optionally with the notes and red team findings as an appendix). Save keeps your edits for everyone; leaving the page saves too.</dd>
         <dt><a href="#federal">Federal funding</a></dt><dd>Open opportunities grouped by Forge's priority agencies.</dd>
         <dt><a href="#report">Report</a></dt><dd>A report-style summary of the opportunities Claude has scored: recommended, possible and not recommended.</dd>
         <dt><a href="#categories">Categories</a></dt><dd>Groups of keywords with team members. Opportunities matching a category are tagged and appear on its members' dashboards.</dd>
