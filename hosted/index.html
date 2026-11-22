@@ -1,6 +1,6 @@
 <title>Forge Grants Dashboard</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<meta name="forge:published" content="2026-11-22T18:18:11Z">
+<meta name="forge:published" content="2026-11-22T18:26:56Z">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
@@ -2261,7 +2261,7 @@ ${String(text).slice(0, SEND_CHARS)}
       for (const d of sform.docs) await db.collection("staffDocs").add(await stamp({ staffId: sid, name: d.name, kind: d.kind, pages: d.pages || null, size: d.size, chars: d.text.length, excerpt: d.text.slice(0, KEEP_CHARS) }));
       const changes = diff(prev, body, LABELS.staff);
       logChange({ kind: "staff", action: isEdit ? "updated" : "added", targetId: sid, targetName: name, changes: [...changes, ...sform.docs.map((d) => ({ field: "document", label: "Document", to: `${d.name} (${d.kind})` }))] });
-      editing.staff = null; Object.assign(sform, { docs: [], status: "", err: false }); dirty = false; render();
+      editing.staff = null; Object.assign(sform, { docs: [], status: "", err: false }); dirty = false; render(); backFromEdit();
     } catch (err) { toast("staff-toast", errMsg(err)); }
   }
   async function uploadStaffDocs(sid, files) {
@@ -3109,7 +3109,25 @@ ${JSON.stringify({ partners: inp.partners, consortia: inp.consortia, fundingSpon
     if (f && f.closest && f.closest("#results, #my-stars")) return refreshRatings();
     render();
   }
-  addEventListener("hashchange", () => { armed.clear(); dirty = false; dOwners.id = null; dPartners.id = null; editing.profile = false; for (const k in flash) delete flash[k]; render(); scrollTo(0, 0); });
+  // Scroll memory: going back to a page (Back button or its "←" link) returns to where you were on it,
+  // and closing an edit form (save or cancel) returns to where you were when you opened it.
+  const curHash = () => location.hash || "#dashboard";
+  const navStack = [{ hash: curHash(), y: 0 }];
+  try { history.scrollRestoration = "manual"; } catch {}
+  let editReturn = null;   // { hash, y, redirect } saved when an edit form opens
+  const restoreY = (y) => { requestAnimationFrame(() => scrollTo(0, y)); if (y) setTimeout(() => { if (Math.abs(scrollY - y) > 4) scrollTo(0, y); }, 150); };
+  addEventListener("scroll", () => { navStack[navStack.length - 1].y = scrollY; }, { passive: true });
+  const markEdit = () => { if (!editReturn || editReturn.hash !== curHash()) editReturn = { hash: curHash(), y: scrollY }; };
+  const backFromEdit = () => { const r = editReturn; editReturn = null; if (!r) return; if (curHash() !== r.hash) { const prev = navStack[navStack.length - 2]; if (prev && prev.hash === r.hash) prev.y = r.y; location.hash = r.hash; } else restoreY(r.y); };
+  addEventListener("hashchange", () => {
+    armed.clear(); dirty = false; dOwners.id = null; dPartners.id = null; editing.profile = false; for (const k in flash) delete flash[k];
+    const toForm = Boolean(editReturn?.redirect);   // opening an edit form on another page is always a step forward
+    if (editReturn) { if (toForm) editReturn.redirect = false; else editReturn = null; }
+    const h = curHash(), prev = navStack[navStack.length - 2];
+    let y = 0;
+    if (!toForm && prev && prev.hash === h) { navStack.pop(); y = prev.y; } else { navStack.push({ hash: h, y: 0 }); if (navStack.length > 60) navStack.shift(); }
+    render(); restoreY(y);
+  });
 
   // ---------- writes ----------
   const flash = {};   // toast id -> message, so a re-render from a live update keeps it
@@ -3225,7 +3243,7 @@ ${JSON.stringify({ partners: inp.partners, consortia: inp.consortia, fundingSpon
       if (changes.length) logChange({ kind, action: isEdit ? "updated" : "added", targetId: id || "", targetName: body.name, changes });
       editing[kind] = null; delete draftMembers[id || "new"];
       if (kind === "partner") resetPartnerForm();
-      render(); toast(t, id && id !== "new" ? "Saved" : "Added");
+      render(); toast(t, id && id !== "new" ? "Saved" : "Added"); backFromEdit();
     } catch (err) { toast(t, errMsg(err)); }
   }
 
@@ -3290,7 +3308,7 @@ ${JSON.stringify({ partners: inp.partners, consortia: inp.consortia, fundingSpon
     const patch = { summary, internalReviewLeadDays: lead, org: Object.fromEntries(ORG_FIELDS.map(([k]) => [k, val("pf-org-" + k).slice(0, 300)])) };
     PROFILE_LISTS.forEach(([k]) => (patch[k] = lines("pf-" + k)));
     toast("profile-toast", "Saving…");
-    try { if (await writeProfile(patch, "profile-toast")) { dirty = false; editing.profile = false; render(); toast("profile-toast", "Profile saved"); } }
+    try { if (await writeProfile(patch, "profile-toast")) { dirty = false; editing.profile = false; render(); toast("profile-toast", "Profile saved"); backFromEdit(); } }
     catch (err) { toast("profile-toast", errMsg(err)); }
   }
   async function removeBaseKeyword(k) {
@@ -3350,8 +3368,8 @@ ${JSON.stringify({ partners: inp.partners, consortia: inp.consortia, fundingSpon
     if (t.id === "refresh-btn") return requestRefresh();
     if (ds.copy !== undefined && t.tagName === "BUTTON") return copyText(t);
     if (ds.addstaff) { editing.staff = "new"; Object.assign(sform, { docs: [], status: "", err: false }); render(); document.getElementById("st-name")?.focus(); return; }
-    if (ds.editstaff) { editing.staff = ds.editstaff; Object.assign(sform, { docs: [], status: "", err: false }); render(); document.getElementById("staffsec")?.scrollIntoView({ block: "start" }); return; }
-    if (ds.cancelstaff) { editing.staff = null; Object.assign(sform, { docs: [], status: "", err: false }); dirty = false; return render(); }
+    if (ds.editstaff) { markEdit(); editing.staff = ds.editstaff; Object.assign(sform, { docs: [], status: "", err: false }); render(); document.getElementById("staffsec")?.scrollIntoView({ block: "start" }); return; }
+    if (ds.cancelstaff) { editing.staff = null; Object.assign(sform, { docs: [], status: "", err: false }); dirty = false; render(); return backFromEdit(); }
     if (ds.savestaff) return saveStaff();
     if (ds.unstdoc !== undefined) { sform.docs.splice(Number(ds.unstdoc), 1); const box = document.getElementById("st-docs"); if (box) box.innerHTML = sform.docs.map((d, i) => `<span class="chip">${esc(d.name)} <span class="note">${esc(d.kind)}</span><button type="button" data-unstdoc="${i}" aria-label="Remove ${esc(d.name)}">×</button></span>`).join(""); return; }
     if (ds.staddsugg) return applyStaffSuggestions(ds.staddsugg, { tags: true });
@@ -3396,7 +3414,7 @@ ${JSON.stringify({ partners: inp.partners, consortia: inp.consortia, fundingSpon
     if (ds.pview) { pf.view = ds.pview; savePf(); return render(); }
     if (ds.gopartner) { e.preventDefault(); pf.view = "cards"; savePf(); render(); document.getElementById("partner-" + ds.gopartner)?.scrollIntoView({ block: "start" }); return; }
     if (ds.unpropose) return unproposeTopic(ds.unpropose);
-    if (ds.addchild) { editing.partner = null; resetPartnerForm(); pform.parent = ds.addchild; render(); document.getElementById("p-name")?.focus(); return scrollTo(0, 0); }
+    if (ds.addchild) { markEdit(); editing.partner = null; resetPartnerForm(); pform.parent = ds.addchild; render(); document.getElementById("p-name")?.focus(); return scrollTo(0, 0); }
     if (t.id === "pf-reset") { Object.assign(pf, { q: "", type: "", stars: "", unrated: true, matches: false, focus: "", startup: false }); savePf(); return render(); }
     if (ds.sorthead || t.id === "f-sortdir") {
       if (ds.sorthead) { if (ui.sort === ds.sorthead) ui.sortDir = sortDir() === "asc" ? "desc" : "asc"; else { ui.sort = ds.sorthead; ui.sortDir = ""; } }
@@ -3421,8 +3439,8 @@ ${JSON.stringify({ partners: inp.partners, consortia: inp.consortia, fundingSpon
     if (ds.ounpick) { dOwners.list = dOwners.list.filter((x) => x !== ds.ounpick); return refreshOwners(); }
     if (ds.save) return saveItem(ds.save);
     if (ds.cancel || ds.cancelprofile) dirty = false;
-    if (ds.cancel) { delete draftMembers[editing[ds.cancel]]; editing[ds.cancel] = null; if (ds.cancel === "partner") resetPartnerForm(); return render(); }
-    if (ds.edit) { editing[ds.edit] = ds.id; delete draftMembers[ds.id]; if (ds.edit === "partner") resetPartnerForm(ds.id); if (ds.edit === "partner" && route() !== "partners") { location.hash = "#partners"; return; } render(); return scrollTo(0, 0); }
+    if (ds.cancel) { delete draftMembers[editing[ds.cancel]]; editing[ds.cancel] = null; if (ds.cancel === "partner") resetPartnerForm(); render(); return backFromEdit(); }
+    if (ds.edit) { editing[ds.edit] = ds.id; delete draftMembers[ds.id]; if (ds.edit === "partner") resetPartnerForm(ds.id); markEdit(); if (ds.edit === "partner" && route() !== "partners") { editReturn.redirect = true; location.hash = "#partners"; return; } render(); return scrollTo(0, 0); }
     if (ds.gendraft) return draftPartner(true);
     if (ds.usedraft) return applyDraft(true);
     if (ds.unformdoc !== undefined) { pform.docs.splice(Number(ds.unformdoc), 1); return refreshFormDocs(); }
@@ -3437,8 +3455,8 @@ ${JSON.stringify({ partners: inp.partners, consortia: inp.consortia, fundingSpon
         .catch((err) => toast("kw-toast", errMsg(err)));
     }
     if (ds.delbase) return removeBaseKeyword(ds.delbase);
-    if (ds.editprofile) { editing.profile = true; for (const k in flash) delete flash[k]; return render(); }
-    if (ds.cancelprofile) { editing.profile = false; return render(); }
+    if (ds.editprofile) { markEdit(); editing.profile = true; for (const k in flash) delete flash[k]; return render(); }
+    if (ds.cancelprofile) { editing.profile = false; render(); return backFromEdit(); }
     if (ds.saveprofile) return saveProfile();
     if (ds.unpick) { const k = editing.category || "new"; draftMembers[k] = (draftMembers[k] || []).filter((x) => x !== ds.unpick); return refreshMembers(); }
     if (ds.pick) {
