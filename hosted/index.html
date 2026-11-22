@@ -1,6 +1,6 @@
 <title>Forge Grants Dashboard</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<meta name="forge:published" content="2026-11-22T22:45:32Z">
+<meta name="forge:published" content="2026-11-22T22:49:37Z">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
@@ -380,7 +380,8 @@ pre.outline { white-space: pre-wrap; font: 13px/1.55 var(--font); margin: 8px 0 
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --ver-bg: #10291b; --ver-line: #3fae6e; --ver-ink: #7fd3a5 } }
 :root[data-theme="dark"] { --ver-bg: #10291b; --ver-line: #3fae6e; --ver-ink: #7fd3a5 }
 .verified { display: grid; gap: 14px; padding: 16px; border: 2px solid var(--ver-line); border-radius: 12px; background: var(--ver-bg) }
-.verified .stats, .sysres .stats { grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)) }
+.verified .stats { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)) }
+.sysres .stats { grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)) }
 .verified .vstat { border-color: var(--ver-line) }
 .vhead { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 6px 12px; align-items: flex-start }
 .vnote { margin: 4px 0 0; font-size: 13px; color: var(--ver-ink) }
@@ -390,6 +391,9 @@ pre.outline { white-space: pre-wrap; font: 13px/1.55 var(--font); margin: 8px 0 
 .vbadge.no { background: var(--warn-bg); color: var(--warn); border: 1px solid currentColor }
 .sysres { display: grid; gap: 14px }
 .awdocs { display: grid; gap: 4px; margin: 6px 0 }
+.verified tr.awtot td { font-weight: 700; border-top: 2px solid var(--ver-line) }
+.verified details.awmore > summary { cursor: pointer; font-size: 14px; padding: 2px 0 }
+.verified details.awmore table { margin-top: 8px }
 tr.awunv td { background: var(--warn-bg) }
 .kbars { display: grid; gap: 8px }
 .kbar { display: grid; grid-template-columns: minmax(90px, 38%) 1fr auto; gap: 4px 10px; align-items: center; font-size: 13px }
@@ -953,6 +957,7 @@ details.addform[open] > summary::before { content: "− " }
   const ui = { q: "", min: OPP_DEFAULTS.min, agency: "", stage: "", cat: "", role: "", mech: "", owner: "", tc: "", partner: false, clean: false, closed: false, stars: OPP_DEFAULTS.stars, pmin: "", pstars: "", starBasis: "mine", unrated: true, sort: "fit", psort: "deadline", dcat: "", dcsort: "open" };
   try { Object.assign(ui, JSON.parse(localStorage.getItem("fg-filters") || "{}")); } catch {}
   // One-time move to the new defaults: Opportunities at Fit 4+ / 2+ stars, Pipeline fit and rating cleared.
+  ui.dcat = "";   // the dashboard no longer has a category focus
   if (!ui.defaults2) { Object.assign(ui, OPP_DEFAULTS, { pmin: "", pstars: "", defaults2: true }); try { localStorage.setItem("fg-filters", JSON.stringify(ui)); } catch {} }
   const editing = { source: null, partner: null, category: null, profile: false, staff: null };
   const hf = { kind: "", who: "" };   // history filters   // id being edited, or "new"
@@ -1148,40 +1153,31 @@ details.addform[open] > summary::before { content: "− " }
       </tbody></table></div><p class="help" style="margin-top:6px">Click a category name to focus the dashboard on it, or its count to open the matching opportunities.</p></section>`;
   }
   function viewDashboard() {
-    if (ui.dcat && ui.dcat !== "@mine" && !S.categories[ui.dcat] && storeState === "ready") ui.dcat = "";
-    const inDash = (o) => inCat(o, ui.dcat);
-    const open = OPPS.filter(isOpen).filter(inDash);
+    // The dashboard always covers everything (the category focus and "Your categories" were removed).
+    const open = OPPS.filter(isOpen);
     const within = (iso, n) => { const d = daysUntil(iso); return d !== null && d >= 0 && d <= n; };
     const internal = open.filter((o) => ["screening","internal_review","go","drafting"].includes(stageOf(o)) && within(internalOf(o), 14)).sort((a, b) => Date.parse(internalOf(a)) - Date.parse(internalOf(b)));
     const deadlines = open.filter((o) => within(o.closeDate, 30) && (isHigh(o) || ["internal_review","go","drafting"].includes(stageOf(o)))).sort((a, b) => Date.parse(a.closeDate) - Date.parse(b.closeDate));
     const high = open.filter(isHigh).sort(byFit);
-    const counts = Object.fromEntries(STAGES.map((s) => [s, 0])); OPPS.filter(inDash).forEach((o) => counts[stageOf(o)]++);
-    const mine = myCats();
-    const mineOpps = open.filter((o) => mine.some((c) => hits(o, c.keywords).length)).sort(byFit);
-    const myPanel = !me ? "" : `<div class="panel"><h2>Your categories</h2>${
-      mine.length ? `<p class="help" style="margin-bottom:8px">${mine.map((c) => esc(c.name)).join(", ")} · <a href="#opportunities" data-mycats="1">${mineOpps.length} open opportunities →</a></p>${dueList(mineOpps, (o) => o.closeDate, "Nothing open matches your categories right now.")}`
-      : `<p class="empty">You aren't in any categories yet. <a href="#categories">Join one</a> to see the opportunities that match it here.</p>`}</div>`;
+    const counts = Object.fromEntries(STAGES.map((s) => [s, 0])); OPPS.forEach((o) => counts[stageOf(o)]++);
     return `
       <div class="head"><div><h1>Grant dashboard</h1>${storeBanner()}</div>
-        <div style="display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap"><form class="search" id="qform"><input id="dash-q" placeholder="Search opportunities…" aria-label="Search opportunities"><button class="btn">Search</button></form>${refreshHtml()}</div></div>
+        <div style="display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap">${refreshHtml()}</div></div>
       <section class="stats">
-        <a class="stat" href="#opportunities" data-reset="1" data-cat="${esc(ui.dcat)}"><div class="k">Open opportunities</div><div class="v">${open.length}</div><div class="s">From the latest snapshot</div></a>
-        <a class="stat hot" href="#opportunities" data-min="6" data-cat="${esc(ui.dcat)}"><div class="k">High match (6+)</div><div class="v">${high.length}</div><div class="s">Evaluated by Claude</div></a>
+        <a class="stat" href="#opportunities" data-reset="1"><div class="k">Open opportunities</div><div class="v">${open.length}</div><div class="s">From the latest snapshot</div></a>
+        <a class="stat hot" href="#opportunities" data-min="6"><div class="k">High match (6+)</div><div class="v">${high.length}</div><div class="s">Evaluated by Claude</div></a>
         <a class="stat" href="#pipeline"><div class="k">Forge internal deadlines (14d)</div><div class="v">${internal.length}</div><div class="s">Go/no-go and drafts due inside Forge</div></a>
         <a class="stat" href="#pipeline"><div class="k">Submission deadlines (30d)</div><div class="v">${deadlines.length}</div><div class="s">High match or in progress</div></a>
       </section>
-      <div class="panel filters dcat"><label>Focus the dashboard on ${catSelect("d-cat", ui.dcat, "All categories")}</label>${ui.dcat ? `<span class="note">Showing only opportunities in <b>${esc(catLabel(ui.dcat))}</b>.</span> <button class="btn-ghost" data-dcat="" type="button">Show all</button>` : `<span class="note">Counts, revenue, deadlines and recommendations below follow this choice.</span>`}</div>
-      ${revenuePanel(open, OPPS.filter(inDash))}
+      <section><h2 class="sec-title">Decision funnel</h2><div class="funnel">${STAGES.map((s) => `<a href="#opportunities" data-stage="${s}"><b>${counts[s]}</b> ${LABEL[s]}</a>`).join("")}</div></section>
+      ${revenuePanel(open, OPPS)}
       ${workloadHtml(open, true)}
-      ${ui.dcat ? "" : myPanel}
       <section class="grid2">
         <div class="panel"><h2>Forge internal deadlines</h2><p class="help" style="margin-bottom:6px">${leadLabel()[0].toUpperCase() + leadLabel().slice(1)} before each submission deadline, unless the team set another date.</p>${dueList(internal, internalOf, "No internal deadlines in the next 14 days for opportunities in progress.", true)}</div>
         <div class="panel"><h2>Submission deadlines</h2>${dueList(deadlines, (o) => o.closeDate, "No high-match submission deadlines in the next 30 days.")}</div>
       </section>
       ${verifiedAwardsHtml()}
-      ${pipelineResultsHtml()}
-      ${byCategoryPanel()}
-      <section><h2 class="sec-title">Decision funnel</h2><div class="funnel">${STAGES.map((s) => `<a href="#opportunities" data-stage="${s}" data-cat="${esc(ui.dcat)}"><b>${counts[s]}</b> ${LABEL[s]}</a>`).join("")}</div></section>`;
+      ${pipelineResultsHtml()}`;
   }
 
   // ---------- awards KPIs (dashboard) ----------
@@ -1194,11 +1190,11 @@ details.addform[open] > summary::before { content: "− " }
     const max = Math.max(1, ...rows.map((r) => r.v));
     return `<div class="ycols" role="img" aria-label="Awarded dollars by year">${rows.map((r) => `<div class="ycol" title="${esc(`${r.k}: ${fmt(r.v)} · ${r.n} award${r.n === 1 ? "" : "s"}`)}"><span class="yv num">${r.v ? fmt(r.v) : ""}</span><span class="yb"><i style="height:${r.v ? Math.max(3, (r.v / max) * 100).toFixed(1) : 0}%"></i></span><span class="yk">${esc(String(r.k))}</span></div>`).join("")}</div>`;
   }
-  function partnerAwardRows(aw) {
+  function partnerAwardRows(aw, limit = 8) {
     const pt = new Map();
     aw.forEach((a) => { const linked = new Set(); (a.partners || []).forEach((n) => { const pid = linkPartners([n])[0]; if (pid && linked.has(pid)) return; if (pid) linked.add(pid);
-      const k = pid ? "p:" + pid : "n:" + String(n).toLowerCase(); const r = pt.get(k) || { pid, name: pid ? partnerLabel(pid) : n, awards: 0, amount: 0 }; r.awards++; r.amount += a.amount || 0; pt.set(k, r); }); });
-    return [...pt.values()].sort((a, b) => b.amount - a.amount || b.awards - a.awards).slice(0, 8);
+      const k = pid ? "p:" + pid : "n:" + String(n).toLowerCase(); const r = pt.get(k) || { pid, name: pid ? partnerLabel(pid) : n, awards: 0, amount: 0, titles: [] }; r.awards++; r.amount += a.amount || 0; r.titles.push(a.title); pt.set(k, r); }); });
+    return [...pt.values()].sort((a, b) => b.amount - a.amount || b.awards - a.awards).slice(0, limit);
   }
   // Verified section: ONLY awards whose name and amounts are found in an uploaded awards document.
   function verifiedAwardsHtml() {
@@ -1216,19 +1212,42 @@ details.addform[open] > summary::before { content: "− " }
         <p class="vnote">${aw.length ? `Every number here comes from ${docs.length === 1 ? `<b>${esc(docs[0].name)}</b>` : `${docs.length} uploaded awards documents`} on Forge profile: each award's name and dollar amounts were found in the document's text.` : "Only awards confirmed against an uploaded awards document appear here."}</p></div>
         <a class="note" href="#profile" data-scrollaw="1">Awards on Forge profile →</a></div>`;
     if (!aw.length) return `<section class="verified" aria-label="Verified grants and awards">${head}<p class="vnote">${unv.length ? `${unv.length} award${unv.length === 1 ? " is" : "s are"} on file but not verified, so nothing is counted yet.` : "No awards yet."} Upload Forge's awards list under <a href="#profile" data-scrollaw="1">Forge profile → Awards and past performance</a>.</p></section>`;
+    const allYears = [...new Set(years)].sort((x, y) => y - x);
+    const yearRows = allYears.map((y) => { const xs = aw.filter((a) => awYear(a) === y); return { y, n: xs.length, total: xs.reduce((t, a) => t + (a.amount || 0), 0), forge: xs.reduce((t, a) => t + (a.forgeAmount || 0), 0), active: xs.filter(awActive).length }; });
+    const noYear = aw.filter((a) => !awYear(a));
+    const spRows = [...sp.values()].sort((a, b) => b.v - a.v || b.n - a.n).map((r) => ({ ...r, forge: aw.filter((a) => (a.sponsor || "Not stated") === r.k).reduce((t, a) => t + (a.forgeAmount || 0), 0) }));
+    const allPartners = partnerAwardRows(aw, Infinity);
+    const largest = aw.reduce((m, a) => (a.amount || 0) > (m?.amount || 0) ? a : m, null);
+    const priced = aw.filter((a) => a.amount), avg = priced.length ? total / priced.length : null;
+    const prime = aw.filter((a) => a.role === "prime").length, sub = aw.filter((a) => a.role === "sub").length;
+    const yrs = (a) => [a.start?.slice(0, 7), a.end?.slice(0, 7)].filter(Boolean).join(" – ") || awYear(a) || "—";
     return `<section class="verified" aria-label="Verified grants and awards">${head}
       <div class="stats">
-        ${tile("Total awarded", money(total), `${aw.length} award${aw.length === 1 ? "" : "s"}${yMin ? ` since ${yMin}` : ""}`)}
+        ${tile("Total amount won", money(total), `${aw.length} award${aw.length === 1 ? "" : "s"}${yMin ? `, ${yMin}–${Math.max(...years)}` : ""}`)}
         ${tile("Value to Forge", forge ? money(forge) : "—", forge ? `Forge's share${noForge ? ` · ${noForge} without a share in the document` : ""}` : "No Forge share in the document")}
         ${tile("Active awards", String(active.length), `${money(activeAmt)} in active work`)}
-        ${tile("Sponsors", String(sp.size), sponsors[0] ? `Largest: ${esc(sponsors[0].k)}` : "")}
+        ${tile("Average award", avg ? money(Math.round(avg)) : "—", largest ? `Largest: ${esc(short(largest.title, 40))} (${money(largest.amount)})` : "")}
+        ${tile("Forge's role", `${prime} prime`, `${sub} as subrecipient · ${aw.length - prime - sub} other`)}
+        ${tile("Sponsors and partners", `${sp.size} · ${allPartners.length}`, "Sponsors · partner organizations")}
       </div>
       <div class="grid2">
-        <div class="panel"><h2>Awarded by year</h2><p class="help">Total award value by award year${y0 > yMin ? " (last 10 years)" : ""}. Hover a bar for the count.</p>${yearBarsHtml(byYear, money)}</div>
-        <div class="panel"><h2>Top sponsors</h2><p class="help">By total award value.</p>${barsHtml(sponsors, money, "Awarded dollars by sponsor")}</div>
+        <div class="panel"><h2>Awarded by year</h2><p class="help">Total award value by award year${y0 > yMin ? " (chart: last 10 years)" : ""}. Hover a bar for the count.</p>${yearBarsHtml(byYear, money)}</div>
+        <div class="panel"><h2>Totals by year</h2><div class="tablewrap" style="border:0"><table class="awtable"><thead><tr><th>Year</th><th class="num">Awards</th><th class="num">Total won</th><th class="num">Forge's share</th><th class="num">Still active</th></tr></thead><tbody>
+          ${yearRows.map((r) => `<tr><td>${r.y}</td><td class="num">${r.n}</td><td class="num">${money(r.total)}</td><td class="num">${r.forge ? money(r.forge) : "—"}</td><td class="num">${r.active || "—"}</td></tr>`).join("")}
+          ${noYear.length ? `<tr><td class="note">No year</td><td class="num">${noYear.length}</td><td class="num">${money(noYear.reduce((t, a) => t + (a.amount || 0), 0))}</td><td class="num">${money(noYear.reduce((t, a) => t + (a.forgeAmount || 0), 0))}</td><td class="num">${noYear.filter(awActive).length || "—"}</td></tr>` : ""}
+          <tr class="awtot"><td>All years</td><td class="num">${aw.length}</td><td class="num">${money(total)}</td><td class="num">${forge ? money(forge) : "—"}</td><td class="num">${active.length}</td></tr></tbody></table></div></div>
       </div>
-      ${partners.length ? `<div class="panel"><h2>Partners on awards</h2><p class="help">Organizations named on the verified awards.</p><div class="tablewrap" style="border:0"><table class="awtable"><thead><tr><th>Partner</th><th class="num">Awards together</th><th class="num">Award value</th></tr></thead><tbody>
-        ${partners.map((r) => `<tr><td>${r.pid ? `<a href="#partner-${esc(r.pid)}">${esc(r.name)}</a>` : esc(r.name)}</td><td class="num">${r.awards}</td><td class="num">${r.amount ? money(r.amount) : "—"}</td></tr>`).join("")}</tbody></table></div></div>` : ""}
+      <div class="grid2">
+        <div class="panel"><h2>By sponsor</h2>${barsHtml(sponsors, money, "Awarded dollars by sponsor")}
+          ${spRows.length > sponsors.length ? `<details class="awmore"><summary>All ${spRows.length} sponsors</summary><table class="awtable"><thead><tr><th>Sponsor</th><th class="num">Awards</th><th class="num">Total</th><th class="num">Forge</th></tr></thead><tbody>${spRows.map((r) => `<tr><td>${esc(r.k)}</td><td class="num">${r.n}</td><td class="num">${money(r.v)}</td><td class="num">${r.forge ? money(r.forge) : "—"}</td></tr>`).join("")}</tbody></table></details>` : ""}</div>
+        <div class="panel"><h2>Partners on awards</h2><p class="help">Organizations named on the verified awards, with the awards they're on.</p>
+          ${allPartners.length ? `<div class="tablewrap" style="border:0"><table class="awtable"><thead><tr><th>Partner</th><th class="num">Awards</th><th class="num">Award value</th><th>On</th></tr></thead><tbody>
+          ${allPartners.map((r) => `<tr><td>${r.pid ? `<a href="#partner-${esc(r.pid)}">${esc(r.name)}</a>` : esc(r.name)}</td><td class="num">${r.awards}</td><td class="num">${r.amount ? money(r.amount) : "—"}</td><td class="note">${esc(r.titles.slice(0, 3).join("; "))}${r.titles.length > 3 ? ` +${r.titles.length - 3} more` : ""}</td></tr>`).join("")}</tbody></table></div>` : `<p class="empty">The verified awards don't name any partners.</p>`}</div>
+      </div>
+      <details class="panel awmore" ${aw.length <= 12 ? "open" : ""}><summary><b>All verified awards (${aw.length})</b></summary>
+        <div class="tablewrap" style="border:0"><table class="awtable"><thead><tr><th>Award</th><th>Sponsor</th><th>Years</th><th class="num">Amount</th><th class="num">Forge</th><th>Role</th><th>Status</th><th>Partners</th></tr></thead><tbody>
+        ${aw.map((a) => `<tr><td><b>${esc(a.title)}</b>${a.number ? `<div class="note mono">${esc(a.number)}</div>` : ""}</td><td>${esc(a.sponsor || "")}</td><td class="note">${esc(String(yrs(a)))}</td><td class="num">${money(a.amount)}</td><td class="num">${money(a.forgeAmount)}</td><td>${AW_ROLE[a.role] || ""}</td><td>${awActive(a) ? `<span class="pill go">Active</span>` : `<span class="pill new">${AW_STATUS[a.status] || "Completed"}</span>`}</td><td class="note">${esc((a.partners || []).join(", "))}</td></tr>`).join("")}
+        </tbody></table></div></details>
       ${unv.length ? `<p class="vwarn">⚠ ${unv.length} award${unv.length === 1 ? " isn't" : "s aren't"} counted because ${unv.length === 1 ? "it" : "they"} couldn't be verified against an uploaded document (${unv.slice(0, 3).map((a) => esc(a.title)).join(", ")}${unv.length > 3 ? "…" : ""}). <a href="#profile" data-scrollaw="1">Review on Forge profile</a>.</p>` : ""}
     </section>`;
   }
@@ -4412,7 +4431,7 @@ ${JSON.stringify({ partners: inp.partners, consortia: inp.consortia, fundingSpon
       <p><b>Getting around.</b> Pages are in the left sidebar; the collapse button at the bottom shrinks it to icons. <b>Settings</b> (the gear, bottom left) holds light or dark colors, sidebar width and holiday themes. On a phone, the ☰ button at the top opens the menu. Going back returns you to where you were on the previous page.</p>
       <p><b>Your first week</b></p>
       <ol>
-        <li>Join the <a href="#categories">categories</a> you care about. Matching opportunities then show under <i>Your categories</i> on the <a href="#dashboard">Dashboard</a>.</li>
+        <li>Join the <a href="#categories">categories</a> you care about, so matching opportunities are tagged for you (filter Opportunities by <i>My categories</i>).</li>
         <li>Skim <a href="#opportunities">Opportunities</a>, open a few and rate them 1–5 stars. Ratings steer coaching and help the team decide.</li>
         <li>Open the <a href="#pipeline">Pipeline</a> and find the items you own (Owner filter, or the <i>Assigned</i> chips on Opportunities and the Dashboard).</li>
         <li>Check that your key <a href="#partners">partners</a> are listed, with their centers, departments and people underneath.</li>
@@ -4420,7 +4439,7 @@ ${JSON.stringify({ partners: inp.partners, consortia: inp.consortia, fundingSpon
       </ol>`],
     ["daily", "A typical day", `
       <ol>
-        <li><b>Dashboard.</b> Check <i>Grants and awards</i> (the green, verified section: totals, Forge's share, active awards, awards by year, sponsor and partner), <i>From the pipeline</i> (win rate, pending decisions, work in progress), <i>Your categories</i>, <i>Assignments</i>, Forge internal deadlines (next 14 days) and submission deadlines (next 30 days).</li>
+        <li><b>Dashboard.</b> Check the decision funnel, <i>Assignments</i>, Forge internal deadlines (next 14 days) and submission deadlines (next 30 days), then <i>Grants and awards</i> (the green, verified section: total won, Forge's share, totals by year, sponsors, partners and every verified award) and <i>From the pipeline</i> (win rate, pending decisions, work in progress).</li>
         <li><b>Opportunities.</b> Filter to what's new or high match, sort by fit, rating, deadline, stage or award ceiling (click a column heading, click again to reverse), and rate what you open.</li>
         <li><b>Decide.</b> On an opportunity's page choose <i>Go</i> or <i>No-go</i>, or set the stage, owners, teaming partners, internal deadline and notes.</li>
         <li><b>Pipeline.</b> Move work forward: drag cards on the Board, or use the stage menu on each row in the List.</li>
