@@ -1,6 +1,6 @@
 <title>Forge Grants Dashboard</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<meta name="forge:published" content="2026-11-22T22:16:34Z">
+<meta name="forge:published" content="2026-11-22T22:21:13Z">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
@@ -375,6 +375,8 @@ pre.outline { white-space: pre-wrap; font: 13px/1.55 var(--font); margin: 8px 0 
 .staffcard .top { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 6px 12px }
 .staffcard h3 { font-size: 17px }
 .sttitle { font-size: 14px; color: var(--muted) }
+.stacct { display: grid; gap: 6px }
+.stlinked { display: flex; flex-wrap: wrap; gap: 4px 8px; align-items: center; margin-top: 4px; font-size: 13px }
 .stcontact { display: grid; gap: 2px; font-size: 13px; text-align: right }
 .stlbl { display: block; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-bottom: 4px }
 .chips .cap { background: var(--info-bg); color: var(--info); border-color: transparent }
@@ -2654,6 +2656,16 @@ Reply with only a JSON object:
   const staffDocsOf = (sid) => Object.entries(S.staffDocs).map(([id, d]) => ({ id, ...d })).filter((d) => d.staffId === sid).sort((a, b) => String(b.updatedAt).localeCompare(String(a.updatedAt)));
   const listOf = (v) => [...new Set(String(v || "").split(/[,\n;]/).map((x) => x.trim()).filter(Boolean))].slice(0, 60);
   function staffStatus(html, err) { sform.status = html; sform.err = Boolean(err); const el = document.getElementById("st-status"); if (el) { el.innerHTML = html; el.className = "job" + (err ? " err" : ""); } }
+  // Link a staff record to the person's Claude account (team directory), so assignments and ownership connect to them.
+  const staffOfUser = (uid) => uid ? Object.entries(S.staff).find(([, x]) => x.userId === uid)?.[0] || null : null;
+  const stAcctCur = () => { const e = editing.staff && editing.staff !== "new" ? S.staff[editing.staff] || {} : {}; return sform.userId !== undefined ? sform.userId : e.userId || ""; };
+  function stAcctHtml() {
+    const cur = stAcctCur(), other = cur && staffOfUser(cur) && staffOfUser(cur) !== editing.staff ? S.staff[staffOfUser(cur)] : null;
+    return `${cur ? `${personHtml(cur)} <button type="button" class="btn-ghost" data-stunlink="1" ${ro()}>Unlink</button>` : `<span class="note">Not linked to an account.</span>`}
+      ${me && cur !== me && !staffOfUser(me) ? `<button type="button" class="btn-ghost" data-stlink="${esc(me)}" ${ro()}>This is me</button>` : ""}
+      ${other ? `<div class="job err">That account is already linked to ${esc(other.name)}. Unlink it there first.</div>` : ""}`;
+  }
+  function refreshStAcct() { const el = document.getElementById("st-acct"); if (el) el.innerHTML = stAcctHtml(); dirty = true; }
   function staffFormHtml() {
     const id = editing.staff, e = id && id !== "new" ? S.staff[id] || {} : {};
     return `<div class="form staffform" id="staffform" style="margin-top:10px">
@@ -2661,6 +2673,11 @@ Reply with only a JSON object:
       ${field("st-title", "Title", e.title, 'maxlength="160" placeholder="e.g. Director of Cybersecurity Programs"')}
       ${field("st-email", "Email (optional)", e.email, 'type="email" maxlength="160"')}
       ${field("st-phone", "Phone (optional)", e.phone, 'maxlength="40"')}
+      <div class="wide stacct"><span class="stlbl">Claude account</span>
+        <div class="people" id="st-acct">${stAcctHtml()}</div>
+        ${user?.search ? `<div class="picker"><input id="st-usearch" placeholder="Search the team by name to link their account…" autocomplete="off" aria-label="Link a Claude account" ${ro()}><ul id="st-uresults" hidden></ul></div>` : `<span class="help">Team search isn't available in this view.</span>`}
+        <span class="help">Links this person to their Claude account, so the opportunities they own and their assignments show on their staff card.</span>
+      </div>
       <div style="grid-column:1/-1;display:grid;gap:6px">
         <span class="note">Résumé or other documents (PDF, Word or PowerPoint). Claude reads them and drafts the title, capabilities, skills and biography; you can edit everything before saving.</span>
         <div class="formdocs"><span id="st-docs" class="formdocs">${sform.docs.map((d, i) => `<span class="chip">${esc(d.name)} <span class="note">${esc(d.kind)}</span><button type="button" data-unstdoc="${i}" aria-label="Remove ${esc(d.name)}">×</button></span>`).join("")}</span>
@@ -2680,7 +2697,9 @@ Reply with only a JSON object:
     // Only show suggestions that would add something.
     const sugg = sugg0 && ([...(sugg0.capabilities || []), ...(sugg0.skills || [])].some((t) => !have.has(t.toLowerCase())) || (sugg0.bio && sugg0.bio !== x.bio) || (sugg0.title && !x.title)) ? sugg0 : null;
     return `<article class="staffcard" id="staff-${esc(x.id)}">
-      <div class="top"><div><h3>${esc(x.name)}</h3>${x.title ? `<div class="sttitle">${esc(x.title)}</div>` : ""}</div>
+      <div class="top"><div><h3>${esc(x.name)}${x.userId && x.userId === me ? ` <span class="cat">you</span>` : ""}</h3>${x.title ? `<div class="sttitle">${esc(x.title)}</div>` : ""}
+        ${x.userId ? (() => { const open = OPPS.filter((o) => isOpen(o) && ownersOf(o).includes(x.userId)), subs = Object.values(S.submissions).filter((sb) => sb.createdBy === x.userId && sb.status !== "archived" && sb.status !== "submitted").length;
+          return `<div class="stlinked">${personHtml(x.userId)}<a href="#opportunities" data-owner="${esc(x.userId)}">${open.length} open opportunit${open.length === 1 ? "y" : "ies"} owned</a>${subs ? `<span class="note">· ${subs} submission draft${subs === 1 ? "" : "s"} started</span>` : ""}</div>`; })() : `<div class="note">No Claude account linked</div>`}</div>
         <div class="stcontact">${x.email ? `<a href="mailto:${esc(x.email)}">${esc(x.email)}</a>` : ""}${x.phone ? `<span>${esc(x.phone)}</span>` : ""}</div></div>
       ${(x.capabilities || []).length ? `<div><span class="stlbl">Capabilities</span><div class="chips">${x.capabilities.map((t) => `<span class="cap" data-stagtag="${esc(t)}">${esc(t)}</span>`).join("")}</div></div>` : ""}
       ${(x.skills || []).length ? `<div><span class="stlbl">Skills and credentials</span><div class="chips">${x.skills.map((t) => `<span class="skill" data-stagtag="${esc(t)}">${esc(t)}</span>`).join("")}</div></div>` : ""}
@@ -2755,12 +2774,15 @@ ${String(text).slice(0, SEND_CHARS)}
     if (!db || !canWrite) return;
     const name = val("st-name"); if (!name) return toast("staff-toast", "Give the staff member a name.");
     const id = editing.staff, isEdit = id && id !== "new", prev = isEdit ? S.staff[id] : null;
-    const body = await stamp({ name, title: val("st-title"), email: val("st-email"), phone: val("st-phone"), capabilities: listOf(val("st-caps")), skills: listOf(val("st-skills")), bio: (document.getElementById("st-bio")?.value || "").trim().slice(0, 6000) });
+    const userId = stAcctCur() || null, taken = userId && staffOfUser(userId) && staffOfUser(userId) !== id ? S.staff[staffOfUser(userId)] : null;
+    if (taken) return toast("staff-toast", `That Claude account is already linked to ${taken.name}. Unlink it there first.`);
+    const body = await stamp({ name, title: val("st-title"), email: val("st-email"), phone: val("st-phone"), userId, capabilities: listOf(val("st-caps")), skills: listOf(val("st-skills")), bio: (document.getElementById("st-bio")?.value || "").trim().slice(0, 6000) });
     try {
       let sid = id;
       if (isEdit) await db.doc("staff/" + id).set(body); else { const ref = db.collection("staff").doc(); await ref.set(body); sid = ref.id; }
       for (const d of sform.docs) await db.collection("staffDocs").add(await stamp({ staffId: sid, name: d.name, kind: d.kind, pages: d.pages || null, size: d.size, chars: d.text.length, excerpt: d.text.slice(0, KEEP_CHARS) }));
       const changes = diff(prev, body, LABELS.staff);
+      if ((prev?.userId || null) !== userId) changes.push({ field: "userId", label: "Claude account", from: prev?.userId ? names[prev.userId] || "an account" : null, to: userId ? names[userId] || "an account" : null });
       logChange({ kind: "staff", action: isEdit ? "updated" : "added", targetId: sid, targetName: name, changes: [...changes, ...sform.docs.map((d) => ({ field: "document", label: "Document", to: `${d.name} (${d.kind})` }))] });
       editing.staff = null; Object.assign(sform, { docs: [], status: "", err: false }); dirty = false; render(); backFromEdit();
     } catch (err) { toast("staff-toast", errMsg(err)); }
@@ -4194,7 +4216,7 @@ ${JSON.stringify({ partners: inp.partners, consortia: inp.consortia, fundingSpon
     ["profile", "Forge profile, staff and documents", `
       <ul>
         <li><b>Organization details</b> (CAGE, UEI, address, point of contact) with one-click Copy buttons for forms.</li>
-        <li><b>Staff.</b> Titles, capability and skill tags, a proposal-ready bio and résumés. Upload a résumé and Claude drafts the tags and bio for you to accept.</li>
+        <li><b>Staff.</b> Titles, capability and skill tags, a proposal-ready bio and résumés. Upload a résumé and Claude drafts the tags and bio for you to accept. Link each person to their <b>Claude account</b> (Edit → search the team, or <i>This is me</i>) so their card shows the open opportunities they own; one account can be linked to only one staff record.</li>
         <li><b>Forge documents.</b> Upload capability statements, decks, narratives, press releases and past performance. Claude summarizes each and suggests capabilities, good and poor fits and search keywords; the ones you add go into the profile.</li>
         <li><b>The profile itself</b> (summary, capabilities, good and poor fit, decision criteria, search keywords) is what the daily scan and Claude use to judge fit, so keeping it current improves every score.</li>
       </ul>`],
@@ -4610,8 +4632,8 @@ ${JSON.stringify({ partners: inp.partners, consortia: inp.consortia, fundingSpon
     if (ds.wl !== undefined) { ui.owner = ui.owner === ds.wl ? "" : ds.wl; saveFilters(); return render(); }
     if (t.id === "refresh-btn") return requestRefresh();
     if (ds.copy !== undefined && t.tagName === "BUTTON") return copyText(t);
-    if (ds.addstaff) { editing.staff = "new"; Object.assign(sform, { docs: [], status: "", err: false }); render(); document.getElementById("st-name")?.focus(); return; }
-    if (ds.editstaff) { markEdit(); editing.staff = ds.editstaff; Object.assign(sform, { docs: [], status: "", err: false }); render(); document.getElementById("staffsec")?.scrollIntoView({ block: "start" }); return; }
+    if (ds.addstaff) { editing.staff = "new"; Object.assign(sform, { docs: [], status: "", err: false, userId: undefined }); render(); document.getElementById("st-name")?.focus(); return; }
+    if (ds.editstaff) { markEdit(); editing.staff = ds.editstaff; Object.assign(sform, { docs: [], status: "", err: false, userId: undefined }); render(); document.getElementById("staffsec")?.scrollIntoView({ block: "start" }); return; }
     if (ds.cancelstaff) { editing.staff = null; Object.assign(sform, { docs: [], status: "", err: false }); dirty = false; render(); return backFromEdit(); }
     if (ds.savestaff) return saveStaff();
     if (ds.unstdoc !== undefined) { sform.docs.splice(Number(ds.unstdoc), 1); const box = document.getElementById("st-docs"); if (box) box.innerHTML = sform.docs.map((d, i) => `<span class="chip">${esc(d.name)} <span class="note">${esc(d.kind)}</span><button type="button" data-unstdoc="${i}" aria-label="Remove ${esc(d.name)}">×</button></span>`).join(""); return; }
@@ -4691,6 +4713,8 @@ ${JSON.stringify({ partners: inp.partners, consortia: inp.consortia, fundingSpon
     if (ds.deldoc) return removeDoc(ds.deldoc);
     if (ds.decide) { document.getElementById("d-stage").value = ds.decide; return saveDecision(); }
     if (t.id === "d-save") return saveDecision();
+    if (ds.stlink) { sform.userId = ds.stlink; const s2 = document.getElementById("st-usearch"); if (s2) s2.value = ""; const l = document.getElementById("st-uresults"); if (l) l.hidden = true; refreshStAcct(); return; }
+    if (ds.stunlink) { sform.userId = ""; refreshStAcct(); return; }
     if (ds.opick) { if (!dOwners.list.includes(ds.opick)) dOwners.list.push(ds.opick); const s2 = document.getElementById("d-osearch"); if (s2) s2.value = ""; const l = document.getElementById("d-oresults"); if (l) l.hidden = true; refreshOwners(); return; }
     if (ds.ppick) { if (!dPartners.list.includes(ds.ppick)) dPartners.list.push(ds.ppick); const s2 = document.getElementById("d-psearch"); if (s2) s2.value = ""; const l = document.getElementById("d-presults"); if (l) l.hidden = true; refreshPartners(); return; }
     if (ds.cpick) { if (!dPartners.cons.includes(ds.cpick)) dPartners.cons.push(ds.cpick); const s2 = document.getElementById("d-psearch"); if (s2) s2.value = ""; const l = document.getElementById("d-presults"); if (l) l.hidden = true; refreshPartners(); return; }
@@ -4725,7 +4749,7 @@ ${JSON.stringify({ partners: inp.partners, consortia: inp.consortia, fundingSpon
       return refreshMembers();
     }
   });
-  document.addEventListener("click", (e) => { for (const [inp, ul] of [["d-psearch", "d-presults"], ["d-osearch", "d-oresults"]]) { const l = document.getElementById(ul); if (l && !l.hidden && !e.target.closest(`#${ul}`) && e.target.id !== inp) l.hidden = true; } });
+  document.addEventListener("click", (e) => { for (const [inp, ul] of [["d-psearch", "d-presults"], ["d-osearch", "d-oresults"], ["st-usearch", "st-uresults"]]) { const l = document.getElementById(ul); if (l && !l.hidden && !e.target.closest(`#${ul}`) && e.target.id !== inp) l.hidden = true; } });
   function refreshMembers() {
     const k = editing.category || "new", box = document.getElementById("c-members");
     if (box) box.innerHTML = (draftMembers[k] || []).map((id) => personHtml(id, canWrite)).join("") || `<span class="help">No one yet.</span>`;
@@ -4829,6 +4853,14 @@ ${JSON.stringify({ partners: inp.partners, consortia: inp.consortia, fundingSpon
       list.hidden = false;
       return;
     }
+    if (e.target.id === "st-usearch") {
+      const list = document.getElementById("st-uresults"); if (!list || !user?.search) return;
+      const found = await user.search(e.target.value);
+      found.forEach((p) => { names[p.id] = p.name; avatars[p.id] = p.avatarUrl; });
+      list.innerHTML = found.slice(0, 8).map((p) => { const linked = staffOfUser(p.id) && staffOfUser(p.id) !== editing.staff ? S.staff[staffOfUser(p.id)] : null;
+        return `<li><button type="button" data-stlink="${esc(p.id)}" ${linked ? "disabled" : ""}><img src="${esc(p.avatarUrl)}" alt="">${esc(p.name)}${p.guest ? ' <span class="note">guest</span>' : ""}${linked ? ` <span class="note">linked to ${esc(linked.name)}</span>` : ""}</button></li>`; }).join("") || `<li class="help" style="padding:6px">No matches.</li>`;
+      list.hidden = false; return;
+    }
     if (e.target.id === "d-osearch") {
       const list = document.getElementById("d-oresults");
       const found = await user.search(e.target.value);
@@ -4883,7 +4915,7 @@ ${JSON.stringify({ partners: inp.partners, consortia: inp.consortia, fundingSpon
       resLimit = 300; const items = filtered(); document.getElementById("results").innerHTML = resultsHtml(items); document.querySelector(".head .sub .num").textContent = items.length;
     }, 120);
   });
-  app.addEventListener("focusin", async (e) => { if (e.target.id === "d-psearch") { e.target.dispatchEvent(new Event("input", { bubbles: true })); return; } if (e.target.id === "d-osearch" && user?.search) { e.target.dispatchEvent(new Event("input", { bubbles: true })); return; } if (e.target.id === "c-search" && user?.search) { const found = await user.search(""); found.forEach((p) => { names[p.id] = p.name; avatars[p.id] = p.avatarUrl; }); } });
+  app.addEventListener("focusin", async (e) => { if (e.target.id === "d-psearch") { e.target.dispatchEvent(new Event("input", { bubbles: true })); return; } if ((e.target.id === "d-osearch" || e.target.id === "st-usearch") && user?.search) { e.target.dispatchEvent(new Event("input", { bubbles: true })); return; } if (e.target.id === "c-search" && user?.search) { const found = await user.search(""); found.forEach((p) => { names[p.id] = p.name; avatars[p.id] = p.avatarUrl; }); } });
 
   // ---------- people ----------
   async function resolveNames() {
@@ -4891,6 +4923,7 @@ ${JSON.stringify({ partners: inp.partners, consortia: inp.consortia, fundingSpon
     const ids = new Set();
     Object.values(S.decisions).forEach((d) => { if (d.updatedBy) ids.add(d.updatedBy); (d.owners || []).forEach((x) => ids.add(x)); });
     Object.values(S.history).forEach((h) => h.by && ids.add(h.by));
+    Object.values(S.staff).forEach((x) => x.userId && ids.add(x.userId));
     Object.keys(S.ratings).forEach((uid) => ids.add(uid));
     if (S.profile.main?.updatedBy) ids.add(S.profile.main.updatedBy);
     if (S.settings.scanRequest?.requestedBy) ids.add(S.settings.scanRequest.requestedBy);
