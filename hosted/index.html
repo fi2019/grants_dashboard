@@ -1,6 +1,6 @@
 <title>Forge Grants Dashboard</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<meta name="forge:published" content="2026-11-22T22:06:59Z">
+<meta name="forge:published" content="2026-11-22T22:16:34Z">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
@@ -916,8 +916,12 @@ details.addform[open] > summary::before { content: "− " }
   const leadLabel = () => leadDays() === 14 ? "2 weeks" : leadDays() % 7 === 0 ? `${leadDays() / 7} weeks` : `${leadDays()} days`;
   let db = null, user = null, me = null, canWrite = false, storeState = "connecting";
   const names = {}, avatars = {};
-  const ui = { q: "", min: "", agency: "", stage: "", cat: "", role: "", mech: "", owner: "", tc: "", partner: false, clean: false, closed: false, stars: "", starBasis: "mine", unrated: true, sort: "fit", psort: "deadline", dcat: "", dcsort: "open" };
+  // Opportunities opens at Fit 4+ and 2+ stars (unrated still shown); the Pipeline keeps its own fit and rating filters (pmin, pstars).
+  const OPP_DEFAULTS = { min: "4", stars: "2", unrated: true };
+  const ui = { q: "", min: OPP_DEFAULTS.min, agency: "", stage: "", cat: "", role: "", mech: "", owner: "", tc: "", partner: false, clean: false, closed: false, stars: OPP_DEFAULTS.stars, pmin: "", pstars: "", starBasis: "mine", unrated: true, sort: "fit", psort: "deadline", dcat: "", dcsort: "open" };
   try { Object.assign(ui, JSON.parse(localStorage.getItem("fg-filters") || "{}")); } catch {}
+  // One-time move to the new defaults: Opportunities at Fit 4+ / 2+ stars, Pipeline fit and rating cleared.
+  if (!ui.defaults2) { Object.assign(ui, OPP_DEFAULTS, { pmin: "", pstars: "", defaults2: true }); try { localStorage.setItem("fg-filters", JSON.stringify(ui)); } catch {} }
   const editing = { source: null, partner: null, category: null, profile: false, staff: null };
   const hf = { kind: "", who: "" };   // history filters   // id being edited, or "new"
   const draftMembers = {};      // category form: ids picked so far
@@ -1167,14 +1171,15 @@ details.addform[open] > summary::before { content: "− " }
   const srcOf = (o) => o.source === "teaming" ? "teaming" : o.source === "manual" ? (o.manual?.import === "asana" ? "asana" : "manual") : "scan";
   const SRC_FILTER = [["", "All sources"], ["scan", "Scanned listings"], ["asana", "From Asana"], ["manual", "Added by the team"], ["teaming", "Team concepts"]];
   function matcher(board) {
-    const q = ui.q.trim().toLowerCase(), min = Number(ui.min || 0);
+    const q = ui.q.trim().toLowerCase(), min = Number((board ? ui.pmin : ui.min) || 0), stars = board ? ui.pstars : ui.stars;
     const catKw = ui.cat === "@mine" ? myCats().flatMap((c) => c.keywords || []) : ui.cat ? (S.categories[ui.cat]?.keywords || []) : null;
     return (o) => {
       if (!board) {
         if (!ui.closed && !ui.stage && !isOpen(o)) return false;
         if (ui.stage && stageOf(o) !== ui.stage) return false;
       }
-      if (min && o.source !== "teaming" && (fit(o) ?? 0) < min) return false;
+      // Items nobody has scored yet (no Claude score and no keyword pre-score, e.g. Asana records) aren't hidden by the fit filter.
+      if (min && o.source !== "teaming" && fit(o) != null && fit(o) < min) return false;
       if (ui.agency && agencyOf(o)?.id !== ui.agency) return false;
       if (catKw && !hits(o, catKw).length) return false;
       if (ui.partner && !partnersFor(o).length) return false;
@@ -1186,9 +1191,9 @@ details.addform[open] > summary::before { content: "− " }
       if (ui.src && srcOf(o) !== ui.src) return false;
       if (ui.owner) { const ow = ownersOf(o); if (ui.owner === "@me" ? !ow.includes(me) : ui.owner === "@none" ? ow.length > 0 : ui.owner === "@nonepipe" ? ow.length > 0 || !["screening", "internal_review", "go", "drafting"].includes(stageOf(o)) : !ow.includes(ui.owner)) return false; }
       if (ui.role && !(roleOf(o) === ui.role || (roleOf(o) === "either" && (ui.role === "lead" || ui.role === "partner")))) return false;
-      if (ui.stars) {
+      if (stars) {
         const r = ui.starBasis === "team" ? (teamAvg(o)?.avg || 0) : myRating(o);
-        if (r ? r < Number(ui.stars) : !ui.unrated) return false;
+        if (r ? r < Number(stars) : !ui.unrated) return false;
       }
       if (q && !textOf(o).includes(q) && !(o.number || "").toLowerCase().includes(q)) return false;
       return true;
@@ -1245,11 +1250,11 @@ details.addform[open] > summary::before { content: "− " }
     const opt = (v, l, cur) => `<option value="${esc(v)}" ${String(cur) === String(v) ? "selected" : ""}>${esc(l)}</option>`;
     return `<div class="panel filters" id="filters">
         <input id="f-q" placeholder="Search title, agency, number…" value="${esc(ui.q)}" aria-label="Search">
-        <select id="f-min" aria-label="Fit">${opt("", "Any fit", ui.min)}${opt(8, "Strong (8+)", ui.min)}${opt(6, "Good (6+)", ui.min)}${opt(4, "Possible (4+)", ui.min)}</select>
+        <select id="f-min" aria-label="Fit">${(() => { const v = board ? ui.pmin : ui.min; return opt("", "Any fit", v) + opt(8, "Strong (8+)", v) + opt(6, "Good (6+)", v) + opt(4, "Possible (4+)", v); })()}</select>
         <select id="f-agency" aria-label="Agency">${opt("", "All agencies", ui.agency)}${META.profile.federalAgencies.map((a) => opt(a.id, a.name, ui.agency)).join("")}</select>
         <select id="f-cat" aria-label="Category">${opt("", "All categories", ui.cat)}${me ? opt("@mine", "My categories", ui.cat) : ""}${sorted(S.categories).map((c) => opt(c.id, c.name, ui.cat)).join("")}</select>
         ${board ? "" : `<select id="f-stage" aria-label="Stage">${opt("", "Open stages", ui.stage)}${STAGES.map((st) => opt(st, LABEL[st], ui.stage)).join("")}</select>`}
-        <select id="f-stars" aria-label="Minimum stars">${opt("", "Any rating", ui.stars)}${[1, 2, 3, 4].map((n) => opt(n, `${n}+ stars`, ui.stars)).join("")}${opt(5, "5 stars", ui.stars)}</select>
+        <select id="f-stars" aria-label="Minimum stars">${(() => { const v = board ? ui.pstars : ui.stars; return opt("", "Any rating", v) + [1, 2, 3, 4].map((n) => opt(n, `${n}+ stars`, v)).join("") + opt(5, "5 stars", v); })()}</select>
         <select id="f-basis" aria-label="Whose rating">${opt("mine", "My rating", ui.starBasis)}${opt("team", "Team average", ui.starBasis)}</select>
         <label title="Show opportunities nobody has rated yet (or you haven't, for My rating)"><input type="checkbox" id="f-unrated" ${ui.unrated ? "checked" : ""}> Include unrated</label>
         <select id="f-mech" aria-label="Opportunity type">${opt("", "Any type", ui.mech)}${MECH_ORDER.map((m) => opt(m, m, ui.mech)).join("")}</select>
@@ -4125,6 +4130,7 @@ ${JSON.stringify({ partners: inp.partners, consortia: inp.consortia, fundingSpon
         <dt>From Asana</dt><dd>Forge's earlier opportunities list (2020–2026), imported with their stage, owner, notes, values and subtask checklist. Closed ones sit in Awarded, Not awarded or No-go, so they stay out of the way but count toward Forge's track record.</dd>
         <dt>Team concepts</dt><dd>Topic ideas from <a href="#teaming">Teaming</a> that the team chose to pursue.</dd>
       </dl>
+      <p><b>Default view.</b> Opportunities opens at <b>Fit 4+</b> and <b>2+ stars</b>, with <i>Include unrated</i> on, so anything rated 1 star or scored under 4 is hidden. Items nobody has scored yet (such as Asana records) still show. <b>Reset</b> returns to these defaults; pick <i>Any fit</i> and <i>Any rating</i> to see everything. The Pipeline has its own fit and rating filters and starts at Any.</p>
       <p><b>Can't find something?</b> The Opportunities list shows open items, 300 at a time; use <b>Show more</b> at the bottom. Items without a Claude fit score (such as Asana records) sort last. Reset clears filters; closed and No-go items are hidden unless you pick that stage or tick <i>Include closed</i>.</p>`],
     ["read", "Reading an opportunity", `
       <p>The detail page starts with <b>What it is</b>, the listing's own description, then the facts, Claude's take, the criteria, past awards and proposal coaching. The decision panel on the right holds stage, owners, teaming partners and notes.</p>
@@ -4673,9 +4679,9 @@ ${JSON.stringify({ partners: inp.partners, consortia: inp.consortia, fundingSpon
       saveFilters(); return redrawResults();
     }
     if (ds.resmore || ds.resall) { resLimit = ds.resall ? 1e9 : resLimit + 300; const items = filtered(); document.getElementById("results").innerHTML = resultsHtml(items); return; }
-    if (t.id === "f-reset2") return go("#pipeline", CLEAR);
+    if (t.id === "f-reset2") return go("#pipeline", { ...CLEAR, min: ui.min, stars: ui.stars, pmin: "", pstars: "" });
     if (ds.stpreset) { const pr = STAGE_PRESETS.find(([k]) => k === ds.stpreset); ui.pstages = pr[0] === "default" ? null : [...pr[2]]; saveFilters(); stageMenuOpen = true; return render(); }
-    if (t.id === "f-reset") return go(route() === "pipeline" ? "#pipeline" : "#opportunities", CLEAR);
+    if (t.id === "f-reset") return go(route() === "pipeline" ? "#pipeline" : "#opportunities", route() === "pipeline" ? { ...CLEAR, min: ui.min, stars: ui.stars, pmin: "", pstars: "" } : { ...CLEAR, ...OPP_DEFAULTS });
     if (ds.rate) return rate(ds.id, Number(ds.rate));
     if (ds.analyze) return analyzeDoc(ds.analyze);
     if (ds.research) return queueResearch(ds.research);
@@ -4865,7 +4871,7 @@ ${JSON.stringify({ partners: inp.partners, consortia: inp.consortia, fundingSpon
     if (!e.target.closest("#filters")) return;
     if (e.target.id === "f-sort") { ui.sort = e.target.value; ui.sortDir = ""; saveFilters(); return redrawResults(); }
     const map = { "f-q": "q", "f-min": "min", "f-agency": "agency", "f-stage": "stage", "f-cat": "cat", "f-role": "role", "f-mech": "mech", "f-stars": "stars", "f-basis": "starBasis", "f-sort": "sort", "f-psort": "psort", "f-owner": "owner", "f-tc": "tc", "f-src": "src" };
-    if (map[e.target.id]) ui[map[e.target.id]] = e.target.value;
+    if (map[e.target.id]) ui[route() === "pipeline" && (e.target.id === "f-min" || e.target.id === "f-stars") ? (e.target.id === "f-min" ? "pmin" : "pstars") : map[e.target.id]] = e.target.value;
     if (e.target.id === "f-clean") ui.clean = e.target.checked;
     if (e.target.id === "f-closed") ui.closed = e.target.checked;
     if (e.target.id === "f-partner") ui.partner = e.target.checked;
