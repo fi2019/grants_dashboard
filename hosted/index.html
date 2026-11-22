@@ -1,6 +1,6 @@
 <title>Forge Grants Dashboard</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<meta name="forge:published" content="2026-11-20T22:29:27Z">
+<meta name="forge:published" content="2026-11-22T16:56:11Z">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
@@ -282,6 +282,18 @@ td .meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; color:
 pre.outline { white-space: pre-wrap; font: 13px/1.55 var(--font); margin: 8px 0 0; background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 8px 12px; max-height: 360px; overflow: auto }
 .reqform { display: grid; gap: 8px; border: 1px solid var(--line); border-left: 3px solid var(--info); border-radius: 6px; padding: 10px; background: var(--surface-2) }
 .reqform textarea { font: 13px/1.5 var(--font) }
+.whatis h2 { margin-bottom: 8px }
+.desctext { white-space: pre-line; font-size: 15px; line-height: 1.6; max-width: 80ch }
+.descd > summary { cursor: pointer; list-style: none }
+.descd > summary::-webkit-details-marker { display: none }
+.descd .clamp { white-space: pre-line; font-size: 15px; line-height: 1.6; max-width: 80ch; display: -webkit-box; -webkit-line-clamp: 7; -webkit-box-orient: vertical; overflow: hidden }
+.descd .more { display: inline-block; margin-top: 6px; color: var(--link); font-size: 14px }
+.descd[open] > summary { display: none }
+.sortbox { display: inline-flex; gap: 0 }
+.sortbox select { border-top-right-radius: 0; border-bottom-right-radius: 0 }
+.sortbox .btn-ghost { border-top-left-radius: 0; border-bottom-left-radius: 0; border-left: 0; padding: 6px 10px; font-size: 13px; white-space: nowrap }
+.thsort { background: none; border: 0; padding: 0; font: inherit; color: inherit; letter-spacing: inherit; text-transform: inherit; cursor: pointer; white-space: nowrap }
+.thsort:hover, .thsort.on { color: var(--fg) }
 .catgroup { font: 600 15px var(--display); margin: 14px 0 6px; display: flex; gap: 8px; align-items: baseline }
 .catgroup:first-child { margin-top: 0 }
 .cattable td, .cattable th { white-space: nowrap }
@@ -762,9 +774,11 @@ details.addform[open] > summary::before { content: "− " }
       <span class="team-avg" title="${esc(raters)}">${t ? `Team ${t.avg.toFixed(1)} · ${t.count} rating${t.count > 1 ? "s" : ""}` : "Team: no ratings"}</span>`;
   }
 
-  function table(items, empty) {
+  function table(items, empty, sortable) {
     if (!items.length) return `<p class="panel empty">${empty}</p>`;
-    return `<div class="tablewrap"><table><thead><tr><th>Fit</th><th>Rating</th><th>Opportunity</th><th>Deadline</th><th>Award ceiling</th><th>Criteria</th><th>Stage</th></tr></thead><tbody>${
+    const th = (key, label) => { if (!sortable) return `<th>${label}</th>`; const on = ui.sort === key, dir = on ? sortDir() : SORT_DEFAULT_DIR[key];
+      return `<th aria-sort="${on ? (dir === "asc" ? "ascending" : "descending") : "none"}"><button type="button" class="thsort${on ? " on" : ""}" data-sorthead="${key}" title="Sort by ${label.toLowerCase()}${on ? `, now ${dir === "asc" ? "ascending" : "descending"}; click to reverse` : ""}">${label}<span aria-hidden="true">${on ? (dir === "asc" ? " ▲" : " ▼") : " ↕"}</span></button></th>`; };
+    return `<div class="tablewrap"><table><thead><tr>${th("fit", "Fit")}${th("rating", "Rating")}<th>Opportunity</th>${th("deadline", "Deadline")}${th("ceiling", "Award ceiling")}<th>Criteria</th>${th("stage", "Stage")}</tr></thead><tbody>${
       items.map((o) => `<tr><td>${scoreHtml(o)}</td><td>${starsHtml(o)}</td><td style="min-width:260px">${oppLink(o)}<div class="meta">${srcTag(o)}${mechHtml(o)}${roleHtml(o)}<span>${esc(o.agency)}</span>${o.number ? `<span class="mono">${esc(o.number)}</span>` : ""}</div>${tagsHtml(o)}</td><td>${deadlineCell(o)}</td><td class="num">${money(o.awardCeiling)}</td><td>${dots(o)}</td><td>${pill(stageOf(o))}</td></tr>`).join("")
     }</tbody></table></div>`;
   }
@@ -923,16 +937,36 @@ details.addform[open] > summary::before { content: "− " }
   const firstCat = (o) => catsFor(o)[0]?.name || "\uffff";   // sorts "no category" last
   const byDeadline = (a, b) => Date.parse(a.closeDate || "9999-01-01") - Date.parse(b.closeDate || "9999-01-01");
   const SORTS = { fit: ["Best fit", byFit], deadline: ["Deadline (soonest)", (a, b) => byDeadline(a, b) || byFit(a, b)], ceiling: ["Award ceiling (largest)", (a, b) => (b.awardCeiling || 0) - (a.awardCeiling || 0) || byFit(a, b)],
-    rating: ["Team rating", (a, b) => (teamAvg(b)?.avg || 0) - (teamAvg(a)?.avg || 0) || byFit(a, b)], category: ["Category (grouped)", (a, b) => firstCat(a).localeCompare(firstCat(b)) || byFit(a, b)] };
+    rating: ["Team rating", (a, b) => (teamAvg(b)?.avg || 0) - (teamAvg(a)?.avg || 0) || byFit(a, b)], category: ["Category (grouped)", (a, b) => firstCat(a).localeCompare(firstCat(b)) || byFit(a, b)],
+    stage: ["Stage", (a, b) => STAGES.indexOf(stageOf(a)) - STAGES.indexOf(stageOf(b)) || byFit(a, b)] };
+  // Opportunities list sorting: a key plus a direction. Each key compares in ascending order; the direction flips it.
+  // Missing values (no deadline, no rating, no score) always go last.
+  const SORT_LIST = { fit: "Fit", rating: "Team rating", deadline: "Deadline", stage: "Stage", ceiling: "Award ceiling", category: "Category (grouped)" };
+  const SORT_DEFAULT_DIR = { fit: "desc", rating: "desc", deadline: "asc", stage: "asc", ceiling: "desc", category: "asc" };
+  const sortDir = () => ui.sortDir || SORT_DEFAULT_DIR[ui.sort] || "desc";
+  const SORT_KEY = {
+    fit: (o) => fit(o), rating: (o) => teamAvg(o)?.avg ?? null, ceiling: (o) => o.awardCeiling || null,
+    deadline: (o) => { const t = Date.parse(o.closeDate || ""); return Number.isNaN(t) ? null : t; },
+    stage: (o) => STAGES.indexOf(stageOf(o)), category: (o) => catsFor(o)[0]?.name ?? null,
+  };
+  function listCompare(key, dir) {
+    const get = SORT_KEY[key] || SORT_KEY.fit, sign = dir === "asc" ? 1 : -1;
+    return (a, b) => {
+      const x = get(a), y = get(b);
+      if (x == null || y == null) return x == null && y == null ? byFit(a, b) : x == null ? 1 : -1;
+      const c = typeof x === "string" ? x.localeCompare(y) : x - y;
+      return c * sign || byFit(a, b) || byDeadline(a, b);
+    };
+  }
   const sortSelect = (id, cur, keys) => `<select id="${id}" aria-label="Sort by">${keys.map((k) => `<option value="${k}" ${cur === k ? "selected" : ""}>Sort: ${SORTS[k][0]}</option>`).join("")}</select>`;
-  const filtered = () => OPPS.filter(matcher(false)).sort((SORTS[ui.sort] || SORTS.fit)[1]);
+  const filtered = () => OPPS.filter(matcher(false)).sort(listCompare(SORT_LIST[ui.sort] ? ui.sort : "fit", sortDir()));
   // Opportunities list: one table, or one table per category when sorted by category.
   function resultsHtml(items) {
     const list = items.slice(0, 300);
-    if (ui.sort !== "category" || !list.length) return table(list, "No opportunities match these filters.");
+    if (ui.sort !== "category" || !list.length) return table(list, "No opportunities match these filters.", true);
     const groups = new Map();
     for (const o of list) { const k = catsFor(o)[0]?.name || "No category"; if (!groups.has(k)) groups.set(k, []); groups.get(k).push(o); }
-    return [...groups].map(([name, xs]) => `<h2 class="catgroup">${esc(name)} <span class="note">${xs.length}</span></h2>${table(xs, "")}`).join("");
+    return [...groups].map(([name, xs]) => `<h2 class="catgroup">${esc(name)} <span class="note">${xs.length}</span></h2>${table(xs, "", true)}`).join("");
   }
   const anyFilter = () => Boolean(ui.owner || ui.q || ui.min || ui.agency || ui.cat || ui.role || ui.mech || ui.stars || ui.partner || ui.clean);
 
@@ -954,7 +988,7 @@ details.addform[open] > summary::before { content: "− " }
         <label><input type="checkbox" id="f-partner" ${ui.partner ? "checked" : ""}> Partner match</label>
         <label><input type="checkbox" id="f-clean" ${ui.clean ? "checked" : ""}> No failed criteria</label>
         <label><input type="checkbox" id="f-closed" ${ui.closed ? "checked" : ""}> ${board ? "Include past deadlines" : "Include closed"}</label>
-        ${board ? sortSelect("f-psort", ui.psort, ["deadline", "fit", "rating", "category"]) : sortSelect("f-sort", ui.sort, ["fit", "deadline", "ceiling", "rating", "category"])}
+        ${board ? sortSelect("f-psort", ui.psort, ["deadline", "fit", "rating", "category"]) : `<span class="sortbox"><select id="f-sort" aria-label="Sort by">${Object.entries(SORT_LIST).map(([k, l]) => `<option value="${k}" ${ui.sort === k ? "selected" : ""}>Sort: ${l}</option>`).join("")}</select><button type="button" class="btn-ghost" id="f-sortdir" aria-label="Sort direction: ${sortDir() === "asc" ? "ascending" : "descending"}" title="Switch between ascending and descending">${sortDir() === "asc" ? "↑ Ascending" : "↓ Descending"}</button></span>`}
         <button class="btn-ghost" id="f-reset" type="button">Reset</button>
       </div>`;
   }
@@ -970,6 +1004,18 @@ details.addform[open] > summary::before { content: "− " }
   }
 
   // ---------- detail ----------
+  // "What it is": the listing's own description, near the top so staff can tell what it is before the scores and criteria.
+  function whatItIsHtml(o) {
+    const d = String(o.description || "").trim();
+    const head = o.source === "teaming" ? "The concept" : "What it is";
+    const src = o.source === "teaming" ? "From the Teaming topic idea" : o.source === "dhs-apfs" ? "From the DHS acquisition forecast" : "From the official listing";
+    if (!d) return `<section class="panel whatis"><h2>${head}</h2><p class="empty">The listing has no description. Open the official listing for details.</p></section>`;
+    const long = d.length > 900;
+    return `<section class="panel whatis"><h2>${head} <span class="note" style="font-weight:400">· ${src}</span></h2>
+      ${long ? `<details class="descd"><summary><div class="clamp">${esc(d)}</div><span class="more">Show the full description</span></summary><div class="desctext">${esc(d)}</div></details>` : `<div class="desctext">${esc(d)}</div>`}
+      ${o.evaluation?.whyItFits ? `<p class="help" style="margin-top:10px"><b>Claude's take:</b> ${esc(short(o.evaluation.whyItFits, 280))} <a href="#why-${esc(o.id)}" data-scrollto="why-fits">More below</a></p>` : ""}
+    </section>`;
+  }
   function viewDetail(id) {
     const o = OPPS.find((x) => x.id === id);
     if (!o) return `<p class="panel empty">That opportunity is not in the current snapshot. <a href="#opportunities">Back to opportunities</a></p>`;
@@ -986,6 +1032,7 @@ details.addform[open] > summary::before { content: "− " }
           <div><div class="meta" style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;color:var(--muted);font-size:13px">${srcTag(o)}${esc(o.agency)} ${o.number ? `<span class="mono">${esc(o.number)}</span>` : ""} ${pill(st)} ${roleHtml(o)} ${mechHtml(o)}</div>
             <h1 style="font-size:24px;margin-top:6px">${esc(o.title)}</h1>
             ${o.url ? `<a href="${esc(o.url)}" target="_blank" rel="noopener">${o.source === "dhs-apfs" ? "View the DHS forecast page (download the full forecast there) ↗" : o.source === "teaming" ? "Open the funding sponsor's page ↗" : "View the official listing on Grants.gov ↗"}</a>` : ""}</div>
+          ${whatItIsHtml(o)}
           <div class="panel facts">
             <div><div class="k">Fit</div>${scoreHtml(o, true)}</div>
             <div><div class="k">Your rating</div><div id="my-stars" data-id="${o.id}">${starsHtml(o)}</div></div>
@@ -1008,7 +1055,7 @@ details.addform[open] > summary::before { content: "− " }
             <p class="note" style="margin:8px 0 0">Automated checks on the listing text (<a href="#help" data-helpgo="criteria">how they're calculated</a>). Confirm against the full notice.${o.signals.length ? ` Profile signals: ${esc(o.signals.join(", "))}.` : ""}</p>
           </section>
           ${ev ? `
-            ${sec("Why it fits", `<p>${esc(ev.whyItFits)}</p>`)}
+            <div id="why-fits">${sec("Why it fits", `<p>${esc(ev.whyItFits)}</p>`)}</div>
             ${ev.proposedProject ? sec("Proposed project", `<p>${esc(ev.proposedProject)}</p>`) : ""}
             <div class="grid3">
               ${ev.targetClients ? sec("Target clients", `<p>${esc(ev.targetClients)}</p>`) : ""}
@@ -1023,7 +1070,7 @@ details.addform[open] > summary::before { content: "− " }
           ${coachingHtml(o)}
           ${o.source === "teaming" ? `<section class="panel"><h2>From Teaming</h2><p class="help">The team chose to move forward on this topic idea on ${fmtDate(o.postedDate)}. <a href="#teaming">See it on the Teaming page →</a></p></section>` : pastAwardsHtml(o)}
           ${o.eligibility ? `<section class="panel"><h2>Eligibility (from listing)</h2><div class="longtext">${esc(o.eligibility)}</div></section>` : ""}
-          ${o.description ? `<section class="panel"><h2>${o.source === "teaming" ? "Concept" : "Description (from listing)"}</h2><div class="longtext">${esc(o.description)}</div></section>` : ""}
+
         </div>
         <aside class="panel side" id="decision" data-id="${o.id}">
           <h2 style="margin:0">Decision</h2>
@@ -2721,7 +2768,7 @@ ${JSON.stringify({ partners: inp.partners, fundingSponsors: inp.sources, opportu
     ["daily", "A typical day", `
       <ol>
         <li><b>Dashboard:</b> look at <i>Your categories</i>, Forge internal deadlines (next 14 days) and submission deadlines (next 30 days).</li>
-        <li><b>Opportunities:</b> filter to what's new or high match, open anything interesting, read the fit explanation and criteria, then rate it.</li>
+        <li><b>Opportunities:</b> filter to what's new or high match, then sort by fit, team rating, deadline, stage or award ceiling. Click a column heading (Fit, Rating, Deadline, Award ceiling, Stage) to sort by it and click again to reverse, or use the Sort menu and its ↑/↓ button. Open anything interesting: <i>What it is</i> at the top describes the opportunity, followed by the scores, criteria and Claude's fit explanation. Then rate it.</li>
         <li><b>Decide:</b> on an opportunity's page use <i>Go</i> / <i>No-go</i>, or set the stage, owner, internal deadline and notes.</li>
         <li><b>Pipeline:</b> drag cards between stages as work moves forward.</li>
         <li><b>Teaming:</b> when a sponsor matters but no listing is open yet, build topic ideas with partners and move the good ones forward.</li>
@@ -3101,6 +3148,14 @@ ${JSON.stringify({ partners: inp.partners, fundingSponsors: inp.sources, opportu
     redrawRatings();
     if (again) document.querySelector(again)?.focus();
   }
+  // Re-draw the Opportunities results and the sort controls without touching the filters someone may be typing in.
+  function redrawResults() {
+    if (route() !== "opportunities") return render();
+    const items = filtered(); const r = document.getElementById("results"); if (r) r.innerHTML = resultsHtml(items);
+    const b = document.getElementById("f-sortdir"); if (b) { b.textContent = sortDir() === "asc" ? "↑ Ascending" : "↓ Descending"; b.setAttribute("aria-label", `Sort direction: ${sortDir() === "asc" ? "ascending" : "descending"}`); }
+    const sel = document.getElementById("f-sort"); if (sel) sel.value = ui.sort;
+    const n = document.querySelector(".head .sub .num"); if (n) n.textContent = items.length;
+  }
   function redrawRatings() {
     const box = document.getElementById("my-stars");
     if (box) { const o = OPPS.find((x) => x.id === box.dataset.id); if (o) box.innerHTML = starsHtml(o); return; }
@@ -3138,6 +3193,7 @@ ${JSON.stringify({ partners: inp.partners, fundingSponsors: inp.sources, opportu
     if (ds.reqsave) return saveReq(ds.reqsave);
     if (ds.reqdel) return removeReq(ds.reqdel, Number(ds.idx));
     if (ds.helpgo) { e.preventDefault(); const target = ds.helpgo; if (route() !== "help") location.hash = "#help"; setTimeout(() => document.getElementById("help-" + target)?.scrollIntoView({ block: "start" }), 60); return; }
+    if (ds.scrollto) { e.preventDefault(); document.getElementById(ds.scrollto)?.scrollIntoView({ block: "start", behavior: "smooth" }); return; }
     if (ds.helpto) return document.getElementById("help-" + ds.helpto)?.scrollIntoView({ block: "start", behavior: "smooth" });
     if (ds.addtopic) return addTopic(ds.addtopic);
     if (ds.catkw) { const kw = (tcatKw() || []).filter((k) => !tBoard().topics.some((t) => t.toLowerCase() === k.toLowerCase())).slice(0, 12); if (kw.length) saveBoard({ topics: [...tBoard().topics, ...kw] }, { action: "added category keywords as focus areas:", targetName: catLabel(TM.cat), changes: [{ field: "topics", label: "Focus areas added", to: kw }] }); return; }
@@ -3163,6 +3219,11 @@ ${JSON.stringify({ partners: inp.partners, fundingSponsors: inp.sources, opportu
     if (ds.unpropose) return unproposeTopic(ds.unpropose);
     if (ds.addchild) { editing.partner = null; resetPartnerForm(); pform.parent = ds.addchild; render(); document.getElementById("p-name")?.focus(); return scrollTo(0, 0); }
     if (t.id === "pf-reset") { Object.assign(pf, { q: "", type: "", stars: "", unrated: true, matches: false, focus: "" }); savePf(); return render(); }
+    if (ds.sorthead || t.id === "f-sortdir") {
+      if (ds.sorthead) { if (ui.sort === ds.sorthead) ui.sortDir = sortDir() === "asc" ? "desc" : "asc"; else { ui.sort = ds.sorthead; ui.sortDir = ""; } }
+      else ui.sortDir = sortDir() === "asc" ? "desc" : "asc";
+      saveFilters(); return redrawResults();
+    }
     if (t.id === "f-reset") return go(route() === "pipeline" ? "#pipeline" : "#opportunities", CLEAR);
     if (ds.rate) return rate(ds.id, Number(ds.rate));
     if (ds.analyze) return analyzeDoc(ds.analyze);
@@ -3311,6 +3372,7 @@ ${JSON.stringify({ partners: inp.partners, fundingSponsors: inp.sources, opportu
     }
     if (e.target.id === "h-kind" || e.target.id === "h-who") { hf[e.target.id === "h-kind" ? "kind" : "who"] = e.target.value; return render(); }
     if (!e.target.closest("#filters")) return;
+    if (e.target.id === "f-sort") { ui.sort = e.target.value; ui.sortDir = ""; saveFilters(); return redrawResults(); }
     const map = { "f-q": "q", "f-min": "min", "f-agency": "agency", "f-stage": "stage", "f-cat": "cat", "f-role": "role", "f-mech": "mech", "f-stars": "stars", "f-basis": "starBasis", "f-sort": "sort", "f-psort": "psort", "f-owner": "owner" };
     if (map[e.target.id]) ui[map[e.target.id]] = e.target.value;
     if (e.target.id === "f-clean") ui.clean = e.target.checked;
