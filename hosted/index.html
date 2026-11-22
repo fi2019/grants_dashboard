@@ -1,6 +1,6 @@
 <title>Forge Grants Dashboard</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<meta name="forge:published" content="2026-11-22T20:35:08Z">
+<meta name="forge:published" content="2026-11-22T20:46:40Z">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
@@ -616,6 +616,14 @@ dialog.modal .btns { display: flex; flex-wrap: wrap; justify-content: flex-end; 
 .board { grid-auto-columns: minmax(220px, 1fr) }
 .col.over, .dropstrip.over { outline: 2px dashed var(--link); outline-offset: -2px; background: var(--info-bg) }
 .card[draggable="true"] { cursor: grab }
+.card.subcard { border-left: 3px solid var(--info); background: var(--surface) }
+.card.subcard .sbst { flex: none }
+.pshow { display: inline-flex; flex-wrap: wrap; gap: 0; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; background: var(--surface); justify-self: start }
+.pshow label { display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; font-size: 14px; cursor: pointer; border-right: 1px solid var(--line) }
+.pshow label:last-child { border-right: 0 }
+.pshow label.on { background: var(--info-bg); color: var(--info); font-weight: 600 }
+.pshow input { position: absolute; opacity: 0; pointer-events: none }
+.pshow label:focus-within { outline: 2px solid var(--accent); outline-offset: -2px }
 .card.dragging { opacity: .45 }
 .card .ttl { color: var(--link) }
 .card .score { align-self: flex-start; flex-shrink: 0 }
@@ -1518,36 +1526,78 @@ ${String(text).slice(0, SEND_CHARS)}
     // Active columns hide opportunities whose deadline passed (unless "Include past deadlines"); outcome columns keep everything.
     return OPPS.filter((o) => BOARD_COLS.includes(stageOf(o)) && (DONE.includes(stageOf(o)) || ui.closed || (daysUntil(o.closeDate) ?? 0) >= 0) && m(o));
   }
+  // Submissions on the board: placed by their own status (an awarded or not-awarded opportunity keeps its outcome column).
+  const SUB_COL = { concept: "go", drafting: "drafting", review: "drafting", final: "drafting", submitted: "submitted" };
+  function boardSubs() {
+    const m = matcher(true);
+    return Object.entries(S.submissions).map(([id, x]) => ({ id, ...x })).filter((x) => SUB_COL[x.status || "concept"]).map((x) => {
+      const o = oppOf(x), st = o ? stageOf(o) : null;
+      return { ...x, o, col: ["awarded", "not_awarded"].includes(st) ? st : SUB_COL[x.status || "concept"] };
+    }).filter((x) => !x.o || ((DONE.includes(x.col) || ui.closed || (daysUntil(x.o.closeDate) ?? 0) >= 0) && m(x.o)));
+  }
+  const pshow = () => ["opps", "subs"].includes(ui.pshow) ? ui.pshow : "";
+  function subCardHtml(x) {
+    const words = (x.sections || []).reduce((n, s) => n + (String(s.text || "").trim().match(/\S+/g) || []).length, 0);
+    const team = (x.partners || []).length + (x.consortia || []).length;
+    return `<div class="card subcard" data-subcard="${esc(x.id)}">
+      <span style="display:flex;justify-content:space-between;gap:8px;align-items:flex-start"><a class="ttl" href="${subLink(x.id)}">${esc(x.title)}</a><span class="sbst ${esc(x.status || "concept")}">${SUB_STATUS[x.status] || "Concept"}</span></span>
+      <span class="note">${x.o ? `For <a href="#opp-${esc(x.o.id)}">${esc(short(x.o.title, 70))}</a>` : esc(x.oppTitle || "")}</span>
+      <span class="note">${x.chosen != null && x.concepts?.[x.chosen] ? `Concept: ${esc(short(x.concepts[x.chosen].title, 60))} · ` : ""}${words} words · ${team} partner${team === 1 ? "" : "s"}${x.review ? ` · readiness ${x.review.readiness}/5` : ""}</span>
+      ${x.o ? deadlineCell(x.o) : ""}
+      ${db && canWrite ? `<select class="move" data-substatus="${esc(x.id)}" aria-label="Change the status of ${esc(x.title)}">${Object.entries(SUB_STATUS).map(([k, l]) => `<option value="${k}" ${k === (x.status || "concept") ? "selected" : ""}>${k === (x.status || "concept") ? "Set status…" : l}</option>`).join("")}</select>` : ""}
+    </div>`;
+  }
+  async function setSubStatus(id, status) {
+    const x = S.submissions[id]; if (!x || !db || !SUB_STATUS[status] || x.status === status) return;
+    const from = x.status || "concept";
+    try {
+      await db.doc("submissions/" + id).update(await stamp({ status }));
+      S.submissions[id] = { ...x, status }; if (SB.id === id && SB.edit) SB.edit.status = status;
+      logChange({ kind: "submission", action: "updated the submission for", targetId: x.oppId, targetName: x.oppTitle, changes: [{ field: "status", label: "Status", from: SUB_STATUS[from], to: SUB_STATUS[status] }] });
+      refreshBoard();
+    } catch (err) { const sub = document.querySelector(".head .sub"); if (sub) sub.textContent = errMsg(err); }
+  }
   function boardHtml() {
-    const active = boardCards();
+    const show = pshow();
+    const active = show === "subs" ? [] : boardCards(), subs = show === "opps" ? [] : boardSubs();
     const canMove = Boolean(db && canWrite);
     return BOARD_COLS.map((c) => {
       const cards = active.filter((o) => stageOf(o) === c).sort(ui.psort === "deadline" ? byDeadline : (SORTS[ui.psort] || SORTS.fit)[1]);
-      return `<div class="col" data-col="${c}"><h2>${LABEL[c]} <span class="num" style="color:var(--muted)">${cards.length}</span></h2>${cards.length ? cards.map((o) => {
+      const scards = subs.filter((x) => x.col === c).sort((a, b) => String(b.updatedAt).localeCompare(String(a.updatedAt)));
+      const n = cards.length + scards.length;
+      return `<div class="col" data-col="${c}"><h2>${LABEL[c]} <span class="num" style="color:var(--muted)">${n}</span></h2>${scards.map(subCardHtml).join("")}${n ? cards.map((o) => {
         const d = S.decisions[o.id] || {};
         return `<div class="card" ${canMove ? `draggable="true"` : ""} data-card="${o.id}">
           <span style="display:flex;justify-content:space-between;gap:8px"><a class="ttl" href="#opp-${o.id}">${esc(o.title)}</a>${scoreHtml(o)}</span>
           <span class="note">${esc(o.agency)}</span><span style="display:flex;flex-wrap:wrap;gap:4px">${o.source === "teaming" || o.source === "manual" ? srcTag(o) : ""}${mechHtml(o)}${roleHtml(o)}</span>${catsFor(o).length ? `<span class="cats" style="margin-top:0">${catsFor(o).slice(0, 3).map((x) => `<span class="cat">${esc(x.name)}</span>`).join("")}</span>` : ""}${deadlineCell(o)}${(d.owners || []).length ? `<span class="note">Owner${d.owners.length > 1 ? "s" : ""}: ${esc(ownerNames(d.owners).join(", "))}</span>` : d.owner ? `<span class="note">Owner: ${esc(d.owner)}</span>` : ""}
+          ${(() => { const ss = subsFor(o.id).filter((x) => x.status !== "archived"); return ss.length && show === "opps" ? `<span class="note">📝 ${ss.map((x) => `<a href="${subLink(x.id)}">Submission: ${SUB_STATUS[x.status] || "Concept"}</a>`).join(" · ")}</span>` : ""; })()}
           ${canMove ? `<select class="move" data-move="${o.id}" aria-label="Move ${esc(o.title)} to another stage">${STAGES.map((st) => `<option value="${st}" ${st === c ? "selected" : ""}>${st === c ? "Move to…" : LABEL[st]}</option>`).join("")}</select>` : ""}
         </div>`;
-      }).join("") : `<p class="empty" style="font-size:13px">${canMove ? "Drop a card here." : "Nothing here."}</p>`}</div>`;
+      }).join("") : `<p class="empty" style="font-size:13px">${canMove && show !== "subs" ? "Drop a card here." : "Nothing here."}</p>`}</div>`;
     }).join("");
+  }
+  function boardCountText() {
+    const show = pshow(), total = OPPS.filter((o) => BOARD_COLS.includes(stageOf(o))).length, shown = boardCards().length;
+    const subsAll = Object.values(S.submissions).filter((x) => SUB_COL[x.status || "concept"]).length, subsShown = boardSubs().length;
+    const o = shown === total ? `${total} ${total === 1 ? "opportunity" : "opportunities"}` : `${shown} of ${total} opportunities`;
+    const sb = subsShown === subsAll ? `${subsAll} submission${subsAll === 1 ? "" : "s"}` : `${subsShown} of ${subsAll} submissions`;
+    return show === "opps" ? `${o} in the pipeline` : show === "subs" ? `${sb} in progress` : `${o} · ${sb}`;
   }
   function viewPipeline() {
     const canMove = Boolean(db && canWrite);
-    const shown = boardCards().length, total = OPPS.filter((o) => BOARD_COLS.includes(stageOf(o))).length;
     return `<div class="head"><div><h1>Pipeline</h1><p class="sub" style="margin:4px 0 0">${canMove ? "Drag a card to another column, or use its Move menu. Every move is saved for the whole team and recorded in History." : storeState === "ready" ? "View only. Ask the owner for Contributor access to move cards." : "Connecting to shared data…"}</p></div>
-        <span class="sub" id="board-count">${shown === total ? `${total} in the pipeline` : `${shown} of ${total} shown`}</span></div>
+        <span class="sub" id="board-count">${boardCountText()}</span></div>
+      <div class="pshow" role="radiogroup" aria-label="Show on the board">${[["", "Opportunities and submissions"], ["opps", "Opportunities only"], ["subs", "Submissions only"]].map(([v, l]) => `<label class="${pshow() === v ? "on" : ""}"><input type="radio" name="pshow" value="${v}" ${pshow() === v ? "checked" : ""}> ${l}</label>`).join("")}</div>
       ${filtersHtml(true)}
-      ${canMove ? `<div class="dropstrips"><div class="dropstrip" data-col="new"><b>Back to New</b> · drop here to take a card out of the pipeline</div><div class="dropstrip" data-col="declined"><b>No-go</b> · drop here to decline</div></div>` : ""}
+      ${canMove && pshow() !== "subs" ? `<div class="dropstrips"><div class="dropstrip" data-col="new"><b>Back to New</b> · drop here to take a card out of the pipeline</div><div class="dropstrip" data-col="declined"><b>No-go</b> · drop here to decline</div></div>` : ""}
       <div class="board" id="board">${boardHtml()}</div>
       <p class="help">To add an opportunity to the pipeline, open it from the Opportunities tab and choose Go or set its stage.</p>`;
   }
   function refreshBoard() {
     const b = document.getElementById("board"); if (!b) return;
     b.innerHTML = boardHtml();
-    const shown = boardCards().length, total = OPPS.filter((o) => BOARD_COLS.includes(stageOf(o))).length;
-    const c = document.getElementById("board-count"); if (c) c.textContent = shown === total ? `${total} in the pipeline` : `${shown} of ${total} shown`;
+    const c = document.getElementById("board-count"); if (c) c.textContent = boardCountText();
+    document.querySelectorAll(".pshow label").forEach((l) => l.classList.toggle("on", l.querySelector("input").checked));
   }
 
   // Move a card: write only the stage, keep owner/notes/date, and log it.
@@ -3995,7 +4045,7 @@ ${JSON.stringify({ partners: inp.partners, consortia: inp.consortia, fundingSpon
         <dt><a href="#dashboard">Dashboard</a></dt><dd>Counts, potential revenue (sum of award ceilings), your categories, upcoming deadlines, top recommendations and the Refresh button.</dd>
         <dt><a href="#opportunities">Opportunities</a></dt><dd>Every open listing, with search and filters for fit, agency, category, stage, rating, type, role and partner matches. <b>+ Add an opportunity</b> checks whether a NOFO, solicitation or Assistance Listing number (or title) is already here; if not, upload the notice and Claude pulls in the details and scores fit, or ask Claude to look it up on Grants.gov and SAM.gov in the background.</dd>
         <dt><a href="#settings">Settings</a></dt><dd>The gear at the bottom of the left sidebar. Choose light or dark colors and a full or icons-only sidebar (saved in your browser), turn automatic holiday themes on or off, manage what Claude may do on this page, and see when the daily scan and background worker run. On a phone, the menu button at the top opens the sidebar.</dd>
-        <dt><a href="#pipeline">Pipeline</a></dt><dd>A board from Screening to Awarded. Drag cards or use each card's Move menu; every move is recorded.</dd>
+        <dt><a href="#pipeline">Pipeline</a></dt><dd>A board from Screening to Awarded. Drag cards or use each card's Move menu; every move is recorded. The switch at the top shows opportunities, submissions or both. Submission cards (blue edge) sit by their status: Concept under Go, Drafting / In review / Final under Drafting, Submitted under Submitted; change it with the card's status menu. Archived submissions are left off.</dd>
         <dt><a href="#submissions">Submissions</a></dt><dd>Working drafts of submission concepts. Start one from an opportunity's page with <b>Start a submission concept</b>, then: (1) pick the team (partners and consortia, and whether Forge leads); (2) have Claude draft three concepts from the notice, Forge's profile and documents and the team, and choose one; (3) build the working draft section by section. Claude can write the first draft, polish any section (you compare before anything changes) and review the whole draft as a reviewer would. Under each section, a yellow box collects suggestions (from the reviewer read and Claude's polish notes) and team comments, and a red box holds the red team assessment: Claude checks the section's language against the notice's requirements and scoring rules, using the uploaded notice and any NOFO, Call or scoring rubric you attach to the submission. Text marked [confirm: …] needs a fact from the team. Once a concept is chosen and the draft has text, changing the concepts or rewriting the draft with Claude asks for confirmation first. <b>Download .docx</b> saves the working draft as a Word document (optionally with the notes and red team findings as an appendix). Save keeps your edits for everyone; leaving the page saves too.</dd>
         <dt><a href="#federal">Federal funding</a></dt><dd>Open opportunities grouped by Forge's priority agencies.</dd>
         <dt><a href="#report">Report</a></dt><dd>A report-style summary of the opportunities Claude has scored: recommended, possible and not recommended.</dd>
@@ -4565,6 +4615,8 @@ ${JSON.stringify({ partners: inp.partners, consortia: inp.consortia, fundingSpon
     if (e.target.id === "p-files") { const files = [...e.target.files]; e.target.value = ""; if (files.length) addFormFiles(files); return; }
     if (e.target.id === "p-url") { const u = e.target.value.trim(); if (safeUrl(u) && u !== pform.lastUrl) draftPartner(false); return; }
     if (subChange(e.target)) return;
+    if (e.target.name === "pshow") { ui.pshow = e.target.value; saveFilters(); return render(); }
+    if (e.target.dataset?.substatus) return setSubStatus(e.target.dataset.substatus, e.target.value);
     if (e.target.name === "settheme") { setPref("fg-theme", e.target.value); applyAppearance(); return; }
     if (e.target.name === "setside") { setPref("fg-side", e.target.value); applyAppearance(); return; }
     if (e.target.id === "set-holauto") { setPref("fg-holiday-auto", e.target.checked ? "" : "off"); try { localStorage.removeItem("fg-holiday2"); } catch {} applyHoliday(); return render(); }
