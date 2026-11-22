@@ -1,6 +1,6 @@
 <title>Forge Grants Dashboard</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<meta name="forge:published" content="2026-11-22T22:56:00Z">
+<meta name="forge:published" content="2026-11-22T22:59:36Z">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
@@ -1211,7 +1211,7 @@ details.addform[open] > summary::before { content: "− " }
     const partners = partnerAwardRows(aw);
     const tile = (k, v, s2) => `<div class="stat vstat"><div class="k">${k}</div><div class="v">${v}</div><div class="s">${s2}</div></div>`;
     const head = `<div class="vhead"><div><h2 class="sec-title" style="margin:0">Grants and awards <span class="vbadge ok">✓ Verified</span></h2>
-        <p class="vnote">${aw.length ? `Every number here comes from ${docs.length === 1 ? `<b>${esc(docs[0].name)}</b>` : `${docs.length} uploaded awards documents`} on Forge profile: each award's name and dollar amounts were found in the document's text.` : "Only awards confirmed against an uploaded awards document appear here."}</p></div>
+        <p class="vnote">${aw.length ? `Every number here comes from ${docs.length === 1 ? `<b>${esc(docs[0].name)}</b>` : `${docs.length} uploaded awards documents`} on Forge profile. Awards entered or edited by hand aren't counted.` : "Only awards from an uploaded awards document appear here."}</p></div>
         <a class="note" href="#profile" data-scrollaw="1">Awards on Forge profile →</a></div>`;
     if (!aw.length) return `<section class="verified" aria-label="Verified grants and awards">${head}<p class="vnote">${unv.length ? `${unv.length} award${unv.length === 1 ? " is" : "s are"} on file but not verified, so nothing is counted yet.` : "No awards yet."} Upload Forge's awards list under <a href="#profile" data-scrollaw="1">Forge profile → Awards and past performance</a>.</p></section>`;
     const allYears = [...new Set(years)].sort((x, y) => y - x);
@@ -1250,7 +1250,7 @@ details.addform[open] > summary::before { content: "− " }
         <div class="tablewrap" style="border:0"><table class="awtable"><thead><tr><th>Award</th><th>Sponsor</th><th>Years</th><th class="num">Amount</th><th class="num">Forge</th><th>Role</th><th>Status</th><th>Partners</th></tr></thead><tbody>
         ${aw.map((a) => `<tr><td><b>${esc(a.title)}</b>${a.number ? `<div class="note mono">${esc(a.number)}</div>` : ""}</td><td>${esc(a.sponsor || "")}</td><td class="note">${esc(String(yrs(a)))}</td><td class="num">${money(a.amount)}</td><td class="num">${money(a.forgeAmount)}</td><td>${AW_ROLE[a.role] || ""}</td><td>${awActive(a) ? `<span class="pill go">Active</span>` : `<span class="pill new">${AW_STATUS[a.status] || "Completed"}</span>`}</td><td class="note">${esc((a.partners || []).join(", "))}</td></tr>`).join("")}
         </tbody></table></div></details>
-      ${unv.length ? `<p class="vwarn">⚠ ${unv.length} award${unv.length === 1 ? " isn't" : "s aren't"} counted because ${unv.length === 1 ? "it" : "they"} couldn't be verified against an uploaded document (${unv.slice(0, 3).map((a) => esc(a.title)).join(", ")}${unv.length > 3 ? "…" : ""}). <a href="#profile" data-scrollaw="1">Review on Forge profile</a>.</p>` : ""}
+      ${unv.length ? `<p class="vwarn">⚠ ${unv.length} award${unv.length === 1 ? " isn't" : "s aren't"} counted because ${unv.length === 1 ? "it was" : "they were"} entered or edited by hand, not from an uploaded document (${unv.slice(0, 3).map((a) => esc(a.title)).join(", ")}${unv.length > 3 ? "…" : ""}). <a href="#profile" data-scrollaw="1">Review on Forge profile</a>.</p>` : ""}
     </section>`;
   }
   // System numbers: calculated from Pipeline stages and teaming partners (not verified against a document).
@@ -3121,10 +3121,13 @@ ${String(text).slice(0, SEND_CHARS)}
     if (w.length && hit / w.length < 0.6) fails.push("the award name doesn't match the document");
     return fails.length ? { ok: false, why: fails.join("; ") } : { ok: true, why: `Name and amounts found in ${docName}` };
   }
+  // Awards added or updated from an uploaded document are verified. A later hand edit to the name or dollar amounts,
+  // or removing the source document, takes the mark away until the award is uploaded again.
   function verifyAward(a) {
     if (!a.docId) return { ok: false, why: "Entered by hand, not from an uploaded document" };
-    const ix = docIndex(a.docId); if (!ix) return { ok: false, why: "Its source document was removed" };
-    return verifyWith(a, ix, S.awardDocs[a.docId].name);
+    const d = S.awardDocs[a.docId]; if (!d) return { ok: false, why: "Its source document was removed" };
+    if (a.verified === false) return { ok: false, why: a.unverifiedWhy || "Edited by hand after it was uploaded" };
+    return { ok: true, why: `From ${d.name}, uploaded ${fmtDate(d.uploadedAt)}` };
   }
   const verifiedAwards = () => awardsList().filter((a) => verifyAward(a).ok);
   function awJob(msg, err) { AW.job = msg ? { msg, err: Boolean(err) } : null; const el = document.getElementById("aw-job"); if (el) { el.textContent = msg || ""; el.className = "job" + (err ? " err" : ""); } }
@@ -3155,11 +3158,11 @@ ${String(text).slice(0, SEND_CHARS)}
       if (!rows.length) return awJob(`Claude found no awards in ${file.name}.`, true);
       const existing = awardsList();
       rows.forEach((a) => { const m = existing.find((e) => (a.number && e.number && normNum(e.number) === normNum(a.number)) || (e.title.toLowerCase() === a.title.toLowerCase() && (e.sponsor || "").toLowerCase() === a.sponsor.toLowerCase()));
-        a.dup = m?.title || ""; a.dupId = m?.id || ""; a.dupVerified = m ? verifyAward(m).ok : false; a.keep = !m || !a.dupVerified; });
+        a.dup = m?.title || ""; a.dupId = m?.id || ""; a.keep = true; });
       AW.draftDoc = { name: file.name.slice(0, 200), text: clean.slice(0, 400000), chars: clean.length };
-      const dix = textIndex(AW.draftDoc.text); rows.forEach((a) => { a.check = verifyWith(a, dix, file.name); if (!a.check.ok) a.keep = false; });
-      const bad = rows.filter((a) => !a.check.ok).length;
-      AW.draft = rows; render(); awJob(`Claude found ${rows.length} award${rows.length === 1 ? "" : "s"} in ${file.name}.${bad ? ` ${bad} couldn't be matched to the document's text and ${bad === 1 ? "is" : "are"} unticked.` : " Every name and amount was found in the document."} Review, then choose Save.`);
+      const dix = textIndex(AW.draftDoc.text); rows.forEach((a) => { a.check = verifyWith(a, dix, file.name); });
+      const bad = rows.filter((a) => !a.check.ok).length, upd = rows.filter((a) => a.dupId).length;
+      AW.draft = rows; render(); awJob(`Claude found ${rows.length} award${rows.length === 1 ? "" : "s"} in ${file.name}: ${rows.length - upd} new, ${upd} updating existing awards. All will be saved as verified.${bad ? ` ${bad} ha${bad === 1 ? "s" : "ve"} a number or name Claude couldn't spot in the text; check ${bad === 1 ? "it" : "them"} before saving.` : ""}`);
     } catch (err) { awJob(err?.message?.startsWith(file.name) || err?.message?.startsWith("The document") ? err.message : err?.code ? aiErr(err) : `${file.name} couldn't be read.`, true); }
   }
   async function saveAwardDraft() {
@@ -3168,11 +3171,16 @@ ${String(text).slice(0, SEND_CHARS)}
     try {
       const dref = db.collection("awardDocs").doc();
       await dref.set(await stamp({ ...AW.draftDoc, uploadedAt: new Date().toISOString(), by: me || null }));
-      for (const a of rows) { const { dup, dupId, dupVerified, keep, check, ...body } = a;
-        if (dupId && !dupVerified) await db.doc("awards/" + dupId).set(await stamp({ ...body, docId: dref.id }));   // the document's version replaces an unverified entry
-        else await db.collection("awards").add(await stamp({ ...body, docId: dref.id })); }
-      logChange({ kind: "profile", action: "added awards to", targetName: "Forge profile", changes: [{ field: "awards", label: "Awards added", to: `${rows.length} from ${rows[0].sourceDoc}` }] });
-      AW.draft = null; AW.draftDoc = null; render(); awJob(`Saved ${rows.length} award${rows.length === 1 ? "" : "s"} and the source document for verification.`);
+      let added = 0, updated = 0;
+      for (const a of rows) { const { dup, dupId, keep, check, ...body } = a;
+        const mark = { docId: dref.id, verified: true, verifiedAt: new Date().toISOString(), unverifiedWhy: null };
+        if (dupId && S.awards[dupId]) {   // update: the document's values win; keep existing details the document leaves blank
+          const cur = S.awards[dupId], keepIf = (k) => body[k] == null || body[k] === "" || (Array.isArray(body[k]) && !body[k].length);
+          const merged = { ...cur, ...Object.fromEntries(Object.entries(body).filter(([k]) => !keepIf(k))), ...mark };
+          await db.doc("awards/" + dupId).set(await stamp(merged)); updated++;
+        } else { await db.collection("awards").add(await stamp({ ...body, ...mark })); added++; } }
+      logChange({ kind: "profile", action: "uploaded awards to", targetName: "Forge profile", changes: [{ field: "awards", label: "Awards verified from " + rows[0].sourceDoc, to: `${added} added, ${updated} updated` }] });
+      AW.draft = null; AW.draftDoc = null; render(); awJob(`Saved from ${rows[0].sourceDoc}: ${added} added and ${updated} updated, all marked verified.`);
     } catch (err) { awJob(errMsg(err), true); }
   }
   async function saveAwardEdit() {
@@ -3182,6 +3190,11 @@ ${String(text).slice(0, SEND_CHARS)}
     const partners = splitList(v("partners")), start = v("start"), end = v("end");
     const body = await stamp({ title: title.slice(0, 300), sponsor: v("sponsor").slice(0, 200), number: v("number").slice(0, 80), amount: n("amount"), forgeAmount: n("forge"), role: v("role") || "prime", partners, partnerIds: linkPartners(partners),
       start, end, year: Number(v("year")) || Number(start.slice(0, 4)) || null, status: v("status") || "active", mechanism: v("mech").slice(0, 60), notes: v("notes").slice(0, 300), sourceDoc: S.awards[id]?.sourceDoc || "", docId: id === "new" ? null : S.awards[id]?.docId || null });
+    const prev = id === "new" ? null : S.awards[id];
+    if (prev?.docId) {
+      const changed = [prev.title !== body.title && "name", (prev.amount ?? null) !== body.amount && "amount", (prev.forgeAmount ?? null) !== body.forgeAmount && "Forge's share"].filter(Boolean);
+      Object.assign(body, changed.length ? { verified: false, unverifiedWhy: `Edited by hand after upload (${changed.join(", ")}). Upload the document again to re-verify.` } : { verified: prev.verified !== false, unverifiedWhy: prev.unverifiedWhy || null, verifiedAt: prev.verifiedAt || null });
+    }
     try {
       if (id === "new") await db.collection("awards").add(body); else await db.doc("awards/" + id).set(body);
       logChange({ kind: "profile", action: id === "new" ? "added an award to" : "updated an award in", targetName: "Forge profile", changes: [{ field: "award", label: "Award", to: `${title}${body.amount ? ` (${money(body.amount)})` : ""}` }] });
@@ -3219,7 +3232,7 @@ ${String(text).slice(0, SEND_CHARS)}
     const d = AW.draft;
     return `<section class="panel" id="awardsec"><div class="tbar"><h2 style="margin:0">Awards and past performance <span class="note">${all.length}</span></h2>
         ${AW.edit ? "" : `<button class="btn-ghost" data-awadd="1" ${ro()}>+ Add an award</button>`}</div>
-      <p class="help">Forge's named awards, dollar amounts, roles and partners. Upload a list (PDF, Word, PowerPoint, Excel or CSV) and Claude pulls out each award for you to review. The document's text is kept, and only awards whose name and dollar amounts are found in it count as <b>verified</b> on the Dashboard. Awards added by hand, or edited to numbers the document doesn't contain, are listed but not counted there.</p>
+      <p class="help">Forge's named awards, dollar amounts, roles and partners. Upload a list (PDF, Word, PowerPoint, Excel or CSV) and Claude pulls out each award for you to review. Every award in an uploaded document is added (or updates the matching award) and marked <b>verified</b>; only verified awards count on the Dashboard. Awards added by hand, or edited by hand afterward, are listed but not counted there until they're uploaded in a document.</p>
       <div class="fdtop"><label class="upload">Upload an awards list<input type="file" id="aw-file" accept=".pdf,.docx,.pptx,.xlsx,.csv,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.openxmlformats-officedocument.presentationml.presentation,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv" ${ro()}></label>
         ${all.length ? `<span class="note">${money(tot)} total awarded${fg ? ` · ${money(fg)} to Forge` : ""}</span>` : ""}</div>
       <div class="job${AW.job?.err ? " err" : ""}" id="aw-job" role="status">${esc(AW.job?.msg || "")}</div>
@@ -3227,11 +3240,11 @@ ${String(text).slice(0, SEND_CHARS)}
         return `<div class="stdoc"><span>📄 ${esc(d.name)} <span class="note">${n} award${n === 1 ? "" : "s"} · uploaded ${fmtDate(d.uploadedAt)}${d.by ? ` by ${esc(names[d.by] || "a teammate")}` : ""}</span></span><span class="btns">${armed.has(k) ? `<span class="note">Its awards stay but stop counting as verified.</span><button class="btn-danger" data-awdocdel="${esc(id)}">Confirm remove</button><button class="btn-ghost" data-disarm="${esc(k)}">Cancel</button>` : `<button class="btn-ghost" data-arm="${esc(k)}" ${ro()}>Remove</button>`}</span></div>`; }).join("")}</div>` : ""}
       ${AW.edit ? `<div class="panel" style="background:var(--surface-2)"><b>${AW.edit === "new" ? "Add an award" : "Edit award"}</b>${awardFormHtml(AW.edit === "new" ? {} : S.awards[AW.edit] || {})}</div>` : ""}
       ${d ? `<div class="aodraft panel" style="background:var(--surface-2)"><b>Review what Claude found</b>
-        <div class="tablewrap"><table class="awtable"><thead><tr><th>Save</th><th>In document?</th><th>Award</th><th>Sponsor</th><th>Amount</th><th>Forge</th><th>Role</th><th>Years</th><th>Partners</th></tr></thead><tbody>
-        ${d.map((a, i) => `<tr><td><input type="checkbox" data-awkeep="${i}" ${a.keep ? "checked" : ""} aria-label="Save ${esc(a.title)}"></td><td>${a.check.ok ? `<span class="vbadge ok" title="${esc(a.check.why)}">✓ Found</span>` : `<span class="vbadge no" title="${esc(a.check.why)}">⚠ Not found</span><div class="note">${esc(a.check.why)}</div>`}</td><td><b>${esc(a.title)}</b>${a.number ? `<div class="note mono">${esc(a.number)}</div>` : ""}${a.dup ? `<div class="note" style="color:var(--warn)">${a.dupVerified ? `Already saved and verified as “${esc(a.dup)}”` : `Replaces the unverified entry “${esc(a.dup)}”`}</div>` : ""}${a.notes ? `<div class="note">${esc(a.notes)}</div>` : ""}</td>
+        <div class="tablewrap"><table class="awtable"><thead><tr><th>Save</th><th>Action</th><th>Award</th><th>Sponsor</th><th>Amount</th><th>Forge</th><th>Role</th><th>Years</th><th>Partners</th></tr></thead><tbody>
+        ${d.map((a, i) => `<tr><td><input type="checkbox" data-awkeep="${i}" ${a.keep ? "checked" : ""} aria-label="Save ${esc(a.title)}"></td><td><span class="vbadge ok">${a.dupId ? "Update" : "Add"} · verified</span>${a.check.ok ? "" : `<div class="note" style="color:var(--warn)">Check: ${esc(a.check.why)}</div>`}</td><td><b>${esc(a.title)}</b>${a.number ? `<div class="note mono">${esc(a.number)}</div>` : ""}${a.dup ? `<div class="note">Updates “${esc(a.dup)}”</div>` : ""}${a.notes ? `<div class="note">${esc(a.notes)}</div>` : ""}</td>
           <td>${esc(a.sponsor)}</td><td class="num">${money(a.amount)}</td><td class="num">${money(a.forgeAmount)}</td><td>${AW_ROLE[a.role]}</td><td class="note">${esc([a.start?.slice(0, 7), a.end?.slice(0, 7)].filter(Boolean).join(" – ") || a.year || "")}</td><td class="note">${esc(a.partners.join(", "))}</td></tr>`).join("")}
         </tbody></table></div>
-        <div class="actions"><button class="btn" data-awdraftsave="1" ${ro()}>Save ticked awards</button><button class="btn-ghost" data-awdraftcancel="1">Discard</button></div></div>` : ""}
+        <div class="actions"><button class="btn" data-awdraftsave="1" ${ro()}>Save ticked awards as verified</button><button class="btn-ghost" data-awdraftcancel="1">Discard</button></div></div>` : ""}
       ${all.length ? `<div class="filters" style="margin:10px 0"><input id="aw-q" placeholder="Search awards, sponsors, partners…" value="${esc(AW.q)}" aria-label="Search awards" style="flex:1 1 220px"><span class="note">${rows.length === all.length ? `${all.length} awards` : `${rows.length} of ${all.length}`}</span></div>
         <div class="tablewrap"><table class="awtable"><thead><tr><th>Verified</th><th>Award</th><th>Sponsor</th><th>Amount</th><th>Forge</th><th>Role</th><th>Status</th><th>Years</th><th>Partners</th><th></th></tr></thead><tbody>
         ${rows.map((a) => { const k = "aw:" + a.id, vf = verifyAward(a); return `<tr class="${vf.ok ? "" : "awunv"}"><td>${vf.ok ? `<span class="vbadge ok" title="${esc(vf.why)}">✓ Verified</span>` : `<span class="vbadge no" title="${esc(vf.why)}">⚠ Not verified</span><div class="note">${esc(vf.why)}</div>`}</td><td><b>${esc(a.title)}</b>${a.number ? `<div class="note mono">${esc(a.number)}</div>` : ""}${a.mechanism ? `<div class="note">${esc(a.mechanism)}</div>` : ""}</td><td>${esc(a.sponsor || "")}</td><td class="num">${money(a.amount)}</td><td class="num">${money(a.forgeAmount)}</td><td>${AW_ROLE[a.role] || ""}</td>
@@ -4522,7 +4535,7 @@ ${JSON.stringify({ partners: inp.partners, consortia: inp.consortia, fundingSpon
         <li><b>Organization details</b> (CAGE, UEI, address, point of contact) with one-click Copy buttons for forms.</li>
         <li><b>Staff.</b> Titles, capability and skill tags, a proposal-ready bio and résumés. Upload a résumé and Claude drafts the tags and bio for you to accept. Link each person to their <b>Claude account</b> (Edit → search the team, or <i>This is me</i>) so their card shows the open opportunities they own; one account can be linked to only one staff record.</li>
         <li><b>Forge documents.</b> Upload capability statements, decks, narratives, press releases and past performance. Claude summarizes each and suggests capabilities, good and poor fits and search keywords; the ones you add go into the profile.</li>
-        <li><b>Awards and past performance.</b> Upload Forge's awards list (PDF, Word, PowerPoint, Excel or CSV); Claude pulls out each award's name, sponsor, number, total and Forge's share, role, partners, dates and status for you to review before saving. Add or edit awards by hand too. The document's text is kept, and every award is checked against it each time the Dashboard loads: only awards whose name and dollar amounts appear in an uploaded document are <b>verified</b> and counted in the green <i>Grants and awards</i> section. Awards added by hand, edited to a number the document doesn't contain, or whose source document is removed are marked ⚠ Not verified and left out (the Dashboard says how many). Uploading a document that contains an unverified award replaces it with the verified version. Claude cites the awards as past performance when drafting submissions.</li>
+        <li><b>Awards and past performance.</b> Upload Forge's awards list (PDF, Word, PowerPoint, Excel or CSV); Claude pulls out each award's name, sponsor, number, total and Forge's share, role, partners, dates and status for you to review before saving. Add or edit awards by hand too. Every award in the uploaded document is added, or updates the matching award (same award number, or same name and sponsor), and is marked <b>verified</b>; the review shows a note if Claude couldn't spot a number in the text so you can double-check. Only verified awards count in the green <i>Grants and awards</i> section. Awards added by hand, edited by hand afterward (name or dollar amounts), or whose source document is removed are marked ⚠ Not verified and left out until they're uploaded again (the Dashboard says how many). Claude cites the awards as past performance when drafting submissions.</li>
         <li><b>The profile itself</b> (summary, capabilities, good and poor fit, decision criteria, search keywords) is what the daily scan and Claude use to judge fit, so keeping it current improves every score.</li>
       </ul>`],
     ["sponsors", "Funding sponsors", `
