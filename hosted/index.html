@@ -1,6 +1,6 @@
 <title>Forge Grants Dashboard</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<meta name="forge:published" content="2026-11-22T22:49:37Z">
+<meta name="forge:published" content="2026-11-22T22:56:00Z">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
@@ -90,6 +90,9 @@ header.mast .topbar { display: flex; align-items: center; gap: 10px; padding-blo
 .setrow label { display: inline-flex; gap: 6px; align-items: center; font-size: 14px }
 .setlist { margin: 0; padding: 0; list-style: none; display: grid; gap: 6px; font-size: 14px }
 .setlist li { display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: baseline }
+.setlist li.setrefresh { align-items: center }
+.setlist .setrefresh .refresh { display: flex; flex-direction: row; flex-wrap: wrap; gap: 6px 10px; align-items: center; justify-items: start; text-align: left; max-width: none }
+.setlist .setrefresh .refresh .help { text-align: left; max-width: 60ch }
 .setlinks { display: flex; flex-wrap: wrap; gap: 8px }
 .setlinks a { display: inline-flex; gap: 8px; align-items: center; padding: 6px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); color: var(--fg) }
 .setlinks a:hover { border-color: var(--accent); text-decoration: none }
@@ -1161,8 +1164,7 @@ details.addform[open] > summary::before { content: "− " }
     const high = open.filter(isHigh).sort(byFit);
     const counts = Object.fromEntries(STAGES.map((s) => [s, 0])); OPPS.forEach((o) => counts[stageOf(o)]++);
     return `
-      <div class="head"><div><h1>Grant dashboard</h1>${storeBanner()}</div>
-        <div style="display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap">${refreshHtml()}</div></div>
+      <div class="head"><div><h1>Grant dashboard</h1>${storeBanner()}</div></div>
       <section class="stats">
         <a class="stat" href="#opportunities" data-reset="1"><div class="k">Open opportunities</div><div class="v">${open.length}</div><div class="s">From the latest snapshot</div></a>
         <a class="stat hot" href="#opportunities" data-min="6"><div class="k">High match (6+)</div><div class="v">${high.length}</div><div class="s">Evaluated by Claude</div></a>
@@ -4445,7 +4447,7 @@ ${JSON.stringify({ partners: inp.partners, consortia: inp.consortia, fundingSpon
         <li><b>Pipeline.</b> Move work forward: drag cards on the Board, or use the stage menu on each row in the List.</li>
         <li><b>Submissions.</b> Keep drafts moving: pick a concept, write and polish sections, run the red team, download a .docx for review.</li>
       </ol>
-      <p>Need something newer than this morning's scan? Press <b>↻ Refresh</b> on the Dashboard (once every 5 hours). A red banner then shows across the top for 10 hours, saying who pressed it and how the refresh is going.</p>`],
+      <p>Need something newer than this morning's scan? Use <b>↻ Refresh</b> under <a href="#settings">Settings</a> → Background jobs (once every 5 hours). A red banner then shows across the top for 10 hours, saying who pressed it and how the refresh is going.</p>`],
     ["find", "Finding opportunities", `
       <p>Opportunities come from four places. The <b>Source</b> filter on Opportunities and Pipeline shows any one of them.</p>
       <dl class="hdl">
@@ -4553,7 +4555,7 @@ ${JSON.stringify({ partners: inp.partners, consortia: inp.consortia, fundingSpon
       <p>Claude works in two places: <b>in your browser</b> when you press a button (results in seconds), and as a <b>background worker</b> for anything that needs the web (results within the hour). Treat everything it writes as a well-read first draft; it's told to use only the sources it was given and to flag what needs checking.</p>
       <div class="tablewrap" style="border:0"><table class="htable"><thead><tr><th>What</th><th>When</th></tr></thead><tbody>
         <tr><td>Daily scan, Claude scoring, sponsor health check</td><td>Weekdays about 6:30 AM CT</td></tr>
-        <tr><td>Refresh button on the Dashboard</td><td>On demand, once every 5 hours</td></tr>
+        <tr><td>Refresh (Settings → Background jobs)</td><td>On demand, once every 5 hours</td></tr>
         <tr><td>Partner web research, people for topic ideas, proposal coaching, online opportunity lookups</td><td>Hourly on weekdays, 7 AM–7 PM CT</td></tr>
         <tr><td>Reading uploads (notices, résumés, Forge and partner documents), topic ideas, submission concepts, drafting, polish, reviewer read and red team</td><td>Right away, in your browser</td></tr>
       </tbody></table></div>
@@ -4603,6 +4605,7 @@ ${JSON.stringify({ partners: inp.partners, consortia: inp.consortia, fundingSpon
         <section class="panel"><h2>Background jobs</h2>
           <ul class="setlist">
             <li><b>Daily scan</b><span>${esc(sc.schedule || "Weekdays around 6:30 AM CT")}</span><span class="note">Last run ${esc(t(sc.lastRun))}${sc.added != null ? ` · ${sc.added} new, ${sc.evaluated ?? 0} scored` : ""}${sc.lastError ? ` · last error: ${esc(short(sc.lastError, 120))}` : ""}</span></li>
+            <li class="setrefresh"><b>Check for new opportunities now</b>${refreshHtml()}</li>
             <li><b>Research and coaching worker</b><span>Hourly on weekdays, 7 AM to 7 PM CT</span><span class="note">${rs.triggerId ? "Partner research, people for topics, proposal coaching and online lookups" : "Not set up"}</span></li>
             <li><b>Last updated</b><span class="note">${esc(document.getElementById("updated")?.textContent || "")}</span></li>
           </ul>

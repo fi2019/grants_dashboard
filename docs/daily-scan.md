@@ -1,7 +1,7 @@
 # Daily scan runbook
 
 The scheduled "Forge Grants daily scan" session follows these steps each weekday
-around 6:30 AM Central, and whenever someone presses **Refresh** on the dashboard.
+around 6:30 AM Central, and whenever someone presses **Refresh** (Settings → Background jobs).
 It is Claude running in a cloud session, so it also does the scoring (no API key needed).
 
 Page: https://claude.ai/artifact/FrxnW51wxBrfZubZJkxu4r (called PAGE below).
