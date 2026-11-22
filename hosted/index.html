@@ -1,6 +1,6 @@
 <title>Forge Grants Dashboard</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<meta name="forge:published" content="2026-11-22T17:02:03Z">
+<meta name="forge:published" content="2026-11-22T17:37:39Z">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
@@ -289,6 +289,12 @@ pre.outline { white-space: pre-wrap; font: 13px/1.55 var(--font); margin: 8px 0 
 .descd .clamp { white-space: pre-line; font-size: 15px; line-height: 1.6; max-width: 80ch; display: -webkit-box; -webkit-line-clamp: 7; -webkit-box-orient: vertical; overflow: hidden }
 .descd .more { display: inline-block; margin-top: 6px; color: var(--link); font-size: 14px }
 .descd[open] > summary { display: none }
+.ownline { display: flex; flex-wrap: wrap; gap: 4px 6px; align-items: center; margin-top: 5px }
+.ochip { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; background: var(--surface-2); border: 1px solid var(--line); border-radius: 999px; padding: 1px 8px 1px 2px; color: var(--fg) }
+.ochip:not(:has(img, .oinit)) { padding-left: 8px }
+.ochip img, .ochip .oinit { width: 18px; height: 18px; border-radius: 50% }
+.ochip .oinit { display: inline-grid; place-items: center; background: var(--navy-ink); color: var(--surface); font: 600 10px var(--font) }
+.ochip.me { background: var(--info-bg); border-color: transparent; color: var(--info); font-weight: 600 }
 .sortbox { display: inline-flex; gap: 0 }
 .sortbox select { border-top-right-radius: 0; border-bottom-right-radius: 0 }
 .sortbox .btn-ghost { border-top-left-radius: 0; border-bottom-left-radius: 0; border-left: 0; padding: 6px 10px; font-size: 13px; white-space: nowrap }
@@ -774,12 +780,19 @@ details.addform[open] > summary::before { content: "− " }
       <span class="team-avg" title="${esc(raters)}">${t ? `Team ${t.avg.toFixed(1)} · ${t.count} rating${t.count > 1 ? "s" : ""}` : "Team: no ratings"}</span>`;
   }
 
+  // Assigned team members, shown on each row of the opportunity lists.
+  function ownerLine(o) {
+    const d = S.decisions[o.id] || {}, ids = d.owners || [];
+    if (!ids.length && !d.owner) return "";
+    const chip = (id) => `<span class="ochip${id === me ? " me" : ""}">${avatars[id] ? `<img src="${esc(avatars[id])}" alt="">` : `<span class="oinit" aria-hidden="true">${esc((names[id] || "?").trim().charAt(0).toUpperCase())}</span>`}${esc(names[id] || (id === me ? "You" : "Team member"))}</span>`;
+    return `<div class="ownline"><span class="note">Assigned to</span>${ids.length ? ids.map(chip).join("") : `<span class="ochip">${esc(d.owner)}</span>`}</div>`;
+  }
   function table(items, empty, sortable) {
     if (!items.length) return `<p class="panel empty">${empty}</p>`;
     const th = (key, label) => { if (!sortable) return `<th>${label}</th>`; const on = ui.sort === key, dir = on ? sortDir() : SORT_DEFAULT_DIR[key];
       return `<th aria-sort="${on ? (dir === "asc" ? "ascending" : "descending") : "none"}"><button type="button" class="thsort${on ? " on" : ""}" data-sorthead="${key}" title="Sort by ${label.toLowerCase()}${on ? `, now ${dir === "asc" ? "ascending" : "descending"}; click to reverse` : ""}">${label}<span aria-hidden="true">${on ? (dir === "asc" ? " ▲" : " ▼") : " ↕"}</span></button></th>`; };
     return `<div class="tablewrap"><table><thead><tr>${th("fit", "Fit")}${th("rating", "Rating")}<th>Opportunity</th>${th("deadline", "Deadline")}${th("ceiling", "Award ceiling")}<th>Criteria</th>${th("stage", "Stage")}</tr></thead><tbody>${
-      items.map((o) => `<tr><td>${scoreHtml(o)}</td><td>${starsHtml(o)}</td><td style="min-width:260px">${oppLink(o)}<div class="meta">${srcTag(o)}${mechHtml(o)}${roleHtml(o)}<span>${esc(o.agency)}</span>${o.number ? `<span class="mono">${esc(o.number)}</span>` : ""}</div>${tagsHtml(o)}</td><td>${deadlineCell(o)}</td><td class="num">${money(o.awardCeiling)}</td><td>${dots(o)}</td><td>${pill(stageOf(o))}</td></tr>`).join("")
+      items.map((o) => `<tr><td>${scoreHtml(o)}</td><td>${starsHtml(o)}</td><td style="min-width:260px">${oppLink(o)}<div class="meta">${srcTag(o)}${mechHtml(o)}${roleHtml(o)}<span>${esc(o.agency)}</span>${o.number ? `<span class="mono">${esc(o.number)}</span>` : ""}</div>${tagsHtml(o)}${ownerLine(o)}</td><td>${deadlineCell(o)}</td><td class="num">${money(o.awardCeiling)}</td><td>${dots(o)}</td><td>${pill(stageOf(o))}</td></tr>`).join("")
     }</tbody></table></div>`;
   }
   const dueList = (items, dateOf, empty, showInternal) => items.length
