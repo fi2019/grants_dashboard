@@ -1,6 +1,6 @@
 <title>Forge Grants Dashboard</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<meta name="forge:published" content="2026-11-22T18:26:56Z">
+<meta name="forge:published" content="2026-11-22T18:33:11Z">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
@@ -581,6 +581,16 @@ details.addform[open] > summary::before { content: "− " }
 .swatch.stale1 { background: var(--stale-bg); border-color: var(--stale-line) }
 .swatch.stale3 { background: var(--bad-bg); border-color: var(--bad) }
 .nav-badge { display: inline-block; min-width: 18px; margin-left: 5px; padding: 0 5px; border-radius: 9px; background: var(--accent); color: var(--on-accent); font: 600 11px/18px var(--mono); text-align: center }
+.workload { display: flex; flex-wrap: wrap; gap: 6px; align-items: center }
+.workload .wl { display: inline-flex; align-items: center; gap: 6px; font: inherit; font-size: 13px; color: var(--fg); background: var(--surface-2); border: 1px solid var(--line); border-radius: 999px; padding: 2px 4px 2px 3px; min-height: 28px; cursor: pointer; text-decoration: none }
+.workload .wl:hover { border-color: var(--accent) }
+.workload .wl.on { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent) }
+.workload .wl img { width: 22px; height: 22px; border-radius: 50% }
+.workload .wl .ini { width: 22px; height: 22px; border-radius: 50%; display: inline-grid; place-items: center; background: var(--line); font-size: 11px; font-weight: 600 }
+.workload .wl b { min-width: 22px; padding: 0 7px; border-radius: 999px; background: var(--accent); color: var(--on-accent); font-size: 12px; line-height: 20px; text-align: center }
+.workload .wl.none b { background: var(--muted); color: var(--surface) }
+.workload .lblw { font-size: 13px; font-weight: 600; margin-right: 4px }
+.wlpanel .help { margin-top: 6px }
 </style>
 
 <div id="snow" aria-hidden="true"></div>
@@ -916,6 +926,7 @@ details.addform[open] > summary::before { content: "− " }
       </section>
       <div class="panel filters dcat"><label>Focus the dashboard on ${catSelect("d-cat", ui.dcat, "All categories")}</label>${ui.dcat ? `<span class="note">Showing only opportunities in <b>${esc(catLabel(ui.dcat))}</b>.</span> <button class="btn-ghost" data-dcat="" type="button">Show all</button>` : `<span class="note">Counts, revenue, deadlines and recommendations below follow this choice.</span>`}</div>
       ${revenuePanel(open, OPPS.filter(inDash))}
+      ${workloadHtml(open, true)}
       ${ui.dcat ? "" : myPanel}
       <section class="grid2">
         <div class="panel"><h2>Forge internal deadlines</h2><p class="help" style="margin-bottom:6px">${leadLabel()[0].toUpperCase() + leadLabel().slice(1)} before each submission deadline, unless the team set another date.</p>${dueList(internal, internalOf, "No internal deadlines in the next 14 days for opportunities in progress.", true)}</div>
@@ -959,7 +970,7 @@ details.addform[open] > summary::before { content: "− " }
       // Team concepts are topic ideas moved forward from the Teaming page.
       if (ui.tc === "hide" && o.source === "teaming") return false;
       if (ui.tc === "only" && o.source !== "teaming") return false;
-      if (ui.owner) { const ow = ownersOf(o); if (ui.owner === "@me" ? !ow.includes(me) : ui.owner === "@none" ? ow.length > 0 : !ow.includes(ui.owner)) return false; }
+      if (ui.owner) { const ow = ownersOf(o); if (ui.owner === "@me" ? !ow.includes(me) : ui.owner === "@none" ? ow.length > 0 : ui.owner === "@nonepipe" ? ow.length > 0 || !["screening", "internal_review", "go", "drafting"].includes(stageOf(o)) : !ow.includes(ui.owner)) return false; }
       if (ui.role && !(roleOf(o) === ui.role || (roleOf(o) === "either" && (ui.role === "lead" || ui.role === "partner")))) return false;
       if (ui.stars) {
         const r = ui.starBasis === "team" ? (teamAvg(o)?.avg || 0) : myRating(o);
@@ -1024,7 +1035,7 @@ details.addform[open] > summary::before { content: "− " }
         <select id="f-mech" aria-label="Opportunity type">${opt("", "Any type", ui.mech)}${MECH_ORDER.map((m) => opt(m, m, ui.mech)).join("")}</select>
         <select id="f-tc" aria-label="Team concepts from Teaming">${opt("", "Team concepts: show", ui.tc)}${opt("hide", "Team concepts: hide", ui.tc)}${opt("only", "Team concepts only", ui.tc)}</select>
         <select id="f-owner" aria-label="Owner">${(() => { const ids = [...new Set(Object.values(S.decisions).flatMap((d) => d.owners || []))].sort((a, b) => (names[a] || "").localeCompare(names[b] || ""));
-          return opt("", "Any owner", ui.owner) + (me ? opt("@me", "Assigned to me", ui.owner) : "") + opt("@none", "Unassigned", ui.owner) + ids.map((id) => opt(id, names[id] || (id === me ? "You" : "Team member"), ui.owner)).join(""); })()}</select>
+          return opt("", "Any owner", ui.owner) + (me ? opt("@me", "Assigned to me", ui.owner) : "") + opt("@none", "Unassigned", ui.owner) + opt("@nonepipe", "Unassigned in the pipeline", ui.owner) + ids.map((id) => opt(id, names[id] || (id === me ? "You" : "Team member"), ui.owner)).join(""); })()}</select>
         <select id="f-role" aria-label="Forge's role">${opt("", "Lead or partner", ui.role)}${opt("lead", "Forge can lead", ui.role)}${opt("partner", "Partner role", ui.role)}${opt("unclear", "Lead: check notice", ui.role)}</select>
         <label><input type="checkbox" id="f-partner" ${ui.partner ? "checked" : ""}> Partner match</label>
         <label><input type="checkbox" id="f-clean" ${ui.clean ? "checked" : ""}> No failed criteria</label>
@@ -1038,6 +1049,7 @@ details.addform[open] > summary::before { content: "− " }
     return `
       <div class="head"><h1>Opportunities</h1><span class="sub"><span class="num">${items.length}</span> shown · * keyword pre-score, not yet evaluated by Claude</span></div>
       ${filtersHtml(false)}
+      ${workloadHtml(OPPS.filter(isOpen), false)}
       <div class="legend"><span>Type: <span class="mech sbir">SBIR</span> <span class="mech baa">BAA</span> <span class="mech grant">Grant</span> <span class="mech contract">Contract</span></span><span>Role: <span class="role lead">Forge can lead</span> <span class="role partner">Partner role</span> <span class="role unclear">Lead: check notice</span></span><span>Criteria: no cash match · indirect costs · operating expenses · open solicitation (<a href="#help" data-helpgo="criteria">how it's calculated</a>)</span>
         <span><i class="dot pass"></i>yes</span><span><i class="dot fail"></i>no</span><span><i class="dot unknown"></i>not stated</span>
         <span>Days left: <b class="dl urgent">under 30</b> <b class="dl soon">under 90</b> <b class="dl ok">90+</b></span></div>
@@ -1171,6 +1183,25 @@ details.addform[open] > summary::before { content: "− " }
   }
   function refreshOwners() { const box = document.getElementById("d-owners"); if (box) box.innerHTML = dOwners.list.map(ownerChip).join("") || `<span class="help">No owner yet.</span>`; dirty = true; }
   const ownerNames = (ids) => (ids || []).map((id) => names[id] || (id === me ? "You" : "a teammate"));
+  // Assignments: how many open opportunities each team member owns. `pool` is the open opportunities counted;
+  // on the Opportunities page the chips filter the list, on the Dashboard they open it filtered to that person.
+  function workloadHtml(pool, onDash) {
+    const per = {}, ACTIVE = ["screening", "internal_review", "go", "drafting"];
+    pool.forEach((o) => ownersOf(o).forEach((id) => { (per[id] ||= { n: 0, st: {} }).n++; per[id].st[stageOf(o)] = (per[id].st[stageOf(o)] || 0) + 1; }));
+    const unPipe = pool.filter((o) => !ownersOf(o).length && ACTIVE.includes(stageOf(o))).length;
+    const ids = Object.keys(per).sort((a, b) => per[b].n - per[a].n || (names[a] || "").localeCompare(names[b] || ""));
+    const nm = (id) => names[id] || (id === me ? "You" : "Team member");
+    const face = (id) => avatars[id] ? `<img src="${esc(avatars[id])}" alt="">` : `<span class="ini">${esc(nm(id).split(/\s+/).map((w) => w[0] || "").join("").slice(0, 2).toUpperCase())}</span>`;
+    const tip = (id) => Object.entries(per[id].st).map(([k, v]) => `${v} ${LABEL[k]}`).join(", ");
+    const chip = (key, inner, title, extra = "") => onDash
+      ? `<a class="wl ${extra}" href="#opportunities" data-owner="${esc(key)}" data-cat="${esc(ui.dcat || "")}" title="${esc(title)}">${inner}</a>`
+      : `<button type="button" class="wl ${extra}${ui.owner === key ? " on" : ""}" data-wl="${esc(key)}" aria-pressed="${ui.owner === key}" title="${esc(title)}">${inner}</button>`;
+    const chips = ids.map((id) => chip(id, `${face(id)}${esc(nm(id))}${id === me ? ` <span class="note">(you)</span>` : ""} <b>${per[id].n}</b>`, `${nm(id)}: ${tip(id)}`)).join("")
+      + (unPipe ? chip("@nonepipe", `<span class="ini">?</span>Unassigned in the pipeline <b>${unPipe}</b>`, "In Screening through Drafting with no owner", "none") : "");
+    const body = ids.length || unPipe ? `<div class="workload">${onDash ? "" : `<span class="lblw">Assigned</span>`}${chips}</div>` : `<p class="empty">Nobody is assigned to an open opportunity yet. Pick owners in an opportunity's decision panel.</p>`;
+    return onDash ? `<section class="panel wlpanel"><h2>Assignments</h2>${body}<p class="help">Open opportunities each team member owns${ui.dcat ? " in this category" : ""}. Hover for the stages; click to see the list.</p></section>`
+      : `<div class="panel wlpanel" id="workload">${body}</div>`;
+  }
 
   // ---------- pipeline / federal / report (unchanged logic, new deadline display) ----------
   const BOARD_COLS = ["screening", "internal_review", "go", "drafting", "submitted", "awarded", "not_awarded"];
@@ -3361,10 +3392,11 @@ ${JSON.stringify({ partners: inp.partners, consortia: inp.consortia, fundingSpon
   app.addEventListener("click", (e) => {
     const t = e.target.closest("button, a"); if (!t) return;
     const ds = t.dataset;
-    if (t.matches("a[data-min],a[data-stage],a[data-agency],a[data-cat],a[data-reset],a[data-mycats]")) {
+    if (t.matches("a[data-min],a[data-stage],a[data-agency],a[data-cat],a[data-reset],a[data-mycats],a[data-owner]")) {
       e.preventDefault();
-      return go("#opportunities", { ...CLEAR, min: ds.min || "", stage: ds.stage || "", agency: ds.agency || "", cat: ds.mycats ? "@mine" : ds.cat || "" });
+      return go("#opportunities", { ...CLEAR, min: ds.min || "", stage: ds.stage || "", agency: ds.agency || "", cat: ds.mycats ? "@mine" : ds.cat || "", owner: ds.owner || "" });
     }
+    if (ds.wl !== undefined) { ui.owner = ui.owner === ds.wl ? "" : ds.wl; saveFilters(); return render(); }
     if (t.id === "refresh-btn") return requestRefresh();
     if (ds.copy !== undefined && t.tagName === "BUTTON") return copyText(t);
     if (ds.addstaff) { editing.staff = "new"; Object.assign(sform, { docs: [], status: "", err: false }); render(); document.getElementById("st-name")?.focus(); return; }
