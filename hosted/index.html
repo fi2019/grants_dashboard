@@ -1,6 +1,6 @@
 <title>Forge Grants Dashboard</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<meta name="forge:published" content="2026-11-22T21:45:46Z">
+<meta name="forge:published" content="2026-11-22T22:06:59Z">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
@@ -305,6 +305,14 @@ td .meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; color:
 .helptoc button { background: none; border: 0; text-align: left; color: var(--link); padding: 4px 6px; border-radius: 4px; font-size: 14px }
 .helptoc button:hover { background: var(--surface-2) }
 .helpdoc { display: grid; gap: 16px; min-width: 0 }
+.helptoc input[type=search] { width: 100%; margin-bottom: 8px }
+.hflow { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px; margin: 4px 0 6px }
+.hflow > div { display: grid; gap: 3px; align-content: start; padding: 10px 12px; border: 1px solid var(--line); border-top: 3px solid var(--accent); border-radius: 8px; background: var(--surface-2) }
+.hflow b { font: 700 14px var(--display) }
+.hflow span { font-size: 13px; color: var(--muted); line-height: 1.4 }
+.hflow a { font-size: 13px }
+.hfb { background: #FFF8D6; color: #9A4A00; border: 1px solid #F2D675; border-radius: 4px; padding: 0 5px }
+.hrt { background: #FDECEC; color: #8B1A1A; border: 1px solid #F1B5B5; border-radius: 4px; padding: 0 5px }
 .helpdoc section { scroll-margin-top: 12px }
 .hprose { max-width: 80ch; display: grid; gap: 10px; font-size: 15px }
 .hprose ul, .hprose ol { margin: 0; padding-left: 22px; display: grid; gap: 6px }
@@ -4083,131 +4091,157 @@ ${JSON.stringify({ partners: inp.partners, consortia: inp.consortia, fundingSpon
   // ---------- help ----------
   const HELP = [
     ["start", "Start here", `
-      <p>Forge Grants finds federal funding that fits Forge Institute, helps the team decide what to pursue, and helps shape proposals with partners. Everything you change here (decisions, ratings, partners, categories, notes) is shared with everyone on the team and recorded in <a href="#history">History</a>.</p>
-      <p><b>What happens automatically</b></p>
-      <ul>
-        <li><b>Every weekday around 6:30 AM CT</b> the system scans Grants.gov and the DHS acquisition forecast for new opportunities, updates existing ones, has Claude score the most promising new ones, checks every funding sponsor's website, and publishes the results here.</li>
-        <li><b>Every hour on weekdays, 7 AM–7 PM CT</b>, a background Claude worker does the web work this page can't: researching partners online, finding faculty and staff for topic ideas, preparing proposal coaching, and starting refreshes people asked for.</li>
-      </ul>
-      <p><b>A good first week</b></p>
+      <p><b>Forge Grants</b> is the team's shared workspace for federal and foundation funding. It finds opportunities that fit Forge Institute, helps the team decide what to pursue, pairs Forge with the right partners, and helps write and red-team the submission. Everything you save here is shared with everyone on the team and recorded in <a href="#history">History</a>.</p>
+      <div class="hflow" aria-label="How work moves through Forge Grants">
+        <div><b>1 · Find</b><span>Daily scan, manual adds, Asana history</span><a href="#opportunities">Opportunities</a></div>
+        <div><b>2 · Decide</b><span>Rate, assign owners, Go / No-go</span><a href="#pipeline">Pipeline</a></div>
+        <div><b>3 · Team</b><span>Partners, consortia, topic ideas</span><a href="#teaming">Teaming</a></div>
+        <div><b>4 · Write</b><span>Concepts, working draft, red team</span><a href="#submissions">Submissions</a></div>
+        <div><b>5 · Track</b><span>Submitted, awarded, lessons learned</span><a href="#history">History</a></div>
+      </div>
+      <p><b>Getting around.</b> Pages are in the left sidebar; the collapse button at the bottom shrinks it to icons. <b>Settings</b> (the gear, bottom left) holds light or dark colors, sidebar width and holiday themes. On a phone, the ☰ button at the top opens the menu. Going back returns you to where you were on the previous page.</p>
+      <p><b>Your first week</b></p>
       <ol>
-        <li>Join the <a href="#categories">categories</a> you care about, so matching opportunities show under <i>Your categories</i> on the dashboard.</li>
-        <li>Skim <a href="#opportunities">Opportunities</a> and rate the ones you'd pursue (1–5 stars).</li>
+        <li>Join the <a href="#categories">categories</a> you care about. Matching opportunities then show under <i>Your categories</i> on the <a href="#dashboard">Dashboard</a>.</li>
+        <li>Skim <a href="#opportunities">Opportunities</a>, open a few and rate them 1–5 stars. Ratings steer coaching and help the team decide.</li>
+        <li>Open the <a href="#pipeline">Pipeline</a> and find the items you own (Owner filter, or the <i>Assigned</i> chips on Opportunities and the Dashboard).</li>
         <li>Check that your key <a href="#partners">partners</a> are listed, with their centers, departments and people underneath.</li>
-        <li>Try a <a href="#teaming">Teaming</a> setup for a sponsor you know well and see what topic ideas come back.</li>
+        <li>Look at <a href="#profile">Forge profile</a>: add your staff entry (upload a résumé and Claude drafts your capabilities and bio).</li>
       </ol>`],
     ["daily", "A typical day", `
       <ol>
-        <li><b>Dashboard:</b> look at <i>Your categories</i>, Forge internal deadlines (next 14 days) and submission deadlines (next 30 days).</li>
-        <li><b>Opportunities:</b> filter to what's new or high match, then sort by fit, team rating, deadline, stage or award ceiling. Click a column heading (Fit, Rating, Deadline, Award ceiling, Stage) to sort by it and click again to reverse, or use the Sort menu and its ↑/↓ button. Open anything interesting: <i>What it is</i> at the top describes the opportunity, followed by the scores, criteria and Claude's fit explanation. Then rate it.</li>
-        <li><b>Decide:</b> on an opportunity's page use <i>Go</i> / <i>No-go</i>, or set the stage, owner, internal deadline and notes.</li>
-        <li><b>Pipeline:</b> drag cards between stages as work moves forward.</li>
-        <li><b>Teaming:</b> when a sponsor matters but no listing is open yet, build topic ideas with partners and move the good ones forward.</li>
+        <li><b>Dashboard.</b> Check <i>Your categories</i>, <i>Assignments</i>, Forge internal deadlines (next 14 days) and submission deadlines (next 30 days).</li>
+        <li><b>Opportunities.</b> Filter to what's new or high match, sort by fit, rating, deadline, stage or award ceiling (click a column heading, click again to reverse), and rate what you open.</li>
+        <li><b>Decide.</b> On an opportunity's page choose <i>Go</i> or <i>No-go</i>, or set the stage, owners, teaming partners, internal deadline and notes.</li>
+        <li><b>Pipeline.</b> Move work forward: drag cards on the Board, or use the stage menu on each row in the List.</li>
+        <li><b>Submissions.</b> Keep drafts moving: pick a concept, write and polish sections, run the red team, download a .docx for review.</li>
       </ol>
-      <p>Need something newer than this morning's scan? Use <b>↻ Refresh</b> on the dashboard (once every 5 hours). A red banner then shows across the top of every page for 10 hours, saying who pressed it, when, and how the refresh is going.</p>`],
-    ["read", "Reading an opportunity", `
+      <p>Need something newer than this morning's scan? Press <b>↻ Refresh</b> on the Dashboard (once every 5 hours). A red banner then shows across the top for 10 hours, saying who pressed it and how the refresh is going.</p>`],
+    ["find", "Finding opportunities", `
+      <p>Opportunities come from four places. The <b>Source</b> filter on Opportunities and Pipeline shows any one of them.</p>
       <dl class="hdl">
-        <dt>Fit score</dt><dd><span class="score s6">6/10</span> is Claude's judgment of fit with Forge (6+ counts as a high match). A score with a star, <span class="score s4 pre">4/10*</span>, is only a keyword pre-score that hasn't been reviewed by Claude yet. New listings that Claude scores 6 or higher move to <i>Screening</i> on their own.</dd>
-        <dt>Stars</dt><dd>Your own 1–5 rating, with the team average under it. Click your current rating again to clear it. Filters can use <i>My rating</i> or <i>Team average</i>. A team average of 3 or more triggers proposal coaching.</dd>
-        <dt>Deadline colors</dt><dd><span class="dl urgent">red</span> under 30 days, <span class="dl soon">orange</span> under 90 days, <span class="dl ok">green</span> 90 days or more. A ⚠ date is probably a placeholder in the source data, so check the listing.</dd>
-        <dt>Forge internal deadline</dt><dd>Defaults to 2 weeks before the submission deadline (change the default on <a href="#profile">Forge profile</a>, or set a different date on one opportunity).</dd>
-        <dt>Type</dt><dd>The funding vehicle: <span class="mech sbir">SBIR</span> <span class="mech sttr">STTR</span> <span class="mech baa">BAA</span> <span class="mech grant">Grant</span> <span class="mech contract">Contract</span> and others, worked out from the listing.</dd>
-        <dt>Role</dt><dd><span class="role lead">Forge can lead</span> Forge can apply as the lead. <span class="role partner">Partner role</span> the listing limits who leads (for example SBIR or university-only), so Forge would join an eligible lead. <span class="role unclear">Lead: check notice</span> the listing doesn't say.</dd>
-        <dt>Criteria dots</dt><dd>Four automated checks on the listing text: no cash match, indirect costs allowed, operating expenses allowed, open solicitation. Green yes, red no, gray not stated. Always confirm against the full notice. <a href="#help" data-helpgo="criteria">Exactly how they're calculated →</a></dd>
-        <dt>Tags</dt><dd>Blue tags are your categories; green "With …" tags are partners whose focus areas the listing mentions. <span class="tag teaming">Team concept</span> marks a topic idea the team chose to pursue. Use the <i>Team concepts</i> filter on Opportunities or Pipeline to hide them, or to show only them.</dd>
-        <dt>Past awards and coaching</dt><dd>Each listing links to past winners (from NSF Award Search or USAspending) so you can see what was funded. Proposal coaching studies those winners once the team rates the opportunity 3+ stars.</dd>
+        <dt>Scanned listings</dt><dd>Every weekday morning the scanner pulls Grants.gov and the DHS acquisition forecast, updates what's already here, and has Claude score the most promising new ones.</dd>
+        <dt>Added by the team</dt><dd><b>+ Add an opportunity</b> on the Opportunities page. Search by NOFO, solicitation or Assistance Listing number (or title) first; it shows anything already here so nothing is added twice. If it's new, <b>upload the notice</b> (PDF, Word or PowerPoint) and Claude pulls out the title, agency, deadline, amounts, eligibility and topics, writes a summary and scores fit; you review everything before saving. Or <b>ask Claude to look it up online</b>: the background worker searches Grants.gov and SAM.gov and adds it if it's new (results under <i>Recent online lookups</i>). You can also enter one by hand.</dd>
+        <dt>From Asana</dt><dd>Forge's earlier opportunities list (2020–2026), imported with their stage, owner, notes, values and subtask checklist. Closed ones sit in Awarded, Not awarded or No-go, so they stay out of the way but count toward Forge's track record.</dd>
+        <dt>Team concepts</dt><dd>Topic ideas from <a href="#teaming">Teaming</a> that the team chose to pursue.</dd>
+      </dl>
+      <p><b>Can't find something?</b> The Opportunities list shows open items, 300 at a time; use <b>Show more</b> at the bottom. Items without a Claude fit score (such as Asana records) sort last. Reset clears filters; closed and No-go items are hidden unless you pick that stage or tick <i>Include closed</i>.</p>`],
+    ["read", "Reading an opportunity", `
+      <p>The detail page starts with <b>What it is</b>, the listing's own description, then the facts, Claude's take, the criteria, past awards and proposal coaching. The decision panel on the right holds stage, owners, teaming partners and notes.</p>
+      <dl class="hdl">
+        <dt>Fit score</dt><dd><span class="score s6">6/10</span> is Claude's judgment of fit with Forge (6+ is a high match). A score with a star, <span class="score s4 pre">4/10*</span>, is a keyword pre-score Claude hasn't reviewed yet. No score means nobody has scored it (common for imported Asana records).</dd>
+        <dt>Stars</dt><dd>Your own 1–5 rating, with the team average under it. Click your rating again to clear it. A team average of 3 or more starts proposal coaching.</dd>
+        <dt>Deadlines</dt><dd><span class="dl urgent">red</span> under 30 days, <span class="dl soon">orange</span> under 90, <span class="dl ok">green</span> 90 or more. A ⚠ date is probably a placeholder in the source data. The <b>Forge internal deadline</b> defaults to 2 weeks before submission (change the default on Forge profile, or set a date on the opportunity).</dd>
+        <dt>Type</dt><dd><span class="mech sbir">SBIR</span> <span class="mech baa">BAA</span> <span class="mech cso">CSO</span> <span class="mech grant">Grant</span> <span class="mech coop">Coop. agreement</span> <span class="mech contract">Contract</span> <span class="mech fdn">Foundation</span> <span class="mech agr">Agreement</span> <span class="mech cong">Congressional</span> <span class="mech memb">Membership</span> and others. Filter by them with the Type menu.</dd>
+        <dt>Forge's role</dt><dd><span class="role lead">Forge can lead</span>, <span class="role partner">Partner role</span> (someone else must lead, for example SBIR or university-only), or <span class="role unclear">Lead: check notice</span> when the listing doesn't say. Claude's judgment replaces this once it scores the listing.</dd>
+        <dt>Criteria dots</dt><dd>Four automatic checks: no cash match, indirect costs allowed, operating expenses allowed, open solicitation. Green yes, red no, gray not stated. <a href="#help" data-helpgo="criteria">How they're calculated →</a></dd>
+        <dt>Tags</dt><dd>Blue tags are categories; green "With …" tags are partners whose focus areas the listing mentions. <span class="tag teaming">Team concept</span>, <span class="tag asana">From Asana</span> and <span class="tag">Added by team</span> show where it came from.</dd>
+        <dt>Past awards and coaching</dt><dd>Past winners come from NSF Award Search or USAspending. Once the team rates an opportunity 3+ stars, the background worker studies those winners and writes proposal coaching: what reviewers reward, an outline, Forge's angles and pitfalls.</dd>
       </dl>`],
-    ["criteria", "How the criteria and scores are calculated", `
-      <p>Every listing gets an automatic screen the moment the scanner pulls it. The screen reads three parts of the listing (<b>title</b>, <b>description</b> and <b>eligibility text</b>) plus the listing's own cost-sharing flag where Grants.gov provides one. It looks for specific phrases; it doesn't interpret meaning, so always confirm against the full notice. Hover a dot to see the result, and open the opportunity to see the exact sentence it matched under <i>Forge decision criteria</i>.</p>
-      <p><b>The four criteria dots</b> (left to right in the Criteria column). Each is <span class="dot pass" style="display:inline-block"></span> yes, <span class="dot fail" style="display:inline-block"></span> no, or <span class="dot unknown" style="display:inline-block"></span> not stated.</p>
-      <div class="tablewrap" style="border:0"><table class="htable"><thead><tr><th>Criterion</th><th>Red (no) when the listing says…</th><th>Green (yes) when the listing says…</th><th>Gray (not stated)</th></tr></thead><tbody>
-        <tr><td><b>No cash match</b></td><td>cost sharing is required, "matching funds are required", "non-federal match of", or a percentage match (for example "20% match"); or the Grants.gov cost-sharing flag is on</td><td>"no match", "no cash match", "cost sharing is not required", "no cost share", "matching funds are not required"; or the cost-sharing flag is off</td><td>Neither found</td></tr>
-        <tr><td><b>Indirect costs allowed</b></td><td>"indirect costs not allowed", "no indirect costs", "indirect costs are unallowable"</td><td>mentions indirect costs, facilities and administrative (F&amp;A), a negotiated indirect rate, or the de minimis rate</td><td>Neither found (most federal grants allow indirect costs under 2 CFR 200)</td></tr>
-        <tr><td><b>Funds operating expenses</b></td><td>"operating costs/expenses are not allowed or unallowable", "may not be used for (general) operating"</td><td>mentions operating costs, expenses or support, personnel costs, salaries, or general operating</td><td>Neither found</td></tr>
-        <tr><td><b>Open solicitation</b></td><td>"by invitation only", "invitation-only", "invited applicants only", "closed solicitation"</td><td>No invitation requirement found (this one is never gray)</td><td></td></tr>
+    ["pipeline", "Deciding and the Pipeline", `
+      <p>Every opportunity has a <b>stage</b>. Change it on the opportunity page, by dragging a card on the Board, or with the stage menu in the List. Every change is recorded in History.</p>
+      <div class="tablewrap" style="border:0"><table class="htable"><thead><tr><th>Stage</th><th>Means</th></tr></thead><tbody>
+        <tr><td><span class="pill new">New</span></td><td>Not looked at yet. Most scanned listings start here.</td></tr>
+        <tr><td><span class="pill screening">Screening</span></td><td>Worth a look. Claude moves new listings it scores 6+ here.</td></tr>
+        <tr><td><span class="pill internal_review">Internal review</span></td><td>Being weighed for a go/no-go, usually with an internal deadline.</td></tr>
+        <tr><td><span class="pill go">Go</span></td><td>Forge will pursue it. Assign owners and partners.</td></tr>
+        <tr><td><span class="pill drafting">Drafting</span></td><td>The submission is being written.</td></tr>
+        <tr><td><span class="pill submitted">Submitted</span></td><td>Sent; waiting for a decision.</td></tr>
+        <tr><td><span class="pill awarded">Awarded</span> / <span class="pill not_awarded">Not awarded</span></td><td>The outcome.</td></tr>
+        <tr><td><span class="pill declined">No-go</span></td><td>Forge decided not to pursue it (or withdrew).</td></tr>
       </tbody></table></div>
-      <p><b>Forge's role</b> (the <span class="role lead">Forge can lead</span> / <span class="role partner">Partner role</span> / <span class="role unclear">Lead: check notice</span> tag) comes from a fifth check:</p>
       <ul>
-        <li><b>Partner role</b> when the listing restricts the lead: only institutions of higher education may apply; a tenured or tenure-track PI is required; nonprofits are not eligible (or for-profit only); SBIR or STTR in the <i>title</i> (a small business must apply); a small-business set-aside on a contract forecast; or only HBCUs or tribal institutions.</li>
-        <li><b>Forge can lead</b> when the eligibility text names nonprofits, 501(c)(3)s or "unrestricted".</li>
-        <li><b>Lead: check notice</b> otherwise. Once Claude has scored a listing, Claude's own lead-or-partner judgment replaces this tag.</li>
-      </ul>
-      <p><b>Ruled out entirely</b> only when the listing is invitation-only ("Rules Forge out" on the opportunity page).</p>
-      <p><b>The keyword pre-score</b> (the score with a <span class="score s4 pre">4/10*</span> star, before Claude reviews it):</p>
+        <li><b>Board or List.</b> The Board is a kanban; the List is one table grouped by stage with a stage menu on each row.</li>
+        <li><b>Stages menu.</b> Show or hide any stage, including New and No-go. Presets: All stages, Pipeline (default), In progress, Outcomes.</li>
+        <li><b>Show.</b> Opportunities, submissions or both. Submission cards (blue edge) sit by their status and have their own status menu.</li>
+        <li><b>Hidden cards.</b> A yellow note says when your filters or past deadlines are hiding cards, with <b>Reset filters</b> and <b>Show them</b>. Your view, stages and filters are remembered in your browser.</li>
+        <li><b>Owners.</b> Pick owners from the team directory in the decision panel (<b>Assign to me</b> is one click). The <i>Assigned</i> chips on Opportunities and the Dashboard count open work per person; click one to filter.</li>
+      </ul>`],
+    ["submissions", "Submissions: from concept to final draft", `
+      <ol>
+        <li><b>Start.</b> On an opportunity's page choose <b>Start a submission concept</b>. It opens under <a href="#submissions">Submissions</a> with the opportunity's teaming partners already filled in.</li>
+        <li><b>Team.</b> Add partners and consortia, set whether Forge leads, and add notes for Claude (for example "focus on Topic 016; keep it under 5 pages").</li>
+        <li><b>Concepts.</b> <b>Draft concepts with Claude</b> writes three different approaches from the notice, Forge's profile and documents, staff and partners. Choose <b>Use this concept</b> on one.</li>
+        <li><b>Working draft.</b> Sections follow the opportunity's coaching outline when there is one, otherwise a white-paper or grant outline. Rename, reorder, add or remove sections. <b>Write the draft with Claude</b> fills them all; <b>Draft this section</b> fills one.</li>
+        <li><b>Polish.</b> <b>Polish with Claude</b> (optionally with an instruction like "tighten to 150 words") shows a polished version next to yours; nothing changes until you choose <b>Use this version</b>.</li>
+        <li><b>Feedback and red team.</b> Under each section, the <span class="hfb">yellow box</span> collects reviewer suggestions, polish notes and team comments. The <span class="hrt">red box</span> is the red team: Claude checks the section against the notice's requirements and scoring rules. Attach the NOFO, Call or scoring rubric for a full check. <b>Review as a reviewer</b> rates the whole draft's readiness (1–5).</li>
+        <li><b>Finish.</b> <b>Download .docx</b> saves the draft as a Word document (optionally with notes and red team findings as an appendix). Move the status from Concept → Drafting → In review → Final → Submitted.</li>
+      </ol>
+      <p class="help">Claude marks any fact it needs but wasn't given as <b>[confirm: …]</b>; those are highlighted in the Word file. Once a concept is chosen and the draft has text, changing concepts or rewriting the whole draft asks for confirmation first. Save keeps your edits for everyone; leaving the page saves too. If two people edit the same draft at once, the last save wins.</p>`],
+    ["partners", "Partners and consortia", `
+      <ul>
+        <li><b>Parents and children.</b> Add the organization (for example University of Arkansas), then use <b>+ Add under</b> for its centers, departments, labs and people. The <b>Tree</b> view shows the whole hierarchy; click a name for its detail page.</li>
+        <li><b>Focus areas drive matching.</b> Any open opportunity that mentions a partner's focus area is flagged as a possible joint submission. Word them the way funding announcements do ("OT cybersecurity", "grid modernization").</li>
+        <li><b>Fill them in three ways:</b> type them; upload capability statements or decks and tick Claude's suggestions; or <b>Research online</b>, and the background worker drafts a cited summary within the hour.</li>
+        <li><b>Consortia.</b> Group partners that propose together and mark a lead. Forge Institute can be a member or the lead without being listed as a partner. Pick a whole consortium as teaming partners on an opportunity, a submission or the Teaming page.</li>
+        <li><b>Startups</b> get a purple badge; Teaming knows a startup may be able to lead SBIR/STTR work.</li>
+        <li><b>Ratings.</b> Rate partners 1–5 stars and filter by rating.</li>
+      </ul>`],
+    ["teaming", "Teaming: partners to proposal topics", `
+      <ol>
+        <li><b>Pick.</b> Choose focus areas, specific partners (or a center or person under one) and funding sponsors such as IARPA, DARPA or AFRL. Opportunities with teaming partners show under <i>Potential teaming arrangements</i>; <b>Load into Teaming</b> starts from one.</li>
+        <li><b>Network.</b> See how they connect; drag, zoom and click dots for details.</li>
+        <li><b>Suggest topics.</b> Claude writes 2–3 topic ideas per sponsor: problem, how to propose, why the sponsor wants it, who does what, approach, outcomes and what to check first. The background worker then finds faculty and staff at your partners who fit each one.</li>
+        <li><b>Move forward.</b> Rate topics; <b>Move forward</b> adds one to Opportunities and the Pipeline at Go as a Team concept.</li>
+        <li><b>Save the setup</b> under <i>Saved configurations</i> and refresh it later with the latest data.</li>
+      </ol>`],
+    ["profile", "Forge profile, staff and documents", `
+      <ul>
+        <li><b>Organization details</b> (CAGE, UEI, address, point of contact) with one-click Copy buttons for forms.</li>
+        <li><b>Staff.</b> Titles, capability and skill tags, a proposal-ready bio and résumés. Upload a résumé and Claude drafts the tags and bio for you to accept.</li>
+        <li><b>Forge documents.</b> Upload capability statements, decks, narratives, press releases and past performance. Claude summarizes each and suggests capabilities, good and poor fits and search keywords; the ones you add go into the profile.</li>
+        <li><b>The profile itself</b> (summary, capabilities, good and poor fit, decision criteria, search keywords) is what the daily scan and Claude use to judge fit, so keeping it current improves every score.</li>
+      </ul>`],
+    ["sponsors", "Funding sponsors", `
+      <ul>
+        <li><b>Connected</b> sponsors are scanned automatically (Grants.gov and the DHS forecast). Others are listed so the team knows where to look and how to engage.</li>
+        <li><b>Proposal requirements.</b> Each sponsor can hold the outline it asks for at each stage: <span class="stage init">Initial submission</span> <span class="stage wp">White paper</span> <span class="stage full">Full proposal</span>. Teaming uses them when suggesting topics.</li>
+        <li><b>Health and freshness.</b> The health badge shows whether the sponsor's site could be reached in the last daily check. Cards turn yellow after a week without a pull or update and red after three weeks.</li>
+        <li><b>API keys never go on this page.</b> Enter only the key's name (like <code>SAM_API_KEY</code>).</li>
+      </ul>`],
+    ["criteria", "How the criteria and scores are calculated", `
+      <p>Every listing gets an automatic screen when the scanner pulls it. The screen reads the <b>title</b>, <b>description</b> and <b>eligibility text</b>, plus the Grants.gov cost-sharing flag where there is one. It looks for specific phrases; it doesn't interpret meaning, so always confirm against the full notice. Open an opportunity to see the exact sentence each check matched.</p>
+      <div class="tablewrap" style="border:0"><table class="htable"><thead><tr><th>Criterion</th><th>Red (no) when the listing says…</th><th>Green (yes) when the listing says…</th><th>Gray</th></tr></thead><tbody>
+        <tr><td><b>No cash match</b></td><td>cost sharing is required, "matching funds are required", "non-federal match of", or a percentage match; or the cost-sharing flag is on</td><td>"no match", "no cash match", "cost sharing is not required", "no cost share"; or the flag is off</td><td>Neither found</td></tr>
+        <tr><td><b>Indirect costs allowed</b></td><td>"indirect costs not allowed", "no indirect costs", "indirect costs are unallowable"</td><td>mentions indirect costs, F&amp;A, a negotiated indirect rate or the de minimis rate</td><td>Neither found (most federal grants allow them under 2 CFR 200)</td></tr>
+        <tr><td><b>Funds operating expenses</b></td><td>"operating costs/expenses are not allowed", "may not be used for (general) operating"</td><td>mentions operating costs or support, personnel costs or salaries</td><td>Neither found</td></tr>
+        <tr><td><b>Open solicitation</b></td><td>"by invitation only", "invited applicants only", "closed solicitation"</td><td>No invitation requirement found (never gray)</td><td></td></tr>
+      </tbody></table></div>
+      <p><b>Forge's role</b> comes from a fifth check: <b>Partner role</b> when the listing restricts the lead (higher education only, tenure-track PI required, nonprofits not eligible, SBIR/STTR in the title, small-business set-aside, HBCU or tribal only); <b>Forge can lead</b> when eligibility names nonprofits, 501(c)(3)s or "unrestricted"; otherwise <b>Lead: check notice</b>. Invitation-only listings are marked "Rules Forge out".</p>
+      <p><b>The keyword pre-score</b> (<span class="score s4 pre">4/10*</span>):</p>
       <ol>
         <li>Start at <b>20</b>.</li>
-        <li>Add points for each Forge topic the listing mentions: cybersecurity +12, rural or municipal electric utilities +12, critical infrastructure +10, OT/ICS +10, workforce +10, intermediary or technical assistance +10, AI or data +8, technology transfer +8, accelerator +7, partnership +6, energy +6, innovation +4. These show as "Profile signals" on the opportunity page.</li>
-        <li>Subtract for off-topic work: construction or facilities −15, individual fellowships −15, basic science (astronomy, genomics, neuroscience and similar) −10.</li>
-        <li>Add <b>3</b> for each criterion that's green; subtract <b>10</b> for each that's red. Not being able to lead costs nothing, because Forge can partner.</li>
-        <li>Keep the total between 0 and 100, then show it out of 10 (rounded, minimum 1).</li>
+        <li>Add for each Forge topic mentioned: cybersecurity +12, rural or municipal electric utilities +12, critical infrastructure +10, OT/ICS +10, workforce +10, intermediary or technical assistance +10, AI or data +8, technology transfer +8, accelerator +7, partnership +6, energy +6, innovation +4.</li>
+        <li>Subtract for off-topic work: construction or facilities −15, individual fellowships −15, basic science −10.</li>
+        <li>Add <b>3</b> per green criterion; subtract <b>10</b> per red one. Not being able to lead costs nothing.</li>
+        <li>Keep it between 0 and 100 and show it out of 10.</li>
       </ol>
-      <p><b>Claude's score</b> replaces the pre-score after review. Each daily scan sends Claude up to 15 open, unscored listings with a pre-score of 40 or more and nothing ruling Forge out, highest first. Claude scores fit from 1 to 10 against the <a href="#profile">Forge profile</a>, explains why, and suggests a project, partners, risks and Forge's role. Listings it scores 6 or higher move to <i>Screening</i>.</p>
-      <p class="help">Want different weights or phrases? They live in the scanner's screening rules (src/lib/screening/criteria.ts in the repository) and apply from the next scan.</p>`],
-    ["tabs", "What each tab is for", `
-      <dl class="hdl">
-        <dt><a href="#dashboard">Dashboard</a></dt><dd>Counts, potential revenue (sum of award ceilings), your categories, upcoming deadlines, top recommendations and the Refresh button.</dd>
-        <dt><a href="#opportunities">Opportunities</a></dt><dd>Every open listing, with search and filters for fit, agency, category, stage, rating, type, role and partner matches. <b>+ Add an opportunity</b> checks whether a NOFO, solicitation or Assistance Listing number (or title) is already here; if not, upload the notice and Claude pulls in the details and scores fit, or ask Claude to look it up on Grants.gov and SAM.gov in the background.</dd>
-        <dt><a href="#settings">Settings</a></dt><dd>The gear at the bottom of the left sidebar. Choose light or dark colors and a full or icons-only sidebar (saved in your browser), turn automatic holiday themes on or off, manage what Claude may do on this page, and see when the daily scan and background worker run. On a phone, the menu button at the top opens the sidebar.</dd>
-        <dt><a href="#pipeline">Pipeline</a></dt><dd>A board from Screening to Awarded. Drag cards or use each card's Move menu; every move is recorded. The <b>Stages</b> menu shows or hides any stage, including New and No-go, with presets for all stages, the default pipeline, work in progress and outcomes. Switch between <b>Board</b> (kanban columns) and <b>List</b> (one table grouped by stage, with a stage menu on each row). The switch at the top shows opportunities, submissions or both, and a yellow note says when filters or past deadlines are hiding cards. Submission cards (blue edge) sit by their status: Concept under Go, Drafting / In review / Final under Drafting, Submitted under Submitted; change it with the card's status menu. Archived submissions are left off.</dd>
-        <dt><a href="#submissions">Submissions</a></dt><dd>Working drafts of submission concepts. Start one from an opportunity's page with <b>Start a submission concept</b>, then: (1) pick the team (partners and consortia, and whether Forge leads); (2) have Claude draft three concepts from the notice, Forge's profile and documents and the team, and choose one; (3) build the working draft section by section. Claude can write the first draft, polish any section (you compare before anything changes) and review the whole draft as a reviewer would. Under each section, a yellow box collects suggestions (from the reviewer read and Claude's polish notes) and team comments, and a red box holds the red team assessment: Claude checks the section's language against the notice's requirements and scoring rules, using the uploaded notice and any NOFO, Call or scoring rubric you attach to the submission. Text marked [confirm: …] needs a fact from the team. Once a concept is chosen and the draft has text, changing the concepts or rewriting the draft with Claude asks for confirmation first. <b>Download .docx</b> saves the working draft as a Word document (optionally with the notes and red team findings as an appendix). Save keeps your edits for everyone; leaving the page saves too.</dd>
-        <dt><a href="#federal">Federal funding</a></dt><dd>Open opportunities grouped by Forge's priority agencies.</dd>
-        <dt><a href="#report">Report</a></dt><dd>A report-style summary of the opportunities Claude has scored: recommended, possible and not recommended.</dd>
-        <dt><a href="#categories">Categories</a></dt><dd>Groups of keywords with team members. Opportunities matching a category are tagged and appear on its members' dashboards.</dd>
-        <dt><a href="#partners">Partners</a></dt><dd>Labs, universities, agencies and companies Forge works with, with centers, departments, labs and people nested under them. Each has focus areas, documents, web research and a rating. Click a name for its detail page.</dd>
-        <dt><a href="#teaming">Teaming</a></dt><dd>Combine focus areas, partners and funding sponsors, see how they connect, and have Claude suggest topics to propose.</dd>
-        <dt><a href="#sources">Funding sponsors</a></dt><dd>The agencies, portals, innovation offices and consortia Forge watches, with how to reach each one and a daily health check.</dd>
-        <dt><a href="#profile">Forge profile</a></dt><dd>Organization details forms ask for (CAGE, UEI, address, point of contact) with one-click Copy buttons; Staff, with titles, capability and skill tags, bios and résumés (upload a résumé and Claude drafts the tags and bio); Forge documents such as capability statements, decks, narratives and press releases (Claude summarizes each and suggests capabilities, good and poor fits and search keywords for you to add); plus who Forge is, its capabilities, good and poor fits, decision criteria and search keywords. Claude uses this to judge fit.</dd>
-        <dt><a href="#history">History</a></dt><dd>Every change: who, when, and what it was before and after.</dd>
-      </dl>`],
-    ["partners", "Partners: parents, children and research", `
-      <ul>
-        <li><b>Parents and children.</b> Add the organization first (for example University of Arkansas), then use <b>+ Add under</b> to add its centers, departments, labs and people. Main partners have a blue edge; children sit inside a teal bracket with "Part of …". The <b>Tree</b> view shows the whole hierarchy.</li>
-        <li><b>Consortia.</b> Under <i>Consortia</i> on the Partners page, group several partners that propose together (for example a university, a national lab and a startup) and optionally mark a lead. A partner can belong to several consortia. You can then pick the whole consortium as teaming partners on an opportunity, or tick it on the Teaming page to add all its members.</li>
-        <li><b>Startups.</b> Tick <i>This is a startup</i> when adding or editing a partner; it shows a purple Startup badge, can be filtered with <i>Startups only</i>, and Teaming knows a startup may be able to lead SBIR/STTR work.</li>
-        <li><b>Focus areas drive matching.</b> Any open opportunity that mentions a partner's focus area is flagged as a possible joint submission. Keep them specific, worded the way funding announcements word things ("OT cybersecurity", "grid modernization").</li>
-        <li><b>Three ways to fill them in:</b> type them; upload capability statements or decks (PDF, Word, PowerPoint) and tick Claude's suggestions; or use <b>Research online</b> and Claude opens their pages, searches the web and drafts a cited summary within the hour.</li>
-        <li><b>Detail page.</b> Click a partner's name for its summary, focus areas, matching opportunities, research, documents and everything under it. The website is the separate "Website ↗" link.</li>
-      </ul>`],
-    ["teaming", "Teaming: from partners to proposal topics", `
-      <ol>
-        <li><b>Start from an opportunity (optional).</b> On any opportunity's page, add <i>Teaming partners</i> under Owners. The partners whose focus areas the listing mentions are suggested, or you can search every partner, center and person. The pairing then appears under <i>Potential teaming arrangements</i> at the top of Teaming; <b>Load into Teaming</b> puts the opportunity and its partners into your picks and starts the focus areas from the listing.</li>
-        <li><b>Focus areas.</b> Add a few (cyber, grid, workforce…) or click suggestions; the numbers show how many partners, open opportunities and sponsors each one connects.</li>
-        <li><b>Partners and funding sponsors.</b> Tick the specific partners (a university or a center or person under it) and sponsors (IARPA, DARPA, AFRL…) you want to build for.</li>
-        <li><b>Network.</b> See how they connect. Drag dots, zoom, and click one for details.</li>
-        <li><b>Suggest topics to propose.</b> Claude writes 2–3 topic ideas per sponsor: problem statement, how to propose (white paper, BAA, SBIR, OT…), why the sponsor wants it, who does what, approach, outcomes and what to check first. It then looks up faculty and staff at your partners who fit each one, with links to their profile pages.</li>
-        <li><b>Rate and move forward.</b> Rate each topic, and use <b>Move forward</b> to add it to Opportunities and the Pipeline at <i>Go</i> as a Team concept.</li>
-        <li><b>Save the setup.</b> Name it under <i>Saved configurations</i>, then come back any time to <b>Load</b> it or <b>↻ Refresh topic ideas</b> with the latest data.</li>
-      </ol>`],
-    ["sponsors", "Funding sponsors and data sources", `
-      <ul>
-        <li><b>Connected</b> sponsors are scanned automatically: Grants.gov and the DHS acquisition forecast today. Others are listed so the team knows where to look and how to engage (mechanisms, white-paper paths, update cadence).</li>
-        <li><b>Proposal requirements.</b> Each sponsor can hold the generic outline it asks for at each stage: <span class="stage init">Initial submission</span> <span class="stage wp">White paper</span> <span class="stage full">Full proposal</span>. Paste the numbered sections with <b>+ Add requirements</b>; use <b>Copy outline</b> to start a draft. Teaming uses them when it suggests topics and shows them on each topic card for that sponsor.</li>
-        <li>The <b>health</b> badge on each sponsor shows whether its site could be reached in the last daily check. Hover a <i>Problem</i> badge to see why.</li>
-        <li>Each sponsor shows when it was <b>last pulled</b> (checked by the daily scan) or <b>last updated</b> (record added or edited), whichever is more recent. The card turns <b>yellow</b> after 1 week without either, and <b>red</b> after 3 weeks.</li>
-        <li><b>API keys never go on this page.</b> Enter only the key's name (like <code>SAM_API_KEY</code>); the key itself is stored in the scanner's settings.</li>
-      </ul>`],
-    ["timing", "When things happen", `
-      <table class="htable"><thead><tr><th>What</th><th>When</th></tr></thead><tbody>
+      <p><b>Claude's score</b> replaces the pre-score. Each daily scan sends Claude up to 15 open, unscored listings with a pre-score of 40 or more, highest first. Claude scores 1–10 against the Forge profile and its documents, explains why, and suggests a project, partners, risks and Forge's role. Notices you upload with <b>+ Add an opportunity</b> are scored right away.</p>
+      <p class="help">The weights and phrases live in the scanner's screening rules (src/lib/screening/criteria.ts in the repository) and apply from the next scan.</p>`],
+    ["claude", "What Claude does, and when", `
+      <p>Claude works in two places: <b>in your browser</b> when you press a button (results in seconds), and as a <b>background worker</b> for anything that needs the web (results within the hour). Treat everything it writes as a well-read first draft; it's told to use only the sources it was given and to flag what needs checking.</p>
+      <div class="tablewrap" style="border:0"><table class="htable"><thead><tr><th>What</th><th>When</th></tr></thead><tbody>
         <tr><td>Daily scan, Claude scoring, sponsor health check</td><td>Weekdays about 6:30 AM CT</td></tr>
-        <tr><td>Refresh button on the dashboard</td><td>On demand, once every 5 hours. Starts right away for the page owner; otherwise within the hour on weekdays, 7 AM–7 PM CT</td></tr>
-        <tr><td>Partner web research, people for topic ideas, proposal coaching</td><td>Hourly on weekdays, 7 AM–7 PM CT (usually ready within the hour)</td></tr>
-        <tr><td>Document analysis, partner drafts, topic ideas</td><td>Right away, in your browser</td></tr>
-      </tbody></table>`],
+        <tr><td>Refresh button on the Dashboard</td><td>On demand, once every 5 hours</td></tr>
+        <tr><td>Partner web research, people for topic ideas, proposal coaching, online opportunity lookups</td><td>Hourly on weekdays, 7 AM–7 PM CT</td></tr>
+        <tr><td>Reading uploads (notices, résumés, Forge and partner documents), topic ideas, submission concepts, drafting, polish, reviewer read and red team</td><td>Right away, in your browser</td></tr>
+      </tbody></table></div>
+      <p class="help">See the schedule and manage what Claude may do on this page under <a href="#settings">Settings</a>.</p>`],
     ["faq", "Questions", `
       <dl class="hdl">
-        <dt>Why does the page look different today?</dt><dd>On each U.S. federal holiday the page wears a theme for that day (Central time): New Year's Day, Martin Luther King Jr. Day, Washington's Birthday, Memorial Day, Juneteenth, Independence Day, Labor Day, Columbus Day, Veterans Day, Thanksgiving and Christmas. When a fixed-date holiday falls on a weekend, the theme also shows on the weekday it's observed. Click the Forge logo in the top-left corner to turn the theme off or on; on other days a click shows the next holiday's theme. Your click lasts for the rest of that day. Clicking "Grants" next to the logo still goes to the Dashboard.</dd>
-        <dt>Is anything here private?</dt><dd>No. Everything saved is visible to everyone who can open this page, and every change is in History. The only things kept just for you are your filter choices, which Teaming setup you last loaded and whether you turned today's holiday theme on or off (stored in your browser).</dd>
-        <dt>Can I trust Claude's scores and suggestions?</dt><dd>Treat them as a well-read first draft. Claude is told to use only what the listing, partner records and sources say, and to list open questions under "check before committing", but always confirm eligibility, deadlines and requirements in the official notice.</dd>
-        <dt>Why don't I see an opportunity I expected?</dt><dd>Check the filters (Reset clears them), the stage filter (closed and No-go items are hidden by default), and whether it's newer than the last scan. Then try Refresh.</dd>
+        <dt>I don't see items I expect on the Pipeline.</dt><dd>Look for the yellow note above the board: it says how many cards your filters or past deadlines are hiding, with <b>Reset filters</b> and <b>Show them</b>. Also check the <b>Stages</b> menu (New and No-go are hidden by default) and the opportunities/submissions switch.</dd>
+        <dt>Is anything here private?</dt><dd>No. Everything saved (decisions, notes, drafts, uploaded document text, comments) is visible to everyone who can open this page, and every change is in History. Only your view preferences (filters, Board or List, stages, theme, sidebar) are kept just in your browser.</dd>
+        <dt>Can I trust Claude's scores and drafts?</dt><dd>Use them as a starting point. Always confirm eligibility, deadlines, requirements and any [confirm: …] facts in the official notice before submitting.</dd>
+        <dt>Why does the page look different today?</dt><dd>On each U.S. federal holiday the page wears a theme for the day. Click the Forge logo to turn it off or on, or switch automatic themes off in <a href="#settings">Settings</a>.</dd>
         <dt>Why can't I edit anything?</dt><dd>You have view-only access. Ask the page owner for Contributor access.</dd>
         <dt>Something looks wrong. How do I undo it?</dt><dd>Open <a href="#history">History</a> to see exactly what changed and the previous value, then change it back.</dd>
-        <dt>Can I use this data in a Claude Project?</dt><dd>Yes. The repository includes an MCP connector (see the README) that lets Claude search opportunities, past awards and the Forge profile.</dd>
+        <dt>An owner shows as a name, not a person.</dt><dd>Some imported items list an owner by name only. Open the item and pick the person in the Owners box to link their account.</dd>
       </dl>`],
   ];
   function viewHelp() {
-    return `<div class="head"><div><h1>Help</h1><p class="sub" style="margin:4px 0 0">How Forge Grants works, for new and returning users.</p></div></div>
+    return `<div class="head"><div><h1>Help</h1><p class="sub" style="margin:4px 0 0">How Forge Grants works: the workflow, each page, and what Claude does.</p></div></div>
       <div class="helpwrap">
-        <nav class="panel helptoc" aria-label="Help topics"><b>Topics</b>${HELP.map(([id, t]) => `<button type="button" data-helpto="${id}">${esc(t)}</button>`).join("")}</nav>
+        <nav class="panel helptoc" aria-label="Help topics"><input id="help-q" type="search" placeholder="Search help…" aria-label="Search help" autocomplete="off"><b>Topics</b>${HELP.map(([id, t]) => `<button type="button" data-helpto="${id}" data-helptoc="${id}">${esc(t)}</button>`).join("")}<p class="note" id="help-none" hidden>No topic matches.</p></nav>
         <div class="helpdoc">${HELP.map(([id, t, body]) => `<section class="panel" id="help-${id}"><h2>${esc(t)}</h2><div class="prose hprose">${body}</div></section>`).join("")}</div>
       </div>`;
   }
@@ -4304,7 +4338,7 @@ ${JSON.stringify({ partners: inp.partners, consortia: inp.consortia, fundingSpon
     const f = document.activeElement;
     if (dirty) return route().startsWith("opp-") ? refreshRatings() : undefined;
     if (route() === "pipeline" && f && f.closest && f.closest("#filters, #board")) return refreshBoard();
-    if (f && f.closest && f.closest("#decision, #filters, #hfilters, #sfilters, .form, #kw-form, .picker, .sugg, #topic-form, #pfilters, #tp-q, #ts-q, #quickadd, #cfg-form, #reqform, #staffform, #stfilters, .stsugg, #consform, #addopp, #subpage, #sbfilters")) return;
+    if (f && f.closest && f.closest("#decision, #filters, #hfilters, #sfilters, .form, #kw-form, .picker, .sugg, #topic-form, #pfilters, #tp-q, #ts-q, #quickadd, #cfg-form, #reqform, #staffform, #stfilters, .stsugg, #consform, #addopp, #subpage, #sbfilters, #help-q")) return;
     // Someone rating in the list or on a detail page: redraw only the ratings so nothing else jumps or resets.
     if (f && f.closest && f.closest("#results, #my-stars")) return refreshRatings();
     render();
@@ -4600,7 +4634,7 @@ ${JSON.stringify({ partners: inp.partners, consortia: inp.consortia, fundingSpon
     if (ds.reqcancel) { sreq.id = null; sreq.idx = null; dirty = false; return render(); }
     if (ds.reqsave) return saveReq(ds.reqsave);
     if (ds.reqdel) return removeReq(ds.reqdel, Number(ds.idx));
-    if (ds.helpgo) { e.preventDefault(); const target = ds.helpgo; if (route() !== "help") location.hash = "#help"; setTimeout(() => document.getElementById("help-" + target)?.scrollIntoView({ block: "start" }), 60); return; }
+    if (ds.helpgo) { e.preventDefault(); const target = ds.helpgo; if (route() !== "help") location.hash = "#help"; const jump = () => document.getElementById("help-" + target)?.scrollIntoView({ block: "start" }); setTimeout(jump, 60); setTimeout(jump, 260); return; }
     if (ds.scrollto) { e.preventDefault(); document.getElementById(ds.scrollto)?.scrollIntoView({ block: "start", behavior: "smooth" }); return; }
     if (ds.helpto) return document.getElementById("help-" + ds.helpto)?.scrollIntoView({ block: "start", behavior: "smooth" });
     if (ds.addtopic) return addTopic(ds.addtopic);
@@ -4768,6 +4802,12 @@ ${JSON.stringify({ partners: inp.partners, consortia: inp.consortia, fundingSpon
     if (e.target.id === "p-focus") { pform.edited.focus = true; pform.focus = e.target.value; }
   });
   app.addEventListener("input", async (e) => {
+    if (e.target.id === "help-q") {
+      const q = e.target.value.trim().toLowerCase(); let any = false;
+      document.querySelectorAll(".helpdoc > section").forEach((sec) => { const hit = !q || sec.textContent.toLowerCase().includes(q); sec.hidden = !hit; any ||= hit;
+        const b = document.querySelector(`[data-helptoc="${sec.id.slice(5)}"]`); if (b) b.hidden = !hit; });
+      const n = document.getElementById("help-none"); if (n) n.hidden = any; return;
+    }
     if (subInput(e.target)) return;
     if (e.target.id === "st-q") {
       sform.q = e.target.value; clearTimeout(typing);
