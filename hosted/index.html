@@ -1,6 +1,6 @@
 <title>Forge Grants Dashboard</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<meta name="forge:published" content="2026-11-22T21:16:58Z">
+<meta name="forge:published" content="2026-11-22T21:34:44Z">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
@@ -618,6 +618,10 @@ dialog.modal .btns { display: flex; flex-wrap: wrap; justify-content: flex-end; 
 .card[draggable="true"] { cursor: grab }
 .card.subcard { border-left: 3px solid var(--info); background: var(--surface) }
 .card.subcard .sbst { flex: none }
+.hiddennote { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; font-size: 14px; padding: 8px 12px; border-radius: 8px; background: var(--warn-bg); color: var(--warn) }
+.hiddennote .btn-ghost { padding: 2px 10px; font-size: 13px }
+.hiddennote label { display: inline-flex; gap: 4px; align-items: center }
+.showmore { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: center; padding: 12px }
 .pshow { display: inline-flex; flex-wrap: wrap; gap: 0; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; background: var(--surface); justify-self: start }
 .pshow label { display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; font-size: 14px; cursor: pointer; border-right: 1px solid var(--line) }
 .pshow label:last-child { border-right: 0 }
@@ -923,7 +927,14 @@ details.addform[open] > summary::before { content: "− " }
   const isHigh = (o) => (o.evaluation?.score ?? 0) >= 6;
   const isOpen = (o) => { const d = daysUntil(o.closeDate); return OPEN.includes(stageOf(o)) && (d === null || d >= 0); };
   const byFit = (a, b) => (fit(b) ?? 0) - (fit(a) ?? 0) || (Date.parse(a.closeDate || "9999-01-01") - Date.parse(b.closeDate || "9999-01-01"));
-  const agencyOf = (o) => { const c = (o.agencyCode || "").toUpperCase(); return META.profile.federalAgencies.find((a) => a.grantsGovPrefixes.some((p) => c === p || c.startsWith(p + "-"))) || null; };
+  // Agency: by Grants.gov agency code; for added or imported items with no code, by the agency's name.
+  const AGENCY_NAME = { DOE: /Department of Energy|\bDOE\b|National Laborator|Idaho National/i, EDA: /Economic Development Administration|\bEDA\b/, USDA: /Department of Agriculture|\bUSDA\b/, DRA: /Delta Regional/i,
+    DOL: /Department of Labor|\bDOL\b/, NSF: /National Science Foundation|\bNSF\b/, DHS: /Homeland Security|\bDHS\b|\bCISA\b|\bFEMA\b/, DOD: /Defense|Air Force|\bAFRL\b|\bAFOSR\b|DARPA|\bArmy\b|\bNavy\b|\bONR\b|Intelligence Community|National Security Agency|\bNGA\b|\bSOCOM\b|Northcom/i };
+  const agencyOf = (o) => {
+    const c = (o.agencyCode || "").toUpperCase(), list = META.profile.federalAgencies;
+    if (c) return list.find((a) => a.grantsGovPrefixes.some((p) => c === p || c.startsWith(p + "-"))) || null;
+    return o.agency ? list.find((a) => AGENCY_NAME[a.id]?.test(o.agency)) || null : null;
+  };
 
   // ---------- small renderers ----------
   const urgency = (d) => d < 0 ? "none" : d < 30 ? "urgent" : d <= 90 ? "soon" : "ok";
@@ -1123,6 +1134,9 @@ details.addform[open] > summary::before { content: "− " }
   // ---------- opportunities ----------
   // One set of filters for the Opportunities list and the Pipeline board.
   // On the board, columns are the stages, so the stage filter and the "open" rule don't apply there.
+  // Where an opportunity came from, for the Source filter.
+  const srcOf = (o) => o.source === "teaming" ? "teaming" : o.source === "manual" ? (o.manual?.import === "asana" ? "asana" : "manual") : "scan";
+  const SRC_FILTER = [["", "All sources"], ["scan", "Scanned listings"], ["asana", "From Asana"], ["manual", "Added by the team"], ["teaming", "Team concepts"]];
   function matcher(board) {
     const q = ui.q.trim().toLowerCase(), min = Number(ui.min || 0);
     const catKw = ui.cat === "@mine" ? myCats().flatMap((c) => c.keywords || []) : ui.cat ? (S.categories[ui.cat]?.keywords || []) : null;
@@ -1140,6 +1154,7 @@ details.addform[open] > summary::before { content: "− " }
       // Team concepts are topic ideas moved forward from the Teaming page.
       if (ui.tc === "hide" && o.source === "teaming") return false;
       if (ui.tc === "only" && o.source !== "teaming") return false;
+      if (ui.src && srcOf(o) !== ui.src) return false;
       if (ui.owner) { const ow = ownersOf(o); if (ui.owner === "@me" ? !ow.includes(me) : ui.owner === "@none" ? ow.length > 0 : ui.owner === "@nonepipe" ? ow.length > 0 || !["screening", "internal_review", "go", "drafting"].includes(stageOf(o)) : !ow.includes(ui.owner)) return false; }
       if (ui.role && !(roleOf(o) === ui.role || (roleOf(o) === "either" && (ui.role === "lead" || ui.role === "partner")))) return false;
       if (ui.stars) {
@@ -1182,14 +1197,20 @@ details.addform[open] > summary::before { content: "− " }
   const sortSelect = (id, cur, keys) => `<select id="${id}" aria-label="Sort by">${keys.map((k) => `<option value="${k}" ${cur === k ? "selected" : ""}>Sort: ${SORTS[k][0]}</option>`).join("")}</select>`;
   const filtered = () => OPPS.filter(matcher(false)).sort(listCompare(SORT_LIST[ui.sort] ? ui.sort : "fit", sortDir()));
   // Opportunities list: one table, or one table per category when sorted by category.
+  let resLimit = 300;
   function resultsHtml(items) {
-    const list = items.slice(0, 300);
+    const list = items.slice(0, resLimit);
+    const more = items.length > list.length ? `<div class="showmore"><span class="note">Showing ${list.length} of ${items.length}. Items without a Claude fit score (such as imported Asana records) sort last.</span><button type="button" class="btn-ghost" data-resmore="1">Show ${Math.min(300, items.length - list.length)} more</button><button type="button" class="btn-ghost" data-resall="1">Show all ${items.length}</button></div>` : "";
+    if (more) return resultsHtmlInner(list) + more;
+    return resultsHtmlInner(list);
+  }
+  function resultsHtmlInner(list) {
     if (ui.sort !== "category" || !list.length) return table(list, "No opportunities match these filters.", true);
     const groups = new Map();
     for (const o of list) { const k = catsFor(o)[0]?.name || "No category"; if (!groups.has(k)) groups.set(k, []); groups.get(k).push(o); }
     return [...groups].map(([name, xs]) => `<h2 class="catgroup">${esc(name)} <span class="note">${xs.length}</span></h2>${table(xs, "", true)}`).join("");
   }
-  const anyFilter = () => Boolean(ui.tc || ui.owner || ui.q || ui.min || ui.agency || ui.cat || ui.role || ui.mech || ui.stars || ui.partner || ui.clean);
+  const anyFilter = () => Boolean(ui.src || ui.tc || ui.owner || ui.q || ui.min || ui.agency || ui.cat || ui.role || ui.mech || ui.stars || ui.partner || ui.clean);
 
   function filtersHtml(board) {
     const opt = (v, l, cur) => `<option value="${esc(v)}" ${String(cur) === String(v) ? "selected" : ""}>${esc(l)}</option>`;
@@ -1203,6 +1224,7 @@ details.addform[open] > summary::before { content: "− " }
         <select id="f-basis" aria-label="Whose rating">${opt("mine", "My rating", ui.starBasis)}${opt("team", "Team average", ui.starBasis)}</select>
         <label title="Show opportunities nobody has rated yet (or you haven't, for My rating)"><input type="checkbox" id="f-unrated" ${ui.unrated ? "checked" : ""}> Include unrated</label>
         <select id="f-mech" aria-label="Opportunity type">${opt("", "Any type", ui.mech)}${MECH_ORDER.map((m) => opt(m, m, ui.mech)).join("")}</select>
+        <select id="f-src" aria-label="Source">${SRC_FILTER.map(([v, l]) => opt(v, l, ui.src || "")).join("")}</select>
         <select id="f-tc" aria-label="Team concepts from Teaming">${opt("", "Team concepts: show", ui.tc)}${opt("hide", "Team concepts: hide", ui.tc)}${opt("only", "Team concepts only", ui.tc)}</select>
         <select id="f-owner" aria-label="Owner">${(() => { const ids = [...new Set(Object.values(S.decisions).flatMap((d) => d.owners || []))].sort((a, b) => (names[a] || "").localeCompare(names[b] || ""));
           return opt("", "Any owner", ui.owner) + (me ? opt("@me", "Assigned to me", ui.owner) : "") + opt("@none", "Unassigned", ui.owner) + opt("@nonepipe", "Unassigned in the pipeline", ui.owner) + ids.map((id) => opt(id, names[id] || (id === me ? "You" : "Team member"), ui.owner)).join(""); })()}</select>
@@ -1591,6 +1613,13 @@ ${String(text).slice(0, SEND_CHARS)}
     const sb = subsShown === subsAll ? `${subsAll} submission${subsAll === 1 ? "" : "s"}` : `${subsShown} of ${subsAll} submissions`;
     return show === "opps" ? `${o} in the pipeline` : show === "subs" ? `${sb} in progress` : `${o} · ${sb}`;
   }
+  function hiddenNote() {
+    const show = pshow(), total = OPPS.filter((o) => BOARD_COLS.includes(stageOf(o))).length, shown = show === "subs" ? total : boardCards().length;
+    const raw = OPPS.filter((o) => BOARD_COLS.includes(stageOf(o)) && (DONE.includes(stageOf(o)) || ui.closed || (daysUntil(o.closeDate) ?? 0) >= 0)).length;
+    const byFilter = raw - shown, byDate = total - raw;
+    if (show === "subs" || (!byFilter && !byDate)) return "";
+    return `<div class="hiddennote" id="hiddennote">${byFilter ? `<b>${byFilter}</b> card${byFilter === 1 ? " is" : "s are"} hidden by your filters. <button type="button" class="btn-ghost" id="f-reset2">Reset filters</button>` : ""}${byDate ? ` <b>${byDate}</b> in active stages ${byDate === 1 ? "has a" : "have"} past deadline${byDate === 1 ? "" : "s"}. <label><input type="checkbox" id="f-closed2" ${ui.closed ? "checked" : ""}> Show them</label>` : ""}</div>`;
+  }
   function viewPipeline() {
     const canMove = Boolean(db && canWrite);
     return `<div class="head"><div><h1>Pipeline</h1><p class="sub" style="margin:4px 0 0">${canMove ? "Drag a card to another column, or use its Move menu. Every move is saved for the whole team and recorded in History." : storeState === "ready" ? "View only. Ask the owner for Contributor access to move cards." : "Connecting to shared data…"}</p></div>
@@ -1598,6 +1627,7 @@ ${String(text).slice(0, SEND_CHARS)}
       <div class="pshow" role="radiogroup" aria-label="Show on the board">${[["", "Opportunities and submissions"], ["opps", "Opportunities only"], ["subs", "Submissions only"]].map(([v, l]) => `<label class="${pshow() === v ? "on" : ""}"><input type="radio" name="pshow" value="${v}" ${pshow() === v ? "checked" : ""}> ${l}</label>`).join("")}</div>
       ${filtersHtml(true)}
       ${canMove && pshow() !== "subs" ? `<div class="dropstrips"><div class="dropstrip" data-col="new"><b>Back to New</b> · drop here to take a card out of the pipeline</div><div class="dropstrip" data-col="declined"><b>No-go</b> · drop here to decline</div></div>` : ""}
+      <div id="hiddenwrap">${hiddenNote()}</div>
       <div class="board" id="board">${boardHtml()}</div>
       <p class="help">To add an opportunity to the pipeline, open it from the Opportunities tab and choose Go or set its stage.</p>`;
   }
@@ -1605,6 +1635,7 @@ ${String(text).slice(0, SEND_CHARS)}
     const b = document.getElementById("board"); if (!b) return;
     b.innerHTML = boardHtml();
     const c = document.getElementById("board-count"); if (c) c.textContent = boardCountText();
+    const hw = document.getElementById("hiddenwrap"); if (hw) hw.innerHTML = hiddenNote();
     document.querySelectorAll(".pshow label").forEach((l) => l.classList.toggle("on", l.querySelector("input").checked));
   }
 
@@ -3944,7 +3975,7 @@ ${JSON.stringify({ partners: inp.partners, consortia: inp.consortia, fundingSpon
       description: d.description || "", eligibility: d.eligibility || "", costSharing: d.costSharing ?? null, awardFloor: d.awardFloor ?? null, awardCeiling: d.awardCeiling ?? null,
       estimatedFunding: d.estimatedFunding ?? null, expectedAwards: d.expectedAwards ?? null, postedDate: d.postedDate || d.createdAt, closeDate: d.closeDate || null, status: "posted",
       fetchedAt: d.createdAt, preScore: null, signals: d.topics || [], criteria: crit, blockers: crit.filter((c) => c.status === "fail" && c.id !== "lead_eligible").map((c) => c.label), warnings: [],
-      evaluation: d.evaluation || null, defaultStage: "new", mechanisms: (d.mechanisms || []).filter((m) => MECH_ORDER.includes(m)), leadRole: d.evaluation?.forgeRole || "unclear", leadReason: d.closeNote || "", assistanceListings: d.aln || [], manual: d };
+      evaluation: d.evaluation || null, defaultStage: "new", mechanisms: (d.mechanisms || []).filter((m) => MECH_ORDER.includes(m)), leadRole: d.evaluation?.forgeRole || d.forgeRole || "unclear", leadReason: d.closeNote || d.roleNote || "", assistanceListings: d.aln || [], manual: d };
   }
   function mergeProposals() {
     const baseNums = new Set(BASE_OPPS.map((o) => normNum(o.number)).filter(Boolean));
@@ -4197,7 +4228,7 @@ ${JSON.stringify({ partners: inp.partners, consortia: inp.consortia, fundingSpon
     if (r === "teaming") mountTeamGraph(); else tSim?.stop();
   }
   const saveFilters = () => { try { localStorage.setItem("fg-filters", JSON.stringify(ui)); } catch {} };
-  const CLEAR = { q: "", min: "", agency: "", stage: "", cat: "", role: "", mech: "", owner: "", tc: "", partner: false, clean: false, closed: false, stars: "", starBasis: ui.starBasis || "mine", unrated: true };
+  const CLEAR = { q: "", min: "", agency: "", stage: "", cat: "", role: "", mech: "", owner: "", tc: "", src: "", partner: false, clean: false, closed: false, stars: "", starBasis: ui.starBasis || "mine", unrated: true };
   const go = (hash, patch) => { Object.assign(ui, patch || {}); saveFilters(); if (location.hash === hash) render(); else location.hash = hash; };
   // Re-render on shared-data changes without clobbering a field someone is typing in.
   let dirty = false;
@@ -4543,6 +4574,8 @@ ${JSON.stringify({ partners: inp.partners, consortia: inp.consortia, fundingSpon
       else ui.sortDir = sortDir() === "asc" ? "desc" : "asc";
       saveFilters(); return redrawResults();
     }
+    if (ds.resmore || ds.resall) { resLimit = ds.resall ? 1e9 : resLimit + 300; const items = filtered(); document.getElementById("results").innerHTML = resultsHtml(items); return; }
+    if (t.id === "f-reset2") return go("#pipeline", CLEAR);
     if (t.id === "f-reset") return go(route() === "pipeline" ? "#pipeline" : "#opportunities", CLEAR);
     if (ds.rate) return rate(ds.id, Number(ds.rate));
     if (ds.analyze) return analyzeDoc(ds.analyze);
@@ -4623,6 +4656,7 @@ ${JSON.stringify({ partners: inp.partners, consortia: inp.consortia, fundingSpon
     if (e.target.id === "p-files") { const files = [...e.target.files]; e.target.value = ""; if (files.length) addFormFiles(files); return; }
     if (e.target.id === "p-url") { const u = e.target.value.trim(); if (safeUrl(u) && u !== pform.lastUrl) draftPartner(false); return; }
     if (subChange(e.target)) return;
+    if (e.target.id === "f-closed2") { ui.closed = e.target.checked; saveFilters(); return render(); }
     if (e.target.name === "pshow") { ui.pshow = e.target.value; saveFilters(); return render(); }
     if (e.target.dataset?.substatus) return setSubStatus(e.target.dataset.substatus, e.target.value);
     if (e.target.name === "settheme") { setPref("fg-theme", e.target.value); applyAppearance(); return; }
@@ -4723,7 +4757,7 @@ ${JSON.stringify({ partners: inp.partners, consortia: inp.consortia, fundingSpon
     if (e.target.id === "h-kind" || e.target.id === "h-who") { hf[e.target.id === "h-kind" ? "kind" : "who"] = e.target.value; return render(); }
     if (!e.target.closest("#filters")) return;
     if (e.target.id === "f-sort") { ui.sort = e.target.value; ui.sortDir = ""; saveFilters(); return redrawResults(); }
-    const map = { "f-q": "q", "f-min": "min", "f-agency": "agency", "f-stage": "stage", "f-cat": "cat", "f-role": "role", "f-mech": "mech", "f-stars": "stars", "f-basis": "starBasis", "f-sort": "sort", "f-psort": "psort", "f-owner": "owner", "f-tc": "tc" };
+    const map = { "f-q": "q", "f-min": "min", "f-agency": "agency", "f-stage": "stage", "f-cat": "cat", "f-role": "role", "f-mech": "mech", "f-stars": "stars", "f-basis": "starBasis", "f-sort": "sort", "f-psort": "psort", "f-owner": "owner", "f-tc": "tc", "f-src": "src" };
     if (map[e.target.id]) ui[map[e.target.id]] = e.target.value;
     if (e.target.id === "f-clean") ui.clean = e.target.checked;
     if (e.target.id === "f-closed") ui.closed = e.target.checked;
@@ -4733,7 +4767,7 @@ ${JSON.stringify({ partners: inp.partners, consortia: inp.consortia, fundingSpon
     clearTimeout(typing);
     typing = setTimeout(() => {
       if (route() === "pipeline") return refreshBoard();
-      const items = filtered(); document.getElementById("results").innerHTML = resultsHtml(items); document.querySelector(".head .sub .num").textContent = items.length;
+      resLimit = 300; const items = filtered(); document.getElementById("results").innerHTML = resultsHtml(items); document.querySelector(".head .sub .num").textContent = items.length;
     }, 120);
   });
   app.addEventListener("focusin", async (e) => { if (e.target.id === "d-psearch") { e.target.dispatchEvent(new Event("input", { bubbles: true })); return; } if (e.target.id === "d-osearch" && user?.search) { e.target.dispatchEvent(new Event("input", { bubbles: true })); return; } if (e.target.id === "c-search" && user?.search) { const found = await user.search(""); found.forEach((p) => { names[p.id] = p.name; avatars[p.id] = p.avatarUrl; }); } });
