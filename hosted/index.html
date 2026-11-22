@@ -2748,7 +2748,7 @@ Reply with only a JSON object:
     const key = editing.category || "new";
     if (!draftMembers[key]) draftMembers[key] = [...(e.members || [])];
     const open = OPPS.filter(isOpen);
-    return `<div class="head"><div><h1>Categories</h1><p class="sub" style="margin:4px 0 0">Group keywords into categories and assign team members. Opportunities that match a category are tagged with it and listed on each member's dashboard under "Your categories".</p></div></div>
+    return `<div class="head"><div><h1>Categories</h1><p class="sub" style="margin:4px 0 0">Group keywords into categories and assign team members. Opportunities that match a category are tagged with it; members can filter Opportunities and the Pipeline by "My categories".</p></div></div>
       <section class="panel"><h2>${isNew ? "Add a category" : "Edit category"}</h2>
         <div class="form">
           ${field("c-name", "Name", e.name, 'placeholder="Grid cybersecurity" maxlength="80"')}
