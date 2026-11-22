@@ -1,6 +1,6 @@
 <title>Forge Grants Dashboard</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<meta name="forge:published" content="2026-11-22T16:56:11Z">
+<meta name="forge:published" content="2026-11-22T17:02:03Z">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
@@ -673,7 +673,7 @@ details.addform[open] > summary::before { content: "− " }
   const leadLabel = () => leadDays() === 14 ? "2 weeks" : leadDays() % 7 === 0 ? `${leadDays() / 7} weeks` : `${leadDays()} days`;
   let db = null, user = null, me = null, canWrite = false, storeState = "connecting";
   const names = {}, avatars = {};
-  const ui = { q: "", min: "", agency: "", stage: "", cat: "", role: "", mech: "", owner: "", partner: false, clean: false, closed: false, stars: "", starBasis: "mine", unrated: true, sort: "fit", psort: "deadline", dcat: "", dcsort: "open" };
+  const ui = { q: "", min: "", agency: "", stage: "", cat: "", role: "", mech: "", owner: "", tc: "", partner: false, clean: false, closed: false, stars: "", starBasis: "mine", unrated: true, sort: "fit", psort: "deadline", dcat: "", dcsort: "open" };
   try { Object.assign(ui, JSON.parse(localStorage.getItem("fg-filters") || "{}")); } catch {}
   const editing = { source: null, partner: null, category: null, profile: false, staff: null };
   const hf = { kind: "", who: "" };   // history filters   // id being edited, or "new"
@@ -919,6 +919,9 @@ details.addform[open] > summary::before { content: "− " }
       if (ui.partner && !partnersFor(o).length) return false;
       if (ui.clean && realCriteria(o).some((c) => c.status === "fail")) return false;
       if (ui.mech && !mechsOf(o).includes(ui.mech)) return false;
+      // Team concepts are topic ideas moved forward from the Teaming page.
+      if (ui.tc === "hide" && o.source === "teaming") return false;
+      if (ui.tc === "only" && o.source !== "teaming") return false;
       if (ui.owner) { const ow = ownersOf(o); if (ui.owner === "@me" ? !ow.includes(me) : ui.owner === "@none" ? ow.length > 0 : !ow.includes(ui.owner)) return false; }
       if (ui.role && !(roleOf(o) === ui.role || (roleOf(o) === "either" && (ui.role === "lead" || ui.role === "partner")))) return false;
       if (ui.stars) {
@@ -968,7 +971,7 @@ details.addform[open] > summary::before { content: "− " }
     for (const o of list) { const k = catsFor(o)[0]?.name || "No category"; if (!groups.has(k)) groups.set(k, []); groups.get(k).push(o); }
     return [...groups].map(([name, xs]) => `<h2 class="catgroup">${esc(name)} <span class="note">${xs.length}</span></h2>${table(xs, "", true)}`).join("");
   }
-  const anyFilter = () => Boolean(ui.owner || ui.q || ui.min || ui.agency || ui.cat || ui.role || ui.mech || ui.stars || ui.partner || ui.clean);
+  const anyFilter = () => Boolean(ui.tc || ui.owner || ui.q || ui.min || ui.agency || ui.cat || ui.role || ui.mech || ui.stars || ui.partner || ui.clean);
 
   function filtersHtml(board) {
     const opt = (v, l, cur) => `<option value="${esc(v)}" ${String(cur) === String(v) ? "selected" : ""}>${esc(l)}</option>`;
@@ -982,6 +985,7 @@ details.addform[open] > summary::before { content: "− " }
         <select id="f-basis" aria-label="Whose rating">${opt("mine", "My rating", ui.starBasis)}${opt("team", "Team average", ui.starBasis)}</select>
         <label title="Show opportunities nobody has rated yet (or you haven't, for My rating)"><input type="checkbox" id="f-unrated" ${ui.unrated ? "checked" : ""}> Include unrated</label>
         <select id="f-mech" aria-label="Opportunity type">${opt("", "Any type", ui.mech)}${MECH_ORDER.map((m) => opt(m, m, ui.mech)).join("")}</select>
+        <select id="f-tc" aria-label="Team concepts from Teaming">${opt("", "Team concepts: show", ui.tc)}${opt("hide", "Team concepts: hide", ui.tc)}${opt("only", "Team concepts only", ui.tc)}</select>
         <select id="f-owner" aria-label="Owner">${(() => { const ids = [...new Set(Object.values(S.decisions).flatMap((d) => d.owners || []))].sort((a, b) => (names[a] || "").localeCompare(names[b] || ""));
           return opt("", "Any owner", ui.owner) + (me ? opt("@me", "Assigned to me", ui.owner) : "") + opt("@none", "Unassigned", ui.owner) + ids.map((id) => opt(id, names[id] || (id === me ? "You" : "Team member"), ui.owner)).join(""); })()}</select>
         <select id="f-role" aria-label="Forge's role">${opt("", "Lead or partner", ui.role)}${opt("lead", "Forge can lead", ui.role)}${opt("partner", "Partner role", ui.role)}${opt("unclear", "Lead: check notice", ui.role)}</select>
@@ -2783,7 +2787,7 @@ ${JSON.stringify({ partners: inp.partners, fundingSponsors: inp.sources, opportu
         <dt>Type</dt><dd>The funding vehicle: <span class="mech sbir">SBIR</span> <span class="mech sttr">STTR</span> <span class="mech baa">BAA</span> <span class="mech grant">Grant</span> <span class="mech contract">Contract</span> and others, worked out from the listing.</dd>
         <dt>Role</dt><dd><span class="role lead">Forge can lead</span> Forge can apply as the lead. <span class="role partner">Partner role</span> the listing limits who leads (for example SBIR or university-only), so Forge would join an eligible lead. <span class="role unclear">Lead: check notice</span> the listing doesn't say.</dd>
         <dt>Criteria dots</dt><dd>Four automated checks on the listing text: no cash match, indirect costs allowed, operating expenses allowed, open solicitation. Green yes, red no, gray not stated. Always confirm against the full notice. <a href="#help" data-helpgo="criteria">Exactly how they're calculated →</a></dd>
-        <dt>Tags</dt><dd>Blue tags are your categories; green "With …" tags are partners whose focus areas the listing mentions. <span class="tag teaming">Team concept</span> marks a topic idea the team chose to pursue.</dd>
+        <dt>Tags</dt><dd>Blue tags are your categories; green "With …" tags are partners whose focus areas the listing mentions. <span class="tag teaming">Team concept</span> marks a topic idea the team chose to pursue. Use the <i>Team concepts</i> filter on Opportunities or Pipeline to hide them, or to show only them.</dd>
         <dt>Past awards and coaching</dt><dd>Each listing links to past winners (from NSF Award Search or USAspending) so you can see what was funded. Proposal coaching studies those winners once the team rates the opportunity 3+ stars.</dd>
       </dl>`],
     ["criteria", "How the criteria and scores are calculated", `
@@ -2921,7 +2925,7 @@ ${JSON.stringify({ partners: inp.partners, fundingSponsors: inp.sources, opportu
     if (r === "teaming") mountTeamGraph(); else tSim?.stop();
   }
   const saveFilters = () => { try { localStorage.setItem("fg-filters", JSON.stringify(ui)); } catch {} };
-  const CLEAR = { q: "", min: "", agency: "", stage: "", cat: "", role: "", mech: "", owner: "", partner: false, clean: false, closed: false, stars: "", starBasis: ui.starBasis || "mine", unrated: true };
+  const CLEAR = { q: "", min: "", agency: "", stage: "", cat: "", role: "", mech: "", owner: "", tc: "", partner: false, clean: false, closed: false, stars: "", starBasis: ui.starBasis || "mine", unrated: true };
   const go = (hash, patch) => { Object.assign(ui, patch || {}); saveFilters(); if (location.hash === hash) render(); else location.hash = hash; };
   // Re-render on shared-data changes without clobbering a field someone is typing in.
   let dirty = false;
@@ -3373,7 +3377,7 @@ ${JSON.stringify({ partners: inp.partners, fundingSponsors: inp.sources, opportu
     if (e.target.id === "h-kind" || e.target.id === "h-who") { hf[e.target.id === "h-kind" ? "kind" : "who"] = e.target.value; return render(); }
     if (!e.target.closest("#filters")) return;
     if (e.target.id === "f-sort") { ui.sort = e.target.value; ui.sortDir = ""; saveFilters(); return redrawResults(); }
-    const map = { "f-q": "q", "f-min": "min", "f-agency": "agency", "f-stage": "stage", "f-cat": "cat", "f-role": "role", "f-mech": "mech", "f-stars": "stars", "f-basis": "starBasis", "f-sort": "sort", "f-psort": "psort", "f-owner": "owner" };
+    const map = { "f-q": "q", "f-min": "min", "f-agency": "agency", "f-stage": "stage", "f-cat": "cat", "f-role": "role", "f-mech": "mech", "f-stars": "stars", "f-basis": "starBasis", "f-sort": "sort", "f-psort": "psort", "f-owner": "owner", "f-tc": "tc" };
     if (map[e.target.id]) ui[map[e.target.id]] = e.target.value;
     if (e.target.id === "f-clean") ui.clean = e.target.checked;
     if (e.target.id === "f-closed") ui.closed = e.target.checked;
