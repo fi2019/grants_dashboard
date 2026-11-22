@@ -1,6 +1,6 @@
 <title>Forge Grants Dashboard</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<meta name="forge:published" content="2026-11-22T17:37:39Z">
+<meta name="forge:published" content="2026-11-22T17:48:46Z">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
@@ -338,6 +338,14 @@ details.stbio[open] summary { display: none }
 .alertbar .ab-icon { font-size: 16px; font-weight: 700 }
 .alertbar .wrap > span:nth-child(2) { flex: 1 1 240px; min-width: 0 }
 .alertbar .ab-until { margin-left: auto; font-size: 12px; opacity: .9 }
+.pchip { display: inline-flex; align-items: center; gap: 4px; font-size: 13px; background: var(--good-bg); border-radius: 999px; padding: 1px 10px }
+.pchip a { color: var(--good) }
+.pchip button { padding: 0 2px; background: none; border: 0; color: var(--muted) }
+.psugg { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px }
+.psugg .btn-ghost { padding: 1px 8px; font-size: 12px }
+.arrlist { display: grid; gap: 8px }
+.arrrow { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 16px; align-items: flex-start; border: 1px solid var(--line); border-left: 4px solid var(--n-partner); border-radius: 8px; padding: 10px 12px; background: var(--surface-2) }
+.arrmain { min-width: 0; flex: 1 1 320px }
 .cfgs { display: grid; gap: 10px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); margin-top: 10px }
 .cfg { display: grid; gap: 4px; align-content: start; border: 1px solid var(--line); border-left: 4px solid var(--line); border-radius: 8px; padding: 10px 12px; background: var(--surface-2) }
 .cfg.on { border-left-color: var(--accent); background: var(--surface) }
@@ -1096,6 +1104,7 @@ details.addform[open] > summary::before { content: "− " }
           <label for="d-review">Forge internal deadline<input type="date" id="d-review" value="${internal ? internal.slice(0, 10) : ""}" ${ro()}></label>
           <p class="help" style="margin-top:-4px">Defaults to ${leadLabel()} before submission. Change it only if this one needs more lead time.</p>
           ${ownerPickerHtml(o, d)}
+          ${partnerPickerHtml(o, d)}
           <label for="d-notes">Notes<textarea id="d-notes" rows="6" placeholder="Partner conversations, reasons for the decision…" ${ro()}>${esc(d.notes || "")}</textarea></label>
           <button class="btn" id="d-save" ${ro()}>Save decision</button>
           <div class="toast" id="d-toast">${d.updatedAt ? `Last updated ${fmtDate(d.updatedAt)}${who ? ` by ${esc(who)}` : ""}` : storeState === "ready" ? (canWrite ? "" : "View only") : "Shared decisions unavailable here"}</div>
@@ -1117,6 +1126,29 @@ details.addform[open] > summary::before { content: "− " }
         ${me && !dOwners.list.includes(me) ? `<button type="button" class="btn-ghost" data-opick="${esc(me)}" style="justify-self:start;padding:2px 10px;font-size:12px" ${ro()}>+ Assign to me</button>` : ""}`
         : `<span class="help">Team search isn't available in this view.</span>`}
     </div>`;
+  }
+  // ---------- teaming partners on a decision ----------
+  const dPartners = { id: null, list: [] };
+  const partnerLabel = (pid) => { const p = S.partners[pid]; if (!p) return "Removed partner"; const par = p.parentId && S.partners[p.parentId]; return par ? `${p.name} (${par.name})` : p.name; };
+  const pchip = (pid, removable) => `<span class="pchip"><a href="#partner-${esc(pid)}">${esc(partnerLabel(pid))}</a>${removable && canWrite ? `<button type="button" data-punpick="${esc(pid)}" aria-label="Remove ${esc(partnerLabel(pid))}">×</button>` : ""}</span>`;
+  function partnerPickerHtml(o, d) {
+    if (dPartners.id !== o.id) { dPartners.id = o.id; dPartners.list = [...(d.partners || [])].filter((pid) => S.partners[pid]); }
+    const sugg = partnersFor(o).filter((p) => !dPartners.list.includes(p.id)).slice(0, 6);
+    return `<div class="ownerbox"><span class="lbl">Teaming partners</span>
+      <div class="people" id="d-partners">${dPartners.list.map((pid) => pchip(pid, true)).join("") || `<span class="help">No partners yet.</span>`}</div>
+      <div class="picker"><input id="d-psearch" placeholder="Search partners, centers, people…" autocomplete="off" aria-label="Add a teaming partner" ${ro()}><ul id="d-presults" hidden></ul></div>
+      <div id="d-psugg">${psuggHtml(o)}</div>
+      <span class="help">Picked partners show up as a potential teaming arrangement at the top of the Teaming page.</span>
+    </div>`;
+  }
+  function psuggHtml(o) {
+    const sugg = partnersFor(o).filter((p) => !dPartners.list.includes(p.id)).slice(0, 6);
+    return sugg.length ? `<span class="help">Suggested (their focus areas appear in this listing):</span><div class="psugg">${sugg.map((p) => `<button type="button" class="btn-ghost" data-ppick="${esc(p.id)}" title="Matched: ${esc(p.matched.join(", "))}" ${ro()}>+ ${esc(partnerLabel(p.id))}</button>`).join("")}</div>` : "";
+  }
+  function refreshPartners() {
+    const box = document.getElementById("d-partners"); if (box) box.innerHTML = dPartners.list.map((pid) => pchip(pid, true)).join("") || `<span class="help">No partners yet.</span>`;
+    const o = OPPS.find((x) => x.id === dPartners.id), sg = document.getElementById("d-psugg"); if (sg && o) sg.innerHTML = psuggHtml(o);
+    dirty = true;
   }
   function refreshOwners() { const box = document.getElementById("d-owners"); if (box) box.innerHTML = dOwners.list.map(ownerChip).join("") || `<span class="help">No owner yet.</span>`; dirty = true; }
   const ownerNames = (ids) => (ids || []).map((id) => names[id] || (id === me ? "You" : "a teammate"));
@@ -2366,6 +2398,7 @@ ${String(text).slice(0, SEND_CHARS)}
     const concepts = sorted(S.concepts, "createdAt").reverse().filter((c) => !TM.cfilter || (TM.cfilter === "@none" ? !c.savedId : c.savedId === TM.cfilter));
     const allConcepts = Object.keys(S.concepts).length;
     return `<div class="head"><div><h1>Teaming</h1><p class="sub" style="margin:4px 0 0">Pick focus areas, partners and funding sponsors, see how they connect, and have Claude suggest topics to propose to each sponsor.</p></div></div>
+      ${arrangementsHtml()}
       ${savedHtml()}
       <section class="panel"><h2>1. Focus areas</h2>
         <div class="chips" style="margin:8px 0">${b.topics.map((t) => `<span class="x tchip">${esc(t)}<button type="button" data-untopic="${esc(t)}" aria-label="Remove ${esc(t)}" ${ro()}>×</button></span>`).join("") || `<span class="help">No focus areas yet. Add one below or pick a suggestion.</span>`}</div>
@@ -2509,6 +2542,31 @@ ${String(text).slice(0, SEND_CHARS)}
   const cfgDirty = (c) => { const b = tBoard(); return !sameSet(b.topics, c.topics) || !sameSet(b.items, c.items); };
   const cfgSummary = (c) => { const it = c.items || [], n = (pre) => it.filter((k) => k.startsWith(pre)).length;
     return [`${(c.topics || []).length} focus ${(c.topics || []).length === 1 ? "area" : "areas"}`, `${n("p:")} ${n("p:") === 1 ? "partner" : "partners"}`, `${n("s:")} ${n("s:") === 1 ? "sponsor" : "sponsors"}`, n("o:") ? `${n("o:")} ${n("o:") === 1 ? "opportunity" : "opportunities"}` : ""].filter(Boolean).join(" · "); };
+  // Opportunities where the team picked teaming partners on the decision panel.
+  function arrangementsHtml() {
+    const rows = OPPS.filter((o) => (S.decisions[o.id]?.partners || []).some((pid) => S.partners[pid]) && !["declined", "not_awarded"].includes(stageOf(o)))
+      .sort((a, b) => byDeadline(a, b) || byFit(a, b));
+    if (!rows.length) return `<section class="panel"><h2>Potential teaming arrangements</h2><p class="help">When someone adds teaming partners to an opportunity (on its page, under Owners), the pairing shows here so you can load it and draft topic ideas.</p></section>`;
+    const board = tBoard();
+    return `<section class="panel arr"><h2>Potential teaming arrangements <span class="note">${rows.length}</span></h2>
+      <p class="help" style="margin-bottom:8px">Opportunities with partners picked on their decision panel. <b>Load</b> puts the opportunity and its partners into your picks below, ready for Suggest topics to propose.</p>
+      <div class="arrlist">${rows.map((o) => { const d = S.decisions[o.id], pids = d.partners.filter((pid) => S.partners[pid]);
+        const loaded = board.items.includes("o:" + o.id) && pids.every((pid) => board.items.includes("p:" + pid));
+        return `<div class="arrrow"><div class="arrmain"><a href="#opp-${esc(o.id)}" class="ttl">${esc(o.title)}</a>
+            <div class="meta" style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:12px;color:var(--muted);margin-top:2px">${pill(stageOf(o))}${dlHtml(o.closeDate)}<span>${esc(o.agency)}</span></div>
+            <div class="people" style="margin-top:6px">${pids.map((pid) => pchip(pid, false)).join("")}</div>${ownerLine(o)}</div>
+          <div class="arract">${loaded ? `<span class="moved">✓ Loaded</span>` : `<button class="btn" data-arrload="${esc(o.id)}" ${ro()}>Load into Teaming</button>`}</div></div>`; }).join("")}</div></section>`;
+  }
+  async function loadArrangement(oid) {
+    const o = OPPS.find((x) => x.id === oid), d = S.decisions[oid]; if (!o || !d) return;
+    const b = tBoard(), add = ["o:" + oid, ...(d.partners || []).filter((pid) => S.partners[pid]).map((pid) => "p:" + pid)];
+    const items = [...new Set([...b.items, ...add])].slice(0, 30);
+    // Start the focus areas from the listing's profile signals when none are set.
+    const topics = b.topics.length ? b.topics : (o.signals || []).filter((x) => !/\//.test(x)).slice(0, 4).map((x) => x.toLowerCase());
+    TM.active = null; saveTm();
+    await saveBoard({ items, topics }, { action: "loaded a teaming arrangement for", targetName: o.title, changes: [{ field: "items", label: "Added to picks", to: add.map((k) => itemOf(k)?.label || k) }] });
+    document.getElementById("tpickers")?.scrollIntoView({ block: "start" });
+  }
   function savedHtml() {
     const list = sorted(S.teamingSaved, "name"), act = TM.active && S.teamingSaved[TM.active] ? { id: TM.active, ...S.teamingSaved[TM.active] } : null;
     const card = (c) => { const on = c.id === act?.id, ideas = Object.values(S.concepts).filter((x) => x.savedId === c.id).length, key = "cfg:" + c.id;
@@ -2852,6 +2910,7 @@ ${JSON.stringify({ partners: inp.partners, fundingSponsors: inp.sources, opportu
       </ul>`],
     ["teaming", "Teaming: from partners to proposal topics", `
       <ol>
+        <li><b>Start from an opportunity (optional).</b> On any opportunity's page, add <i>Teaming partners</i> under Owners. The partners whose focus areas the listing mentions are suggested, or you can search every partner, center and person. The pairing then appears under <i>Potential teaming arrangements</i> at the top of Teaming; <b>Load into Teaming</b> puts the opportunity and its partners into your picks and starts the focus areas from the listing.</li>
         <li><b>Focus areas.</b> Add a few (cyber, grid, workforce…) or click suggestions; the numbers show how many partners, open opportunities and sponsors each one connects.</li>
         <li><b>Partners and funding sponsors.</b> Tick the specific partners (a university or a center or person under it) and sponsors (IARPA, DARPA, AFRL…) you want to build for.</li>
         <li><b>Network.</b> See how they connect. Drag dots, zoom, and click one for details.</li>
@@ -2955,7 +3014,7 @@ ${JSON.stringify({ partners: inp.partners, fundingSponsors: inp.sources, opportu
     if (f && f.closest && f.closest("#results, #my-stars")) return refreshRatings();
     render();
   }
-  addEventListener("hashchange", () => { armed.clear(); dirty = false; dOwners.id = null; editing.profile = false; for (const k in flash) delete flash[k]; render(); scrollTo(0, 0); });
+  addEventListener("hashchange", () => { armed.clear(); dirty = false; dOwners.id = null; dPartners.id = null; editing.profile = false; for (const k in flash) delete flash[k]; render(); scrollTo(0, 0); });
 
   // ---------- writes ----------
   const flash = {};   // toast id -> message, so a re-render from a live update keeps it
@@ -2982,7 +3041,7 @@ ${JSON.stringify({ partners: inp.partners, fundingSponsors: inp.sources, opportu
     } catch { /* the change itself was saved; a missed log entry should not block the user */ }
   }
   const LABELS = {
-    decision: { stage: "Stage", reviewDate: "Forge internal deadline", owners: "Owners", notes: "Notes" },
+    decision: { stage: "Stage", reviewDate: "Forge internal deadline", owners: "Owners", partners: "Teaming partners", notes: "Notes" },
     source: { name: "Name", category: "Category", api: "API available", status: "Status", url: "Website", apiUrl: "API URL", apiDetails: "Data access", credential: "Key name", parentAgency: "Parent agency", mechanisms: "Funding mechanisms", focusAreas: "Focus areas", unsolicited: "White-paper path", cadence: "Update cadence", notes: "Notes" },
     staff: { name: "Name", title: "Title", email: "Email", phone: "Phone", capabilities: "Capabilities", skills: "Skills and credentials", bio: "Biography" },
     partner: { name: "Name", type: "Type", parentId: "Part of", url: "Link", links: "More links", contact: "Contact", summary: "Focus summary", focus: "Focus areas", notes: "Notes" },
@@ -2999,7 +3058,8 @@ ${JSON.stringify({ partners: inp.partners, fundingSponsors: inp.sources, opportu
     const def = defaultInternal(o);
     const body = await stamp({
       ...(S.decisions[o.id]?.owner && !(dOwners.id === o.id && dOwners.list.length) ? { owner: S.decisions[o.id].owner } : {}),
-      stage: val("d-stage"), owners: dOwners.id === o.id ? [...dOwners.list] : (S.decisions[o.id]?.owners || []), notes: (document.getElementById("d-notes").value || "").slice(0, 20000),
+      stage: val("d-stage"), owners: dOwners.id === o.id ? [...dOwners.list] : (S.decisions[o.id]?.owners || []),
+      partners: dPartners.id === o.id ? [...dPartners.list] : (S.decisions[o.id]?.partners || []), notes: (document.getElementById("d-notes").value || "").slice(0, 20000),
       // Only store a date when it differs from the 2-week default, so the default keeps tracking the deadline.
       reviewDate: review && (!def || review !== def.slice(0, 10)) ? new Date(review + "T12:00:00Z").toISOString() : null,
     });
@@ -3007,8 +3067,8 @@ ${JSON.stringify({ partners: inp.partners, fundingSponsors: inp.sources, opportu
     toast("d-toast", "Saving…");
     const prevRaw = S.decisions[o.id];
     if (body.owners.length) body.owner = ownerNames(body.owners).join(", ");   // readable copy for reports
-    const before = { stage: stageOf(o), owners: ownerNames(prevRaw?.owners), notes: prevRaw?.notes || "", reviewDate: (internalOf(o) || "").slice(0, 10) || null };
-    const after = { stage: body.stage, owners: ownerNames(body.owners), notes: body.notes, reviewDate: (body.reviewDate || defaultInternal(o) || "").slice(0, 10) || null };
+    const before = { stage: stageOf(o), owners: ownerNames(prevRaw?.owners), partners: (prevRaw?.partners || []).map(partnerLabel), notes: prevRaw?.notes || "", reviewDate: (internalOf(o) || "").slice(0, 10) || null };
+    const after = { stage: body.stage, owners: ownerNames(body.owners), partners: body.partners.map(partnerLabel), notes: body.notes, reviewDate: (body.reviewDate || defaultInternal(o) || "").slice(0, 10) || null };
     const changes = diff(before, after, LABELS.decision).map((c) => c.field === "stage" ? { ...c, from: LABEL[c.from] || c.from, to: LABEL[c.to] || c.to } : c);
     try {
       await db.doc("decisions/" + o.id).set(body); dirty = false; toast("d-toast", changes.length ? "Saved" : "No changes to save");
@@ -3219,6 +3279,7 @@ ${JSON.stringify({ partners: inp.partners, fundingSponsors: inp.sources, opportu
     if (ds.tpick && t.tagName === "BUTTON") return togglePick(ds.tpick);
     if (t.id === "t-suggest") return suggestConcepts();
     if (ds.cfgload) return loadConfig(ds.cfgload);
+    if (ds.arrload) return loadArrangement(ds.arrload);
     if (ds.cfgrun) return refreshConfig(ds.cfgrun);
     if (ds.cfgupdate) return updateConfig(ds.cfgupdate);
     if (ds.cfgdel) return removeConfig(ds.cfgdel);
@@ -3252,6 +3313,8 @@ ${JSON.stringify({ partners: inp.partners, fundingSponsors: inp.sources, opportu
     if (ds.decide) { document.getElementById("d-stage").value = ds.decide; return saveDecision(); }
     if (t.id === "d-save") return saveDecision();
     if (ds.opick) { if (!dOwners.list.includes(ds.opick)) dOwners.list.push(ds.opick); const s2 = document.getElementById("d-osearch"); if (s2) s2.value = ""; const l = document.getElementById("d-oresults"); if (l) l.hidden = true; refreshOwners(); return; }
+    if (ds.ppick) { if (!dPartners.list.includes(ds.ppick)) dPartners.list.push(ds.ppick); const s2 = document.getElementById("d-psearch"); if (s2) s2.value = ""; const l = document.getElementById("d-presults"); if (l) l.hidden = true; refreshPartners(); return; }
+    if (ds.punpick) { dPartners.list = dPartners.list.filter((x) => x !== ds.punpick); return refreshPartners(); }
     if (ds.ounpick) { dOwners.list = dOwners.list.filter((x) => x !== ds.ounpick); return refreshOwners(); }
     if (ds.save) return saveItem(ds.save);
     if (ds.cancel || ds.cancelprofile) dirty = false;
@@ -3281,6 +3344,7 @@ ${JSON.stringify({ partners: inp.partners, fundingSponsors: inp.sources, opportu
       return refreshMembers();
     }
   });
+  document.addEventListener("click", (e) => { for (const [inp, ul] of [["d-psearch", "d-presults"], ["d-osearch", "d-oresults"]]) { const l = document.getElementById(ul); if (l && !l.hidden && !e.target.closest(`#${ul}`) && e.target.id !== inp) l.hidden = true; } });
   function refreshMembers() {
     const k = editing.category || "new", box = document.getElementById("c-members");
     if (box) box.innerHTML = (draftMembers[k] || []).map((id) => personHtml(id, canWrite)).join("") || `<span class="help">No one yet.</span>`;
@@ -3350,6 +3414,13 @@ ${JSON.stringify({ partners: inp.partners, fundingSponsors: inp.sources, opportu
       typing = setTimeout(() => { const tmp = document.createElement("div"); tmp.innerHTML = staffHtml(); document.getElementById("stafflist")?.replaceWith(tmp.querySelector("#stafflist") || document.createElement("div")); const n = document.querySelector("#stfilters .note"), m = tmp.querySelector("#stfilters .note"); if (n && m) n.textContent = m.textContent; }, 120);
       return;
     }
+    if (e.target.id === "d-psearch") {
+      const q = e.target.value.trim().toLowerCase(), list = document.getElementById("d-presults");
+      const found = sorted(S.partners).filter((p) => !dPartners.list.includes(p.id) && (!q || [p.name, p.type, ...(p.focus || []), S.partners[p.parentId]?.name].join(" ").toLowerCase().includes(q))).slice(0, 10);
+      list.innerHTML = found.map((p) => `<li><button type="button" data-ppick="${esc(p.id)}">${esc(partnerLabel(p.id))} <span class="note">${esc(p.type || "")}</span></button></li>`).join("") || `<li class="help" style="padding:6px">No matching partners. Add them on the Partners tab.</li>`;
+      list.hidden = false;
+      return;
+    }
     if (e.target.id === "d-osearch") {
       const list = document.getElementById("d-oresults");
       const found = await user.search(e.target.value);
@@ -3403,7 +3474,7 @@ ${JSON.stringify({ partners: inp.partners, fundingSponsors: inp.sources, opportu
       const items = filtered(); document.getElementById("results").innerHTML = resultsHtml(items); document.querySelector(".head .sub .num").textContent = items.length;
     }, 120);
   });
-  app.addEventListener("focusin", async (e) => { if (e.target.id === "d-osearch" && user?.search) { e.target.dispatchEvent(new Event("input", { bubbles: true })); return; } if (e.target.id === "c-search" && user?.search) { const found = await user.search(""); found.forEach((p) => { names[p.id] = p.name; avatars[p.id] = p.avatarUrl; }); } });
+  app.addEventListener("focusin", async (e) => { if (e.target.id === "d-psearch") { e.target.dispatchEvent(new Event("input", { bubbles: true })); return; } if (e.target.id === "d-osearch" && user?.search) { e.target.dispatchEvent(new Event("input", { bubbles: true })); return; } if (e.target.id === "c-search" && user?.search) { const found = await user.search(""); found.forEach((p) => { names[p.id] = p.name; avatars[p.id] = p.avatarUrl; }); } });
 
   // ---------- people ----------
   async function resolveNames() {
