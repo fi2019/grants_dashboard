@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Forge UI style guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="forge-ui.css">
+<style>
+  .sw { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px }
+  .sw div { border: 1px solid var(--line); border-radius: 8px; overflow: hidden; background: var(--surface); font-size: 12px }
+  .sw i { display: block; height: 46px }
+  .sw span { display: block; padding: 6px 8px } .sw code { color: var(--muted) }
+  .row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center }
+  section.panel > h2 { margin-bottom: 4px } section.panel > .help { margin-bottom: 12px }
+  pre { background: var(--surface-2); border: 1px solid var(--line); border-radius: 6px; padding: 10px; overflow-x: auto; font: 12px/1.5 var(--mono) }
+</style>
+</head>
+<body>
+<div class="fui-shell">
+  <aside class="fui-side" aria-label="Main navigation">
+    <div class="fui-brand"><img src="forge-logo.png" alt="Forge"><span class="app">App name</span></div>
+    <nav class="fui-nav">
+      <a href="#colors" aria-current="page"><svg class="fui-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg><span class="lbl">Colors</span></a>
+      <a href="#type"><svg class="fui-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7V4h16v3"/><path d="M9 20h6"/><path d="M12 4v16"/></svg><span class="lbl">Type</span></a>
+      <a href="#buttons"><svg class="fui-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="18" height="10" rx="3"/></svg><span class="lbl">Buttons</span></a>
+      <a href="#forms"><svg class="fui-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z"/><circle cx="7.5" cy="7.5" r="1"/></svg><span class="lbl">Forms and tags</span></a>
+      <a href="#ratings"><svg class="fui-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3.1 6.3 6.9 1-5 4.9 1.2 6.8L12 17.8 5.8 21l1.2-6.8-5-4.9 6.9-1z"/></svg><span class="lbl">Ratings</span></a>
+      <a href="#status"><svg class="fui-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v4l3 2"/></svg><span class="lbl">Status</span></a>
+      <a href="#data"><svg class="fui-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg><span class="lbl">Data</span></a>
+      <a href="#feedback"><svg class="fui-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span class="lbl">Feedback</span></a>
+    </nav>
+    <div class="fui-sidefoot"><a href="#settings"><svg class="fui-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg><span class="lbl">Settings</span></a></div>
+  </aside>
+  <div class="fui-main">
+    <header class="fui-topbar">
+      <button type="button" class="fui-menubtn" id="menubtn" aria-label="Open the menu">☰</button>
+      <div class="seg" role="radiogroup" aria-label="Color theme" id="themeseg">
+        <label><input type="radio" name="th" value=""> System</label><label><input type="radio" name="th" value="light"> Light</label><label><input type="radio" name="th" value="dark"> Dark</label>
+      </div>
+      <span class="right">Last updated <b>Nov 23, 2026, 11:10 AM CT</b><br><span style="font-size:11px">Pushed to GitHub <b>Nov 23, 2026, 11:10 AM CT</b> · <span class="mono">67c1445</span></span></span>
+    </header>
+    <main class="wrap">
+      <div class="head"><div><h1>Forge UI style guide</h1><p class="sub">Every element here is live and uses forge-ui.css and forge-ui.js. Rules for each are in DESIGN.md.</p></div><button class="btn" id="demo-confirm">Open a confirm dialog</button></div>
+
+      <section class="panel" id="colors"><h2>Color tokens</h2><p class="help">Use the variables, never raw hex, so light and dark mode both work. Orange is the accent (focus rings, current page, badges), never body text.</p>
+        <div class="sw" id="swatches"></div></section>
+
+      <section class="panel" id="type"><h2>Typography</h2><p class="help">Archivo for headings, Inter for text, IBM Plex Mono for numbers, dates, IDs and scores.</p>
+        <h1 style="font-size:26px">Page title (Archivo 26)</h1><div class="sec-title" style="margin-top:8px">Section title (Archivo 18)</div><h2 style="font-size:16px">Panel title (Archivo 16)</h2>
+        <p>Body text, Inter 15/1.5. Write in plain, sentence-case language; say what happens, not what the system is.</p><p class="note">Note or caption, 12px muted.</p><p class="num">$1,500,000 · 2026-11-23 · FA7037-23-S-C0001</p></section>
+
+      <section class="panel" id="buttons"><h2>Buttons</h2><p class="help">One primary button per area. Ghost for secondary actions; red only for deleting or overwriting.</p>
+        <div class="row"><button class="btn">Primary</button><button class="btn-ghost">Secondary</button><button class="btn-danger">Delete</button><button class="btn-go">Go</button><button class="btn-no">No-go</button><button class="btn" disabled>Disabled</button><button class="btn-ghost btn-sm">Small</button><button class="btn-ghost btn-sm" id="arm-demo">Remove</button></div></section>
+
+      <section class="panel" id="forms"><h2>Forms, tag inputs and pickers</h2><p class="help">Labels sit above fields. Multi-value fields use the tag input (Enter, comma or Tab adds; paste a comma list; Backspace removes the last).</p>
+        <div class="form">
+          <label>Name<input placeholder="Full name"></label>
+          <label>Status<select><option>Active</option><option>Completed</option></select></label>
+          <label>Deadline<input type="date"></label>
+          <label class="wide">Capabilities (tag input with suggestions)<div id="tags-demo"></div></label>
+          <label class="wide">Owners (people picker)<div id="people-demo"></div></label>
+          <label class="wide">Notes<textarea rows="3"></textarea></label>
+          <div class="actions"><button class="btn" type="button">Save</button><button class="btn-ghost" type="button">Cancel</button><label class="upload">Upload a document<input type="file"></label><span class="job" id="tags-out"></span></div>
+        </div>
+        <div class="filters" style="margin-top:14px"><input placeholder="Search…"><select><option>Any fit</option><option>Possible (4+)</option></select><label><input type="checkbox" checked> Include unrated</label><button class="btn-ghost">Reset</button>
+          <details class="menu"><summary>Stages: <b>Default</b> ▾</summary><div class="menubody"><label><input type="checkbox" checked> Screening <span class="note" style="margin-left:auto">20</span></label><label><input type="checkbox" checked> Go <span class="note" style="margin-left:auto">2</span></label><label><input type="checkbox"> No-go <span class="note" style="margin-left:auto">138</span></label></div></details></div></section>
+
+      <section class="panel" id="ratings"><h2>1–5 star ratings</h2><p class="help">Click to rate, click your rating again to clear; arrow keys and 1–5 work too. Show the team average next to your own.</p>
+        <div class="row"><span id="stars-demo"></span><span id="stars-ro"></span><span class="note" id="stars-out"></span></div></section>
+
+      <section class="panel" id="status"><h2>Tags, pills, badges and status</h2>
+        <div class="row" style="margin-bottom:10px"><span class="tag">From Asana</span><span class="cat">Category</span><span class="cat good">With partner</span><span class="pill">New</span><span class="pill info">Screening</span><span class="pill warn">Internal review</span><span class="pill good">Go</span><span class="pill bad">Not awarded</span><span class="badge-count">14</span><span class="vbadge ok">✓ Verified</span><span class="vbadge no">⚠ Not verified</span></div>
+        <div class="chips" style="margin-bottom:10px"><span class="cap">OT/ICS security</span><span class="cap">program management</span><span class="skill">CISSP</span><span class="skill">NERC CIP</span></div>
+        <div class="row"><span class="score s8">8/10</span><span class="score s6">6/10</span><span class="score s4 pre">4/10*</span><span class="score s1">2/10</span><span class="dl urgent">Dec 1, 2026 · 8d left</span><span class="dl soon">Jan 25, 2027 · 63d left</span><span class="dl ok">May 1, 2027 · 159d left</span><span class="dl none">No deadline listed</span><span class="dots"><i class="dot pass"></i><i class="dot fail"></i><i class="dot unknown"></i></span><span class="person">Lee Watson<button aria-label="Remove">×</button></span></div></section>
+
+      <section id="data" style="display:grid;gap:16px">
+        <div class="stats"><a class="stat" href="#data"><div class="k">Open opportunities</div><div class="v">459</div><div class="s">From the latest snapshot</div></a><a class="stat hot" href="#data"><div class="k">High match (6+)</div><div class="v">6</div><div class="s">Evaluated by Claude</div></a><div class="stat"><div class="k">Win rate</div><div class="v">41%</div><div class="s">25 of 61 decided</div></div></div>
+        <div class="tablewrap"><table><thead><tr><th class="sortable" aria-sort="descending">Fit</th><th>Opportunity</th><th>Deadline</th><th>Rating</th></tr></thead><tbody>
+          <tr><td><span class="score s6">6/10</span></td><td><a href="#data">Training-based Workforce Development</a><div class="note">National Science Foundation</div></td><td><span class="dl soon">Jan 21, 2027 · 59d left</span></td><td><span class="row-stars" data-v="4"></span></td></tr>
+          <tr><td><span class="score s4 pre">4/10*</span></td><td><a href="#data">Security, Privacy, and Trust in Cyberspace</a><div class="note">National Science Foundation</div></td><td><span class="dl soon">Jan 25, 2027 · 63d left</span></td><td><span class="row-stars" data-v="0"></span></td></tr>
+        </tbody></table></div>
+        <div class="grid2"><div class="panel"><h2>Single-series bars</h2><div class="kbars"><div class="kbar"><span>AFRL</span><span class="kt"><i style="width:100%"></i></span><span class="num">$2M</span></div><div class="kbar"><span>DOE CESER</span><span class="kt"><i style="width:75%"></i></span><span class="num">$1.5M</span></div><div class="kbar"><span>NSRI</span><span class="kt"><i style="width:9%"></i></span><span class="num">$176K</span></div></div></div>
+          <div class="verified"><div><h2 class="sec-title" style="margin:0">Verified section <span class="vbadge ok">✓ Verified</span></h2><p class="vnote">Numbers that come only from an uploaded source document.</p></div><div class="stats"><div class="stat"><div class="k">Total won</div><div class="v">$4.6M</div><div class="s">6 awards</div></div></div></div></div>
+      </section>
+
+      <section class="panel" id="feedback" style="display:grid;gap:10px"><h2>Notices and review boxes</h2>
+        <div class="notice"><b>10</b> cards are hidden by your filters. <button class="btn-ghost btn-sm">Reset filters</button></div>
+        <div class="notice info">Claude is drafting concepts…</div><div class="notice good">Saved.</div><div class="notice bad">Couldn't save. Check your connection and try again.</div>
+        <div class="fbbox"><b>Suggestions and comments</b><span>Reviewer: name the topic area in the first sentence.</span></div>
+        <div class="rtbox"><b>Red team assessment: Weak</b><span>Missing: quad chart required by Section I.</span></div>
+        <p class="empty">Empty state: say what's missing and how to add it. <a href="#forms">Add the first one</a>.</p>
+      </section>
+    </main>
+  </div>
+</div>
+<script src="forge-ui.js"></script>
+<script>
+  // Color swatches straight from the tokens
+  const toks = ["--navy", "--navy-ink", "--accent", "--link", "--bg", "--surface", "--surface-2", "--line", "--fg", "--muted", "--good", "--good-bg", "--info", "--info-bg", "--warn", "--warn-bg", "--bad", "--bad-bg", "--idle-bg", "--star", "--ver-bg", "--fb-bg", "--rt-bg"];
+  function drawSw() { const cs = getComputedStyle(document.documentElement); document.getElementById("swatches").innerHTML = toks.map((t) => `<div><i style="background:var(${t})"></i><span><b>${t}</b><br><code>${cs.getPropertyValue(t).trim()}</code></span></div>`).join(""); }
+  // Theme switch
+  const cur = FUI.theme(); document.querySelector(`#themeseg input[value="${cur}"]`).checked = true;
+  document.getElementById("themeseg").addEventListener("change", (e) => { FUI.theme(e.target.value); drawSw(); });
+  drawSw();
+  FUI.sidebar({ menuButton: document.getElementById("menubtn") });
+  // Components
+  FUI.tagInput(document.getElementById("tags-demo"), { value: ["OT/ICS security", "program management"], suggestions: ["cybersecurity", "critical infrastructure", "workforce development", "grid modernization", "AI and data", "technology transfer"], onChange: (t) => (document.getElementById("tags-out").textContent = t.length + " tags: " + t.join(", ")) });
+  FUI.peoplePicker(document.getElementById("people-demo"), { value: ["u1"], names: { u1: "Lee Watson" }, me: { id: "u9", name: "You" }, search: async (q) => [{ id: "u2", name: "Pat Kim" }, { id: "u3", name: "Sam Rivera" }, { id: "u1", name: "Lee Watson" }].filter((p) => p.name.toLowerCase().includes(q.toLowerCase())) });
+  FUI.stars(document.getElementById("stars-demo"), { value: 3, team: { avg: 3.5, count: 2 }, label: "Your rating", onChange: (n) => (document.getElementById("stars-out").textContent = n ? `You rated ${n}` : "Rating cleared") });
+  FUI.stars(document.getElementById("stars-ro"), { value: 4, readOnly: true, label: "Read-only rating" });
+  document.querySelectorAll(".row-stars").forEach((el) => FUI.stars(el, { value: Number(el.dataset.v), team: { avg: 0, count: 0 } }));
+  FUI.armRemove(document.getElementById("arm-demo"), () => FUI.toast("Removed"));
+  document.getElementById("demo-confirm").addEventListener("click", async () => {
+    const ok = await FUI.confirm({ title: "Replace the working draft?", body: "<p>This replaces the text in 7 sections (412 words). Comments stay.</p>", ok: "Replace" });
+    FUI.toast(ok ? "Replaced" : "Cancelled");
+  });
+</script>
+</body>
+</html>
