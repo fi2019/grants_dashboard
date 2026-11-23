@@ -1,6 +1,9 @@
 <title>Forge Grants Dashboard</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<meta name="forge:published" content="2026-11-22T22:59:36Z">
+<meta name="forge:published" content="">
+<meta name="forge:pushed" content="">
+<meta name="forge:commit" content="">
+<meta name="forge:repo" content="">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
@@ -69,6 +72,8 @@ header.mast .topbar { display: flex; align-items: center; gap: 10px; padding-blo
 .updatedwrap { margin-left: auto; text-align: right }
 .updated { font-size: 12px; color: var(--muted); text-align: right; white-space: nowrap }
 .updated b { color: var(--fg); font-weight: 600 }
+.updated.pushed { display: block; margin-top: 1px; font-size: 11px }
+.updated.pushed a { color: var(--muted); text-decoration: underline dotted }
 .navscrim { position: fixed; inset: 0; background: rgba(4, 28, 44, .5); z-index: 3 }
 @media (max-width: 899px) {
   .shell { grid-template-columns: minmax(0, 1fr) }
@@ -824,7 +829,7 @@ details.addform[open] > summary::before { content: "− " }
   <div class="wrap topbar">
     <button type="button" class="menubtn" id="menubtn" aria-label="Open the menu" aria-controls="side" aria-expanded="false"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h16"/><path d="M4 12h16"/><path d="M4 18h16"/></svg></button>
     <span class="mbrand">Forge <b>Grants</b></span>
-    <span class="updatedwrap"><span class="hgreet" id="hgreet"></span><span class="updated" id="updated" title="When this page or its data was last published"></span></span>
+    <span class="updatedwrap"><span class="hgreet" id="hgreet"></span><span class="updated" id="updated" title="When this page or its data was last published"></span><span class="updated pushed" id="pushed"></span></span>
   </div>
 </header>
 <main class="wrap" id="app"><p class="empty">Loading opportunities…</p></main>
@@ -4621,6 +4626,7 @@ ${JSON.stringify({ partners: inp.partners, consortia: inp.consortia, fundingSpon
             <li class="setrefresh"><b>Check for new opportunities now</b>${refreshHtml()}</li>
             <li><b>Research and coaching worker</b><span>Hourly on weekdays, 7 AM to 7 PM CT</span><span class="note">${rs.triggerId ? "Partner research, people for topics, proposal coaching and online lookups" : "Not set up"}</span></li>
             <li><b>Last updated</b><span class="note">${esc(document.getElementById("updated")?.textContent || "")}</span></li>
+            <li><b>Last pushed to GitHub</b><span class="note">${esc((document.getElementById("pushed")?.textContent || "").replace(/^Pushed to GitHub\s*/, "")) || "Not recorded"}</span></li>
           </ul>
         </section>
         <section class="panel"><h2>Manage the page</h2><div class="setlinks">${LINK.map(([k, l]) => `<a href="#${k}">${document.querySelector(`#tabs a[href="#${k}"] svg`)?.outerHTML || ""}${l}</a>`).join("")}</div></section>
@@ -4651,12 +4657,25 @@ ${JSON.stringify({ partners: inp.partners, consortia: inp.consortia, fundingSpon
     const el = document.getElementById("updated"); if (!el) return;
     const page = Date.parse(document.querySelector('meta[name="forge:published"]')?.content || ""), data = Date.parse(META.snapshotAt || ""), scan = Date.parse(S.settings.scan?.lastRun || "");
     const t = Math.max(...[page, data, scan].filter((x) => !Number.isNaN(x)));
-    if (!Number.isFinite(t)) { el.textContent = ""; return; }
+    if (!Number.isFinite(t)) { el.textContent = ""; pushedLine(); return; }
     const what = t === page ? "page published" : "data published";
     el.innerHTML = `Last updated <b>${esc(new Date(t).toLocaleString("en-US", { month: "short", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit", timeZone: "America/Chicago" }))} CT</b>`;
     const dv = [data, scan].filter((x) => !Number.isNaN(x)), dmax = dv.length ? Math.max(...dv) : NaN;
     el.title = `Most recent of: page published ${Number.isNaN(page) ? "—" : fmtCT(page)}; data published ${Number.isNaN(dmax) ? "—" : fmtCT(dmax)}. Showing the ${what} time.`;
+      pushedLine();
   }
+  // Second header line: the last push to GitHub, stamped into the page at publish time by hosted/stamp.py.
+  function pushedLine() {
+    const el = document.getElementById("pushed"); if (!el) return;
+    const meta = (k) => document.querySelector(`meta[name="forge:${k}"]`)?.content || "";
+    const t = Date.parse(meta("pushed")), sha = meta("commit"), repo = meta("repo");
+    if (Number.isNaN(t)) { el.textContent = ""; return; }
+    const when = new Date(t).toLocaleString("en-US", { month: "short", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit", timeZone: "America/Chicago" });
+    const link = repo && /^https:\/\/github\.com\//.test(repo) && /^[0-9a-f]{7,40}$/.test(sha) ? `${repo}/commit/${sha}` : "";
+    el.innerHTML = `Pushed to GitHub <b>${esc(when)} CT</b>${sha ? ` · ${link ? `<a href="${esc(link)}" target="_blank" rel="noopener" class="mono">${esc(sha.slice(0, 7))}</a>` : `<span class="mono">${esc(sha.slice(0, 7))}</span>`}` : ""}`;
+    el.title = `The commit this version of the page was published from${repo ? ` (${repo.replace("https://github.com/", "")})` : ""}`;
+  }
+
   function render() {
     const r = route();
     const tab = r.startsWith("opp-") ? "opportunities" : r.startsWith("partner-") ? "partners" : r.startsWith("sub-") ? "submissions" : VIEWS[r] ? r : "dashboard";

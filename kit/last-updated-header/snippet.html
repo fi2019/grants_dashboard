@@ -1,0 +1,50 @@
+<!--
+  "Last updated" + "Pushed to GitHub" header, drop-in.
+  1. Put the four <meta> tags in your page's <head> (stamp.py fills them in at publish time).
+  2. Put the <div class="lu-header"> where you want it (top right of your header works well).
+  3. Paste the <style> and <script> once, anywhere in the page.
+  Options on the div: data-tz (IANA time zone, default America/Chicago), data-tz-label (default "CT"), data-prefix (meta prefix, default "app").
+  If your page also loads data, call window.luSetDataUpdated("2026-11-22T21:00:00Z") and "Last updated" shows the later of page and data.
+-->
+<meta name="app:published" content="">
+<meta name="app:pushed" content="">
+<meta name="app:commit" content="">
+<meta name="app:repo" content="">
+
+<div class="lu-header" data-tz="America/Chicago" data-tz-label="CT" data-prefix="app">
+  <span class="lu-line" data-lu="updated"></span>
+  <span class="lu-line lu-small" data-lu="pushed"></span>
+</div>
+
+<style>
+  .lu-header { text-align: right; font-size: 12px; line-height: 1.45; color: var(--lu-muted, #566878) }
+  .lu-header .lu-line { display: block; white-space: nowrap }
+  .lu-header .lu-small { font-size: 11px }
+  .lu-header b { color: var(--lu-ink, #0b1d2a); font-weight: 600 }
+  .lu-header a { color: inherit; text-decoration: underline dotted }
+  .lu-header .lu-mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace }
+  @media (prefers-color-scheme: dark) { .lu-header { --lu-muted: #97aabb; --lu-ink: #e6edf3 } }
+  @media (max-width: 600px) { .lu-header .lu-line { white-space: normal } }
+</style>
+
+<script>
+(() => {
+  const box = document.querySelector(".lu-header"); if (!box) return;
+  const tz = box.dataset.tz || "America/Chicago", tzLabel = box.dataset.tzLabel || "CT", prefix = box.dataset.prefix || "app";
+  const meta = (k) => document.querySelector(`meta[name="${prefix}:${k}"]`)?.content || "";
+  const fmt = (t) => new Date(t).toLocaleString("en-US", { month: "short", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit", timeZone: tz }) + " " + tzLabel;
+  const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  let dataTime = NaN;
+  function draw() {
+    const page = Date.parse(meta("published")), t = Math.max(...[page, dataTime].filter((x) => !Number.isNaN(x)));
+    const up = box.querySelector('[data-lu="updated"]'), pu = box.querySelector('[data-lu="pushed"]');
+    up.innerHTML = Number.isFinite(t) ? `Last updated <b>${esc(fmt(t))}</b>` : "";
+    up.title = Number.isFinite(t) ? (t === page ? "When this page was last published" : "When this page's data was last updated") : "";
+    const pushed = Date.parse(meta("pushed")), sha = meta("commit"), repo = meta("repo");
+    const link = /^https:\/\/github\.com\//.test(repo) && /^[0-9a-f]{7,40}$/.test(sha) ? `${repo}/commit/${sha}` : "";
+    pu.innerHTML = Number.isNaN(pushed) ? "" : `Pushed to GitHub <b>${esc(fmt(pushed))}</b>${sha ? ` · ${link ? `<a class="lu-mono" href="${esc(link)}" target="_blank" rel="noopener">${esc(sha.slice(0, 7))}</a>` : `<span class="lu-mono">${esc(sha.slice(0, 7))}</span>`}` : ""}`;
+  }
+  window.luSetDataUpdated = (iso) => { dataTime = Date.parse(iso); draw(); };
+  draw();
+})();
+</script>
