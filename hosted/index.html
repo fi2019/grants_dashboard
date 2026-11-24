@@ -384,7 +384,19 @@ pre.outline { white-space: pre-wrap; font: 13px/1.55 var(--font); margin: 8px 0 
 .staffcard h3 { font-size: 17px }
 .sttitle { font-size: 14px; color: var(--muted) }
 .stacct { display: grid; gap: 6px }
-:root { --ver-bg: #eaf6ee; --ver-line: #2e8b57; --ver-ink: #1d6b40 }
+:root { --ver-bg: #eaf6ee; --ver-line: #2e8b57; --ver-ink: #1d6b40; --star: #e0a100;
+  --fb-bg: #FFF8D6; --fb-ink: #9A4A00; --fb-line: #F2D675; --rt-bg: #FDECEC; --rt-ink: #8B1A1A; --rt-line: #F1B5B5 }
+/* Tag input (Forge UI kit, DESIGN.md 4.2): chips inside the box; the hidden textarea keeps the saved value. */
+.taginput { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; min-height: 38px; padding: 4px 6px; border: 1px solid var(--line); border-radius: 5px; background: var(--surface); cursor: text; position: relative; font-size: 14px; font-weight: 400 }
+.taginput:focus-within { outline: 2px solid var(--accent); outline-offset: 1px }
+.taginput.ro { background: var(--surface-2); cursor: default }
+.taginput input { flex: 1 1 120px; min-width: 80px; border: 0; padding: 4px 2px; background: transparent; outline: none }
+.taginput .tchip { display: inline-flex; align-items: center; gap: 4px; font-size: 13px; padding: 1px 4px 1px 8px; border-radius: 4px; background: var(--info-bg); color: var(--info); max-width: 100%; overflow-wrap: anywhere }
+.taginput .tchip button { padding: 0 3px; border: 0; background: none; color: inherit; font-size: 15px; line-height: 1; cursor: pointer; opacity: .75 }
+.taginput .tchip button:hover, .taginput .tchip button:focus-visible { opacity: 1 }
+.taginput .tisugg { position: absolute; z-index: 6; left: 0; right: 0; top: 100%; margin: 2px 0 0; padding: 4px; list-style: none; background: var(--surface); border: 1px solid var(--line); border-radius: 6px; max-height: 220px; overflow-y: auto; box-shadow: 0 8px 24px rgba(0,0,0,.12) }
+.taginput .tisugg li { padding: 5px 8px; border-radius: 4px; cursor: pointer }
+.taginput .tisugg li[aria-selected="true"], .taginput .tisugg li:hover { background: var(--surface-2) }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --ver-bg: #10291b; --ver-line: #3fae6e; --ver-ink: #7fd3a5 } }
 :root[data-theme="dark"] { --ver-bg: #10291b; --ver-line: #3fae6e; --ver-ink: #7fd3a5 }
 .verified { display: grid; gap: 14px; padding: 16px; border: 2px solid var(--ver-line); border-radius: 12px; background: var(--ver-bg) }
@@ -475,8 +487,8 @@ dialog.modal .btns { display: flex; flex-wrap: wrap; justify-content: flex-end; 
 .sblock { margin: 6px 0 0; font-size: 13px; padding: 6px 10px; border-radius: 6px; background: var(--warn-bg); color: var(--warn) }
 .sbdlopt { display: inline-flex; gap: 4px; align-items: center }
 .fbbox, .rtbox { display: grid; gap: 6px; border-radius: 6px; padding: 10px 12px; font-size: 14px; line-height: 1.5 }
-.fbbox { background: #FFF8D6; color: #9A4A00; border: 1px solid #F2D675 }
-.rtbox { background: #FDECEC; color: #8B1A1A; border: 1px solid #F1B5B5 }
+.fbbox { background: var(--fb-bg); color: var(--fb-ink); border: 1px solid var(--fb-line) }
+.rtbox { background: var(--rt-bg); color: var(--rt-ink); border: 1px solid var(--rt-line) }
 .fbbox p, .rtbox p { margin: 0 }
 .fbbox ul, .rtbox ul, .rtbox ol { margin: 0; padding-left: 18px; display: grid; gap: 4px }
 .fbsrc { display: block; font-size: 11px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; opacity: .8 }
@@ -655,9 +667,9 @@ dialog.modal .btns { display: flex; flex-wrap: wrap; justify-content: flex-end; 
 .kind { font-size: 11px; border-radius: 4px; padding: 0 6px; background: var(--surface-2); border: 1px solid var(--line); color: var(--muted); text-transform: capitalize }
 .stars { display: inline-flex; gap: 0; white-space: nowrap }
 .stars button { background: none; border: 0; padding: 0 1px; font-size: 17px; line-height: 1; color: var(--line); cursor: pointer }
-.stars button.on { color: #e0a100 }
+.stars button.on { color: var(--star) }
 .stars button:disabled { cursor: default }
-.stars:not(.ro):hover button { color: #e0a100 }
+.stars:not(.ro):hover button { color: var(--star) }
 .stars:not(.ro) button:hover ~ button { color: var(--line) }
 .team-avg { display: block; font: 11px var(--mono); color: var(--muted); white-space: nowrap; margin-top: 2px }
 .role { display: inline-block; font-size: 11px; font-weight: 600; border-radius: 4px; padding: 0 6px; white-space: nowrap }
@@ -1068,8 +1080,8 @@ details.addform[open] > summary::before { content: "− " }
     const mine = myRating(o), canRate = Boolean(me && canWrite && db);
     const t = teamAvg(o);
     const raters = t ? teamRatings(o).map(([uid, n]) => `${names[uid] || (uid === me ? "You" : "A teammate")}: ${n}`).join(", ") : "";
-    return `<span class="stars ${canRate ? "" : "ro"}" role="group" aria-label="Your rating">${[1, 2, 3, 4, 5].map((n) =>
-      `<button type="button" class="${n <= mine ? "on" : ""}" data-rate="${n}" data-id="${o.id}" ${canRate ? "" : "disabled"} title="${canRate ? (n === mine ? "Click again to clear your rating" : `Rate ${n} star${n > 1 ? "s" : ""}`) : "Sign in with Contributor access to rate"}" aria-label="Rate ${n} star${n > 1 ? "s" : ""}">&#9733;</button>`).join("")}</span>
+    return `<span class="stars ${canRate ? "" : "ro"}" role="radiogroup" aria-label="Your rating${canRate ? ". Arrow keys move, 1 to 5 sets, Delete clears" : ""}">${[1, 2, 3, 4, 5].map((n) =>
+      `<button type="button" role="radio" aria-checked="${n === mine}" tabindex="${n === (mine || 1) ? 0 : -1}" class="${n <= mine ? "on" : ""}" data-rate="${n}" data-id="${o.id}" ${canRate ? "" : "disabled"} title="${canRate ? (n === mine ? "Click again to clear your rating" : `Rate ${n} star${n > 1 ? "s" : ""}`) : "Sign in with Contributor access to rate"}" aria-label="Rate ${n} star${n > 1 ? "s" : ""}">&#9733;</button>`).join("")}</span>
       <span class="team-avg" title="${esc(raters)}">${t ? `Team ${t.avg.toFixed(1)} · ${t.count} rating${t.count > 1 ? "s" : ""}` : "Team: no ratings"}</span>`;
   }
 
@@ -1907,6 +1919,9 @@ ${String(text).slice(0, SEND_CHARS)}
   const field = (id, label, value, attrs = "", cls = "") => `<label class="${cls}" for="${id}">${label}<input id="${id}" value="${esc(value ?? "")}" ${attrs} ${ro()}></label>`;
   const selectField = (id, label, options, value) => `<label for="${id}">${label}<select id="${id}" ${ro()}>${options.map((o) => `<option ${o === value ? "selected" : ""}>${esc(o)}</option>`).join("")}</select></label>`;
   const areaField = (id, label, value, help) => `<label class="wide" for="${id}">${label}<textarea id="${id}" rows="2" ${ro()}>${esc(value ?? "")}</textarea>${help ? `<span class="help">${help}</span>` : ""}</label>`;
+  // Multi-value field shown as chips (DESIGN.md 4.2). The textarea stays as the stored value (joined by ", " or new lines),
+  // so saving code reads it as before; mountTagInputs() turns it into chips after each render.
+  const tagField = (id, label, list, help, src, sep = ",") => `<label class="wide" for="${id}-in">${label}<textarea id="${id}" data-tags="${sep === "," ? "comma" : "line"}" data-tagsrc="${src}" rows="2" hidden ${ro()}>${esc((list || []).join(sep === "," ? ", " : "\n"))}</textarea>${help ? `<span class="help">${help}</span>` : ""}</label>`;
   const val = (id) => (document.getElementById(id)?.value || "").trim();
   const formActions = (kind, isNew) => `<div class="actions"><button class="btn" data-save="${kind}" ${ro()}>${isNew ? "Add" : "Save changes"}</button>${isNew ? "" : `<button class="btn-ghost" data-cancel="${kind}">Cancel</button>`}<span class="toast" id="${kind}-toast">${esc(flash[kind + "-toast"] || "")}</span></div>`;
 
@@ -2294,7 +2309,7 @@ ${String(text).slice(0, SEND_CHARS)}
           <label class="wide" for="p-summary"><span style="display:flex;gap:6px;align-items:center">Focus summary <span class="draftnote" id="p-draftflag" ${pform.draftShown ? "" : "hidden"}>Draft</span></span>
             <textarea id="p-summary" rows="4" maxlength="2000" placeholder="What this partner works on, in a few sentences. Filled in automatically after you enter the link." ${ro()}>${esc(pform.summary ?? e.summary ?? "")}</textarea>
             <span class="help">Used to describe the partner and to find matching opportunities. Claude drafts it from the link and any documents; edit it as needed.</span></label>
-          ${areaField("p-focus", "Focus areas (search and matching keywords)", pform.focus ?? (e.focus || []).join(", "), "Comma-separated words or phrases. An opportunity that mentions any of them is flagged as a possible joint submission.")}
+          ${tagField("p-focus", "Focus areas (search and matching keywords)", pform.focus != null ? listOf(pform.focus) : (e.focus || []), "Type a word or phrase and press Enter or comma. An opportunity that mentions any of them is flagged as a possible joint submission.", "focus")}
           <div class="actions" style="grid-column:1/-1;flex-wrap:wrap"><button type="button" class="btn-ghost" data-gendraft="1" ${ro()}>${pform.draftShown ? "Draft again" : "Draft summary and focus areas"}</button>
             <span class="job ${pform.err ? "err" : ""}" id="p-gen" role="status">${pform.status || ""}</span></div>
           <label style="grid-column:1/-1;display:flex;gap:6px;align-items:center;font-size:13px;color:var(--fg)"><input type="checkbox" id="p-research" checked ${ro()}> Research this partner online after saving: Claude opens the link, searches the web and drafts a cited summary and focus areas (usually ready within the hour)</label>
@@ -2759,7 +2774,7 @@ Reply with only a JSON object:
       <section class="panel"><h2>${isNew ? "Add a category" : "Edit category"}</h2>
         <div class="form">
           ${field("c-name", "Name", e.name, 'placeholder="Grid cybersecurity" maxlength="80"')}
-          ${areaField("c-kw", "Keywords", (e.keywords || []).join(", "), "Comma-separated. Matched against each opportunity's title, description and eligibility.")}
+          ${tagField("c-kw", "Keywords", e.keywords || [], "Type and press Enter or comma; paste a list to add several. Matched against each opportunity's title, description and eligibility.", "kw")}
           <div class="wide" style="grid-column:1/-1;display:grid;gap:6px"><span class="note">Team members</span>
             <div class="people" id="c-members">${draftMembers[key].map((id) => personHtml(id, canWrite)).join("") || `<span class="help">No one yet.</span>`}</div>
             ${user?.search ? `<div class="picker"><input id="c-search" placeholder="Add a team member by name…" autocomplete="off" ${ro()}><ul id="c-results" hidden></ul></div>` : `<p class="help">Team member search isn't available in this view.</p>`}
@@ -2833,8 +2848,8 @@ Reply with only a JSON object:
           <label class="upload">Upload résumé or document<input type="file" id="st-files" multiple accept=".pdf,.docx,.pptx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.openxmlformats-officedocument.presentationml.presentation" ${ro()}></label></div>
         <span class="job ${sform.err ? "err" : ""}" id="st-status" role="status">${sform.status}</span>
       </div>
-      ${areaField("st-caps", "Capabilities (comma-separated)", (e.capabilities || []).join(", "), "What this person can do for a proposal or program, e.g. program management, OT security assessments, workforce curriculum design.")}
-      ${areaField("st-skills", "Skills and credentials (comma-separated)", (e.skills || []).join(", "), "Tools, methods, certifications and clearances, e.g. CISSP, NERC CIP, Python, grant administration.")}
+      ${tagField("st-caps", "Capabilities", e.capabilities || [], "What this person can do for a proposal or program, e.g. program management, OT security assessments, workforce curriculum design.", "caps")}
+      ${tagField("st-skills", "Skills and credentials", e.skills || [], "Tools, methods, certifications and clearances, e.g. CISSP, NERC CIP, Python, grant administration.", "skills")}
       <label class="wide" for="st-bio">Biography<textarea id="st-bio" rows="7" maxlength="6000" placeholder="A short professional bio, as it would appear in a proposal's key personnel section." ${ro()}>${esc(e.bio || "")}</textarea></label>
       <div class="actions"><button class="btn" data-savestaff="1" ${ro()}>${id && id !== "new" ? "Save changes" : "Add staff member"}</button><button class="btn-ghost" data-cancelstaff="1">Cancel</button><span class="toast" id="staff-toast">${esc(flash["staff-toast"] || "")}</span></div>
     </div>`;
@@ -3225,7 +3240,7 @@ ${String(text).slice(0, SEND_CHARS)}
       <label>Forge's role${sel("role", AW_ROLE, a.role || "prime")}</label><label>Status${sel("status", AW_STATUS, a.status || "active")}</label>
       ${field("aw-start", "Start", a.start || "", 'type="date"')}${field("aw-end", "End", a.end || "", 'type="date"')}
       ${field("aw-year", "Award year", a.year ?? "", 'type="number" min="2000" max="2100"')}${field("aw-mech", "Type", a.mechanism, 'maxlength="60" placeholder="Grant, Contract, CRADA…"')}
-      ${field("aw-partners", "Partners (comma-separated)", (a.partners || []).join(", "), 'maxlength="600"', "wide")}
+      ${tagField("aw-partners", "Partners", a.partners || [], "", "pnames")}
       ${field("aw-notes", "Notes", a.notes, 'maxlength="300"', "wide")}
       <div class="actions"><button class="btn" data-awsave="1" ${ro()}>${AW.edit === "new" ? "Add award" : "Save award"}</button><button class="btn-ghost" data-awcancel="1">Cancel</button></div>
     </div>`;
@@ -3283,7 +3298,7 @@ ${String(text).slice(0, SEND_CHARS)}
           <b style="grid-column:1/-1;font-size:14px">Organization details</b>
           ${ORG_FIELDS.map(([k, l]) => field("pf-org-" + k, l, orgOf(p)[k] || "", k === "address" ? 'maxlength="300"' : 'maxlength="160"', k === "address" ? "wide" : "")).join("")}
           ${areaField("pf-summary", "Summary (who Forge is and how it works on grants)", p.summary, "")}
-          ${PROFILE_LISTS.map(([k, label]) => `<label class="wide" for="pf-${k}">${label}<textarea id="pf-${k}" rows="${Math.min(10, Math.max(3, ((k === "decisionCriteria" ? crit : p[k]) || []).length + 1))}" ${ro()}>${esc(((k === "decisionCriteria" ? crit : p[k]) || []).join("\n"))}</textarea><span class="help">One item per line.</span></label>`).join("")}
+          ${PROFILE_LISTS.map(([k, label]) => k === "capabilities" || k === "partners" ? tagField("pf-" + k, label, p[k] || [], k === "partners" ? "Press Enter after each name; names can include commas." : "Press Enter after each one; a capability can include commas.", k === "partners" ? "pnames" : "caps", "\n") : `<label class="wide" for="pf-${k}">${label}<textarea id="pf-${k}" rows="${Math.min(10, Math.max(3, ((k === "decisionCriteria" ? crit : p[k]) || []).length + 1))}" ${ro()}>${esc(((k === "decisionCriteria" ? crit : p[k]) || []).join("\n"))}</textarea><span class="help">One item per line.</span></label>`).join("")}
           ${field("pf-lead", "Forge internal deadline: days before submission", leadDays(), 'type="number" min="1" max="90"')}
           <p class="help" style="grid-column:1/-1">Edits show here right away. The daily scan reads this profile and the Forge documents' summaries when Claude scores new listings.</p>
           <div class="actions"><button class="btn" data-saveprofile="1" ${ro()}>Save profile</button><button class="btn-ghost" data-cancelprofile="1">Cancel</button><span class="toast" id="profile-toast">${esc(flash["profile-toast"] || "")}</span></div>
@@ -3855,7 +3870,7 @@ Concept being proposed: ${JSON.stringify(x.concepts?.[x.chosen] || null).slice(0
   // Close the Stages menu when clicking elsewhere.
   document.addEventListener("click", (ev) => { const sp = document.getElementById("stagepick"); if (sp && sp.open && ev.target.isConnected && !sp.contains(ev.target)) { sp.open = false; stageMenuOpen = false; } });
   document.addEventListener("toggle", (ev) => { if (ev.target.id === "stagepick") stageMenuOpen = ev.target.open; }, true);
-  addEventListener("beforeunload", (ev) => { if (SB.dirty) { ev.preventDefault(); ev.returnValue = ""; } });
+  addEventListener("beforeunload", (ev) => { if (SB.dirty || unsavedForm()) { ev.preventDefault(); ev.returnValue = ""; } });
   // ---------- history ----------
   const KIND_LABEL = { rating: "Rating", decision: "Decision", source: "Funding sponsor", partner: "Partner", category: "Category", keyword: "Keyword", profile: "Profile", scan: "Scan", teaming: "Teaming", staff: "Staff", submission: "Submission" };
   const show = (v) => v === null || v === undefined || v === "" ? "(empty)" : Array.isArray(v) ? (v.length ? v.join(", ") : "(empty)") : String(v);
@@ -4480,7 +4495,9 @@ ${JSON.stringify({ partners: inp.partners, consortia: inp.consortia, fundingSpon
       <p>The detail page starts with <b>What it is</b>, the listing's own description, then the facts, Claude's take, the criteria, past awards and proposal coaching. The decision panel on the right holds stage, owners, teaming partners and notes.</p>
       <dl class="hdl">
         <dt>Fit score</dt><dd><span class="score s6">6/10</span> is Claude's judgment of fit with Forge (6+ is a high match). A score with a star, <span class="score s4 pre">4/10*</span>, is a keyword pre-score Claude hasn't reviewed yet. No score means nobody has scored it (common for imported Asana records).</dd>
-        <dt>Stars</dt><dd>Your own 1–5 rating, with the team average under it. Click your rating again to clear it. A team average of 3 or more starts proposal coaching.</dd>
+        <dt>Stars</dt><dd>Your own 1–5 rating, with the team average under it. Click your rating again to clear it. With the keyboard, Tab to the stars, then use the arrow keys to move, 1 to 5 to set and Delete to clear. A team average of 3 or more starts proposal coaching.</dd>
+        <dt>Lists of words</dt><dd>Keywords, focus areas, capabilities, skills and award partners are entered as tags. Type one and press Enter or comma (Enter only for Forge profile capabilities and partners, which can contain commas). Paste a list to add several at once, press Backspace in an empty box to remove the last tag, or click × on a tag. Suggestions come from values already in use, so the same idea isn't spelled three ways.</dd>
+        <dt>Unsaved changes</dt><dd>If you leave a form with unsaved edits, the app asks before discarding them.</dd>
         <dt>Deadlines</dt><dd><span class="dl urgent">red</span> under 30 days, <span class="dl soon">orange</span> under 90, <span class="dl ok">green</span> 90 or more. A ⚠ date is probably a placeholder in the source data. The <b>Forge internal deadline</b> defaults to 2 weeks before submission (change the default on Forge profile, or set a date on the opportunity).</dd>
         <dt>Type</dt><dd><span class="mech sbir">SBIR</span> <span class="mech baa">BAA</span> <span class="mech cso">CSO</span> <span class="mech grant">Grant</span> <span class="mech coop">Coop. agreement</span> <span class="mech contract">Contract</span> <span class="mech fdn">Foundation</span> <span class="mech agr">Agreement</span> <span class="mech cong">Congressional</span> <span class="mech memb">Membership</span> and others. Filter by them with the Type menu.</dd>
         <dt>Forge's role</dt><dd><span class="role lead">Forge can lead</span>, <span class="role partner">Partner role</span> (someone else must lead, for example SBIR or university-only), or <span class="role unclear">Lead: check notice</span> when the listing doesn't say. Claude's judgment replaces this once it scores the listing.</dd>
@@ -4676,6 +4693,66 @@ ${JSON.stringify({ partners: inp.partners, consortia: inp.consortia, fundingSpon
     el.title = `The commit this version of the page was published from${repo ? ` (${repo.replace("https://github.com/", "")})` : ""}`;
   }
 
+  // ---------- tag inputs (Forge UI kit FUI.tagInput, adapted) ----------
+  const TAG_SRC = {
+    caps: () => [...Object.values(S.staff).flatMap((x) => x.capabilities || []), ...(P().capabilities || [])],
+    skills: () => Object.values(S.staff).flatMap((x) => x.skills || []),
+    focus: () => Object.values(S.partners).flatMap((x) => x.focus || []),
+    kw: () => Object.values(S.categories).flatMap((x) => x.keywords || []),
+    pnames: () => Object.values(S.partners).map((x) => x.name).filter(Boolean),
+  };
+  function mountTagInputs(root = app) {
+    root.querySelectorAll("textarea[data-tags]:not([data-mounted])").forEach((ta) => {
+      ta.dataset.mounted = "1";
+      const line = ta.dataset.tags === "line", splitRe = line ? /[;\n]/ : /[,;\n]/, joiner = line ? "\n" : ", ";
+      const parse = (v) => String(v || "").split(splitRe).map((t) => t.trim().replace(/\s+/g, " ").slice(0, 80)).filter(Boolean);
+      const dedupe = (list) => list.filter((t, i) => list.findIndex((x) => x.toLowerCase() === t.toLowerCase()) === i).slice(0, 60);
+      let tags = dedupe(parse(ta.value)), sugg = [], sel = -1;
+      const disabled = ta.disabled, el = document.createElement("div");
+      el.className = "taginput" + (disabled ? " ro" : "");
+      el.innerHTML = `<span class="tchips" style="display:contents"></span>${disabled ? "" : `<input type="text" id="${ta.id}-in" autocomplete="off" placeholder="${line ? "Type and press Enter" : "Type and press Enter or comma"}" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="${ta.id}-sugg"><ul class="tisugg" id="${ta.id}-sugg" role="listbox" hidden></ul>`}`;
+      ta.before(el);
+      const box = el.querySelector(".tchips"), input = el.querySelector("input"), list = el.querySelector(".tisugg");
+      const proto = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, "value");
+      const draw = () => { box.innerHTML = tags.map((t, i) => `<span class="tchip">${esc(t)}${disabled ? "" : `<button type="button" data-ti="${i}" aria-label="Remove ${esc(t)}">×</button>`}</span>`).join("") || (disabled ? `<span class="help">None</span>` : ""); };
+      // Code that fills the field (Claude drafts, resume merges) sets .value; keep the chips in step.
+      Object.defineProperty(ta, "value", { configurable: true, get() { return proto.get.call(this); }, set(v) { proto.set.call(this, v); tags = dedupe(parse(v)); draw(); } });
+      const changed = () => { proto.set.call(ta, tags.join(joiner)); draw(); ta.dispatchEvent(new Event("input", { bubbles: true })); };
+      const has = (t) => tags.some((x) => x.toLowerCase() === t.toLowerCase());
+      const hide = () => { if (list) { list.hidden = true; input.setAttribute("aria-expanded", "false"); input.removeAttribute("aria-activedescendant"); } sel = -1; };
+      const add = (raw) => { let n = 0; dedupe(parse(raw)).forEach((t) => { if (tags.length < 60 && !has(t)) { tags.push(t); n++; } }); if (n) changed(); input.value = ""; hide(); };
+      const suggest = () => {
+        const q = input.value.trim().toLowerCase(); if (!q) return hide();
+        const all = (TAG_SRC[ta.dataset.tagsrc]?.() || []), seen = new Set();
+        sugg = all.filter((x) => { const k = String(x).toLowerCase(); if (seen.has(k) || has(x) || !k.includes(q)) return false; seen.add(k); return true; }).slice(0, 8);
+        if (!sugg.length) return hide();
+        sel = -1; list.innerHTML = sugg.map((x, i) => `<li role="option" id="${ta.id}-o${i}" data-si="${i}" aria-selected="false">${esc(x)}</li>`).join("");
+        list.hidden = false; input.setAttribute("aria-expanded", "true");
+      };
+      draw();
+      if (disabled) return;
+      el.addEventListener("mousedown", (e) => { if (e.target.closest(".tisugg li")) e.preventDefault(); });
+      el.addEventListener("click", (e) => {
+        const b = e.target.closest(".tchip button"); if (b) { tags.splice(Number(b.dataset.ti), 1); changed(); input.focus(); return; }
+        const li = e.target.closest(".tisugg li"); if (li) { add(sugg[Number(li.dataset.si)]); input.focus(); return; }
+        if (e.target === el) input.focus();
+      });
+      input.addEventListener("input", (e) => { e.stopPropagation(); suggest(); });
+      input.addEventListener("blur", () => setTimeout(() => { if (input.value.trim()) add(input.value); hide(); }, 120));
+      input.addEventListener("paste", (e) => { const t = e.clipboardData?.getData("text") || ""; if (splitRe.test(t)) { e.preventDefault(); add(t); } });
+      input.addEventListener("keydown", (e) => {
+        if (list && !list.hidden && (e.key === "ArrowDown" || e.key === "ArrowUp")) {
+          e.preventDefault(); sel = (sel + (e.key === "ArrowDown" ? 1 : -1) + sugg.length) % sugg.length;
+          [...list.children].forEach((li, i) => li.setAttribute("aria-selected", String(i === sel))); input.setAttribute("aria-activedescendant", `${ta.id}-o${sel}`); return;
+        }
+        if (e.key === "Enter" || e.key === ";" || (!line && e.key === ",") || (e.key === "Tab" && input.value.trim())) {
+          if (!input.value.trim() && sel < 0) { if (e.key === "Enter") e.preventDefault(); return; }
+          e.preventDefault(); e.stopPropagation(); add(sel >= 0 ? sugg[sel] : input.value);
+        } else if (e.key === "Backspace" && !input.value && tags.length) { tags.pop(); changed(); }
+        else if (e.key === "Escape" && list && !list.hidden) { e.stopPropagation(); hide(); }
+      });
+    });
+  }
   function render() {
     const r = route();
     const tab = r.startsWith("opp-") ? "opportunities" : r.startsWith("partner-") ? "partners" : r.startsWith("sub-") ? "submissions" : VIEWS[r] ? r : "dashboard";
@@ -4690,6 +4767,7 @@ ${JSON.stringify({ partners: inp.partners, consortia: inp.consortia, fundingSpon
     refreshBanner();
     app.innerHTML = r.startsWith("opp-") ? viewDetail(r.slice(4)) : r.startsWith("sub-") ? viewSubmission(decodeURIComponent(r.slice(4))) : r.startsWith("partner-") ? viewPartnerDetail(decodeURIComponent(r.slice(8))) : (VIEWS[r] || viewDashboard)();
     if (r === "teaming") mountTeamGraph(); else tSim?.stop();
+    mountTagInputs();
   }
   const saveFilters = () => { try { localStorage.setItem("fg-filters", JSON.stringify(ui)); } catch {} };
   const CLEAR = { q: "", min: "", agency: "", stage: "", cat: "", role: "", mech: "", owner: "", tc: "", src: "", partner: false, clean: false, closed: false, stars: "", starBasis: ui.starBasis || "mine", unrated: true };
@@ -4719,7 +4797,14 @@ ${JSON.stringify({ partners: inp.partners, consortia: inp.consortia, fundingSpon
   addEventListener("scroll", () => { navStack[navStack.length - 1].y = scrollY; }, { passive: true });
   const markEdit = () => { if (!editReturn || editReturn.hash !== curHash()) editReturn = { hash: curHash(), y: scrollY }; };
   const backFromEdit = () => { const r = editReturn; editReturn = null; if (!r) return; if (curHash() !== r.hash) { const prev = navStack[navStack.length - 2]; if (prev && prev.hash === r.hash) prev.y = r.y; location.hash = r.hash; } else restoreY(r.y); };
-  addEventListener("hashchange", () => {
+  // Unsaved edits in an open form (DESIGN.md 4.4). Submissions save themselves on leave, so they don't count here.
+  const unsavedForm = () => dirty && !curHashPrev().startsWith("#sub-") && Boolean(app.querySelector(".form, #decision"));
+  const curHashPrev = () => navStack[navStack.length - 1]?.hash || "";
+  addEventListener("hashchange", async () => {
+    if (unsavedForm() && curHash() !== curHashPrev()) {
+      const leave = await confirmModal({ title: "Leave without saving?", body: "<p>You have changes on this page that aren't saved. If you leave now, they're lost.</p>", ok: "Leave and discard changes", cancel: "Stay and keep editing" });
+      if (!leave) { history.replaceState(history.state, "", curHashPrev()); return; }
+    }
     if (SB.dirty && SB.id && route() !== "sub-" + encodeURIComponent(SB.id) && S.submissions[SB.id]) saveSubmission(SB.id, true);
     setNav(false);
     armed.clear(); dirty = false; dOwners.id = null; dPartners.id = null; editing.profile = false; for (const k in flash) delete flash[k];
@@ -4919,10 +5004,11 @@ ${JSON.stringify({ partners: inp.partners, consortia: inp.consortia, fundingSpon
     catch (err) { toast("kw-toast", errMsg(err)); }
   }
 
-  async function rate(oppId, n) {
+  async function rate(oppId, n, exact) {
     if (!db || !me || !canWrite) return;
     const o = OPPS.find((x) => x.id === oppId) || (oppId.startsWith("p_") && S.partners[oppId.slice(2)] ? rateable({ id: oppId.slice(2), ...S.partners[oppId.slice(2)] }) : null) || conceptRateable(oppId); if (!o) return;
-    const prev = myRating(o), next = prev === n ? 0 : n;   // clicking your current rating clears it
+    const prev = myRating(o), next = exact ? n : prev === n ? 0 : n;   // clicking your current rating clears it; keys set exactly
+    if (exact && prev === next) return;
     const mineDoc = { ...(S.ratings[me] || {}) };
     if (next) mineDoc[oppId] = next; else delete mineDoc[oppId];
     S.ratings = { ...S.ratings, [me]: mineDoc };   // show it right away
@@ -5104,6 +5190,16 @@ ${JSON.stringify({ partners: inp.partners, consortia: inp.consortia, fundingSpon
   // Remember whether the add-partner panel is open, so a live update doesn't fold it shut.
   app.addEventListener("toggle", (e) => { if (e.target.id === "pform") pform.open = e.target.open; if (e.target.id === "consdetails") consClosed = !e.target.open; }, true);
   app.addEventListener("keydown", (e) => {
+    const sb = e.target.closest?.(".stars button[data-rate]");
+    if (sb && !sb.disabled) {   // star ratings: arrows move, 1-5 set, Delete/Backspace/0 clear (DESIGN.md 4.1)
+      const btns = [...sb.parentElement.querySelectorAll("button[data-rate]")], i = btns.indexOf(sb), id = sb.dataset.id;
+      const move = { ArrowRight: 1, ArrowUp: 1, ArrowLeft: -1, ArrowDown: -1 }[e.key];
+      const focusStar = (n) => requestAnimationFrame(() => document.querySelector(`.stars [data-rate="${Math.max(1, n)}"][data-id="${CSS.escape(id)}"]`)?.focus());
+      if (move) { e.preventDefault(); btns[(i + move + 5) % 5].focus(); return; }
+      if (e.key === "Home" || e.key === "End") { e.preventDefault(); btns[e.key === "Home" ? 0 : 4].focus(); return; }
+      if (/^[1-5]$/.test(e.key)) { e.preventDefault(); rate(id, Number(e.key), true); focusStar(Number(e.key)); return; }
+      if (e.key === "0" || e.key === "Delete" || e.key === "Backspace") { e.preventDefault(); rate(id, 0, true); focusStar(1); return; }
+    }
     if (e.key === "Enter" && e.target.id?.startsWith?.("sb-cm-")) { e.preventDefault(); const k = Number(e.target.id.slice(6)); if (SB.id) addComment(SB.id, k); return; }
     if (e.key === "Enter" && e.target.closest?.("#quickadd") && e.target.tagName === "INPUT") { e.preventDefault(); const b = document.querySelector("[data-addkid]"); if (b) addChildInline(b.dataset.addkid, "ck", "kid-toast"); }
   });
@@ -5175,7 +5271,8 @@ ${JSON.stringify({ partners: inp.partners, consortia: inp.consortia, fundingSpon
   });
   let typing;
   app.addEventListener("input", (e) => {
-    if (e.target.closest("#decision, .form")) dirty = true;
+    // Searching or sorting inside a form isn't an unsaved change.
+    if (e.target.closest("#decision, .form") && !e.target.matches('[id$="search"], [id$="sort"], [id$="-q"], [id$="-fq"], [id$="-pq"], [type="search"], [type="file"]')) dirty = true;
     if (e.target.id === "p-summary") { pform.edited.summary = true; pform.summary = e.target.value; }
     if (e.target.id === "p-focus") { pform.edited.focus = true; pform.focus = e.target.value; }
   });
